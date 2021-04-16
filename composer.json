@@ -7,7 +7,7 @@
         "craft",
         "cms",
         "craftcms",
-        "craft-plugin",
+        "craft-plugin"
     ],
     "support": {
         "docs": "https://percipio.london/plugins/timeloop/documentation",
