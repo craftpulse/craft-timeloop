@@ -1,0 +1,51 @@
+{
+    "name": "percipioglobal/craft-timeloop",
+    "description": "Craft TimeLoop Plugin",
+    "type": "craft-plugin",
+    "version": "0.1.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+    ],
+    "support": {
+        "docs": "https://percipio.london/plugins/timeloop/documentation",
+        "issues": "https://github.com/percipioglobal/craft-timeloop/issues"
+    },
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Percipio.London",
+            "homepage": "https://percipio.london"
+        }
+    ],
+    "require-dev": {
+        "codeception/codeception": "^3.0",
+        "vlucas/phpdotenv": "^3.0"
+    },
+    "require": {
+        "craftcms/cms": "^3.2",
+        "nystudio107/craft-plugin-manifest": "^1.0.0"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
+    "scripts": {
+        "test": "codecept run unit --coverage-xml"
+    },
+    "autoload": {
+        "psr-4": {
+            "percipiolondon\\timeloop\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Timeloop",
+        "handle": "timeloop",
+        "changelogUrl": "https://raw.githubusercontent.com/percipioglobal/craft-timeloop/v3/CHANGELOG.md",
+        "class": "percipiolondon\\timeloop\\TimeLoop"
+    }
+}
