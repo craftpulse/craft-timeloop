@@ -6,7 +6,7 @@ paths:
   support: tests/_support
   envs: tests/_envs
 settings:
-bootstrap: _bootstrap.php
+  bootstrap: _bootstrap.php
 coverage:
   enabled: true
   include:
@@ -23,18 +23,17 @@ coverage:
     - vendor/*
 params:
   - tests/.env
-  - env
 modules:
   config:
     \craft\test\Craft:
       configFile: 'tests/_craft/config/test.php'
-      entryUrl: 'http://testcraft.test/index.php'
+      entryUrl: 'https://test.craftcms.test/index.php'
       projectConfig: {}
       migrations: []
       plugins:
-        companymanagement:
-          class: '\percipiolondon\companymanagement\Companymanagement'
-          handle: companymanagement
+        timeloop:
+          class: '\percipioglobal\timeloop\Timeloop'
+          handle: timeloop
       cleanup: true
       transaction: true
       dbSetup: {clean: true, setupCraft: true}

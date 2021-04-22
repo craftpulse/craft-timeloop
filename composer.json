@@ -1,51 +1,46 @@
 {
     "name": "percipioglobal/craft-timeloop",
-    "description": "Craft TimeLoop Plugin",
+    "description": "This is a plugin to make repeating dates",
     "type": "craft-plugin",
     "version": "0.1.0",
     "keywords": [
         "craft",
         "cms",
         "craftcms",
-        "craft-plugin"
+        "craft-plugin",
+        "timeloop"
     ],
     "support": {
-        "docs": "https://percipio.london/plugins/timeloop/documentation",
-        "issues": "https://github.com/percipioglobal/craft-timeloop/issues"
+        "docs": "https://github.com/percipioglobal/timeloop/blob/master/README.md",
+        "issues": "https://github.com/percipioglobal/timeloop/issues"
     },
-    "license": "proprietary",
+    "license": "MIT",
     "authors": [
         {
-            "name": "Percipio.London",
+            "name": "percipioglobal",
             "homepage": "https://percipio.london"
         }
     ],
+    "require": {
+        "craftcms/cms": "^3.0.0"
+    },
     "require-dev": {
+        "craftcms/cms": "^3.2.0",
         "codeception/codeception": "^3.0",
         "vlucas/phpdotenv": "^3.0"
     },
-    "require": {
-        "craftcms/cms": "^3.2",
-        "nystudio107/craft-plugin-manifest": "^1.0.0"
-    },
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://asset-packagist.org"
-        }
-    ],
-    "scripts": {
-        "test": "codecept run unit --coverage-xml"
-    },
     "autoload": {
         "psr-4": {
-            "percipiolondon\\timeloop\\": "src/"
+            "percipioglobal\\timeloop\\": "src/"
         }
     },
     "extra": {
         "name": "Timeloop",
         "handle": "timeloop",
-        "changelogUrl": "https://raw.githubusercontent.com/percipioglobal/craft-timeloop/v3/CHANGELOG.md",
-        "class": "percipiolondon\\timeloop\\TimeLoop"
+        "developer": "percipioglobal",
+        "developerUrl": "https://percipio.london",
+        "documentationUrl": "https://github.com/percipioglobal/timeloop/blob/master/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/percipioglobal/timeloop/master/CHANGELOG.md",
+        "class": "percipioglobal\\timeloop\\Timeloop"
     }
 }
