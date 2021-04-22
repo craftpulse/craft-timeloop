@@ -1,0 +1,53 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * Timeloop plugin for Craft CMS 3.x
+ *
+ * Timeloop Field Input
+ *
+ * @author    percipioglobal
+ * @copyright Copyright (c) 2021 percipioglobal
+ * @link      https://percipio.london
+ * @package   Timeloop
+ * @since     0.1.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+<div class="bg-gray-100 p-6">
+    <div class="flex flex-nowrap"> 
+        <div class="w-1/2">
+            {{ forms.dateField({
+                label: 'Loop from',
+                instructions: 'Enter a startdate from when the loop should start',
+                name: name ~ '[loopStart]',
+                required: true,
+                value: value.loopStart.date ?? now
+            }) }}
+        </div>
+        <div class="w-1/2">
+            {{ forms.dateField({
+                label: 'Loop until',
+                instructions: 'Enter an end date when the loop should end',
+                name: name ~ "[loopEnd]",
+                value: value.loopEnd.date ?? "",
+            }) }}
+        </div>
+    </div>
+
+    {{ forms.selectField({
+            label: 'Repeat',
+            id: name ~ "[repeat]",
+            name: name ~ "[repeat]",
+            required: true,
+            options: [
+                    {label: 'None'|t('timeloop'), value: 'none'},
+                    {label: 'Every Day'|t('timeloop'), value: 'day'},
+                    {label: 'Every Week'|t('timeloop'), value: 'week'},
+                    {label: 'Every Month'|t('timeloop'), value: 'month'},
+                    {label: 'Every Year'|t('timeloop'), value: 'year'},
+            ],
+            value: value.repeat ?? null,
+    }) }}
+</div>
