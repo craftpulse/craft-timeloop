@@ -2,27 +2,25 @@
 
 namespace percipioglobal\timeloop\variables;
 
+use percipioglobal\timeloop\Timeloop;
+
 use Craft;
+use DateInterval;
+use DateTime;
 
 class TimeloopVariable
 {
-    public function getUpcomingDate($data)
+    /**
+     * Returns the first upcoming date from the timeloop date
+     *
+     */
+    public function getUpcoming($data)
     {
-        $startDate = strtotime($data['loopStart']['date']);
-
-        switch ($data['repeat']) {
-            case "day":
-                return strtotime('tomorrow');
-            case "week":
-                return $this->_getNextWeek($startDate);
-        }
-        
-        throw new \yii\base\Exception( "There's no repeatable date set into the field" );
+        return Timeloop::$plugin->timeloop->getUpcoming($data);
     }
 
-    private function _getNextWeek($unix)
+    public function getDates($data, $limit = null)
     {
-        $dayOfTheWeek = date("l", $unix);
-        return strtotime('next ' . $dayOfTheWeek );
+        return Timeloop::$plugin->timeloop->getLoop($data, $limit);
     }
 }
