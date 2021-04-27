@@ -43,10 +43,10 @@ class TimeloopService extends Component
         $startUnix = strtotime($data['loopStart']['date']);
 
         //get ISO 8601 from the repeater in data object
-        $repeater = self::REPEAT_PATTERN[$data['repeat']] ?? false;
+        $repeater = self::REPEAT_PATTERN[$data['loopPeriod']] ?? false;
 
         //get today + repeater value from now to get the next date. We need a date in the future, otherwise it will return todays date.
-        $next = strtotime(self::TIME_ADDITION[$data['repeat']] ?? 'today');
+        $next = strtotime(self::TIME_ADDITION[$data['loopPeriod']] ?? 'today');
 
         //check if the end date is set in data object, otherwise use today + 1 day as default. By default the loop will not end with this date
         $end = array_key_exists('loopEnd', $data) && "" !== $data['loopEnd']['date'] ?
@@ -87,7 +87,7 @@ class TimeloopService extends Component
             strtotime('+20 years');
 
         //get ISO 8601 from the repeater in data object
-        $repeater = self::REPEAT_PATTERN[$data['repeat']] ?? false;
+        $repeater = self::REPEAT_PATTERN[$data['loopPeriod']] ?? false;
 
         //if no limit is set, use the default so we don't end up with high number arrays
         $limit = $limit == 0 ? self::MAX_ARRAY_ENTRIES : $limit;
