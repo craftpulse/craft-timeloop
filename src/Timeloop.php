@@ -10,6 +10,8 @@
 
 namespace percipioglobal\timeloop;
 
+use craft\events\RegisterGqlTypesEvent;
+use percipioglobal\timeloop\gql\TimeloopType;
 use percipioglobal\timeloop\models\Settings;
 use percipioglobal\timeloop\fields\TimeloopField as TimeloopField;
 use percipioglobal\timeloop\variables\TimeloopVariable;
@@ -17,11 +19,10 @@ use percipioglobal\timeloop\services\TimeloopService;
 
 use Craft;
 use craft\base\Plugin;
-use craft\services\Plugins;
-use craft\events\PluginEvent;
 use craft\services\Fields;
 use craft\events\RegisterComponentTypesEvent;
 use craft\web\twig\variables\CraftVariable;
+use craft\services\Gql;
 
 use yii\base\Event;
 
@@ -118,6 +119,15 @@ class Timeloop extends Plugin
         $this->setComponents([
             'timeloop' => TimeloopService::class,
         ]);
+
+        // Register graphQL event handlers
+        Event::on(
+            Gql::class,
+            Gql::EVENT_REGISTER_GQL_TYPES,
+            static function(RegisterGqlTypesEvent $event) {
+                $event->types[] = TimeloopType::class;
+            });
+
 
         // Do something after we're installed
         // Event::on(

@@ -11,6 +11,7 @@
 namespace percipioglobal\timeloop\fields;
 
 // use percipioglobal\timeloop\TimeloopField;
+use GraphQL\Type\Definition\Type;
 use percipioglobal\timeloop\assetbundles\timeloopfield\TimeloopFieldAsset;
 
 use Craft;
@@ -19,10 +20,12 @@ use craft\base\Field;
 use craft\helpers\Db;
 use yii\db\Schema;
 use craft\helpers\Json;
+use percipioglobal\timeloop\gql\TimeloopType;
+use craft\gql\TypeLoader;
 
 /**
  * Timeloop Field
- *  
+ *
  * Whenever someone creates a new field in Craft, they must specify what
  * type of field it is. The system comes with a handful of field types baked in,
  * and we’ve made it extremely easy for plugins to add new ones.
@@ -153,5 +156,19 @@ class TimeloopField extends Field
                 'namespacedId' => $namespacedId,
             ]
         );
+    }
+
+    /**
+     * @return array
+     */
+    public function getContentGqlType(): array
+    {
+        {
+            return [
+                'name' => $this->handle,
+                'type' => TimeloopType::getType(),
+            ];
+        }
+        // return TypeLoader::loadType('TimeloopType');
     }
 }
