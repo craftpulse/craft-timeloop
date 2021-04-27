@@ -15,8 +15,16 @@ class TimeloopVariable
         return Timeloop::$plugin->timeloop->getUpcoming($data);
     }
 
-    public function getDates($data, $limit = null)
+    /**
+     * Returns the $limit upcoming dates from the timeloop start date
+     *
+     * @param array $data
+     * @param bool $futureDates
+     * @param integer $limit --> default = 0 = no limit is set
+     *
+     */
+    public function getDates($data, $limit = 0, $futureDates = true)
     {
-        return Timeloop::$plugin->timeloop->getLoop($data, $limit);
+        return Timeloop::$plugin->timeloop->getLoop($data, $limit, $futureDates);
     }
 }
