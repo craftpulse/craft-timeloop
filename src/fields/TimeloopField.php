@@ -10,18 +10,17 @@
 
 namespace percipioglobal\timeloop\fields;
 
-// use percipioglobal\timeloop\TimeloopField;
+use craft\gql\types\DateTime;
+use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use percipioglobal\timeloop\assetbundles\timeloopfield\TimeloopFieldAsset;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
-use craft\helpers\Db;
+use percipioglobal\timeloop\Timeloop;
 use yii\db\Schema;
 use craft\helpers\Json;
-use percipioglobal\timeloop\gql\TimeloopType;
-use craft\gql\TypeLoader;
 
 /**
  * Timeloop Field
@@ -103,6 +102,12 @@ class TimeloopField extends Field
     public function serializeValue($value, ElementInterface $element = null)
     {
         return parent::serializeValue($value, $element);
+//        $value['loopStartDate'] = $value['loopStart']['date'];
+//        $value['loopStartTimezone'] = $value['loopStart']['timezone'];
+//        $value['loopEndDate'] = $value['loopEnd']['date'];
+//        $value['loopEndTimezone'] = $value['loopEnd']['timezone'];
+//
+//        return $value;
     }
 
     /**
@@ -161,14 +166,28 @@ class TimeloopField extends Field
     /**
      * @return array
      */
-    public function getContentGqlType(): array
+    public function getContentGqlType()
     {
-        {
-            return [
-                'name' => $this->handle,
-                'type' => TimeloopType::getType(),
-            ];
-        }
-        // return TypeLoader::loadType('TimeloopType');
+        return [
+            'name' => $this->handle,
+            'type' => Type::ListOf(DateTime::getType()),
+            'args' => [
+                'limit' => [
+                    'type' => Type::int(),
+                    'name' => "limit",
+                    'description' => "Limit how many dates you want in return. By default it returns 100 dates"
+                ],
+                'futureDates' => [
+                    'type' => Type::boolean(),
+                    'name' => "futureDates",
+                    'description' => "Set to false if you want to dates from the start date. By default it returns only future dates"
+                ]
+            ],
+            'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                $fieldName = $resolveInfo->fieldName;
+                $timeloopData = $source->{$fieldName};
+                return Timeloop::$plugin->timeloop->getLoop($timeloopData, $arguments['limit'] ?? 0, $arguments['futureDates'] ?? true);
+            }
+        ];
     }
 }
