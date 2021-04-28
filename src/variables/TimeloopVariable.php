@@ -4,10 +4,6 @@ namespace percipioglobal\timeloop\variables;
 
 use percipioglobal\timeloop\Timeloop;
 
-use Craft;
-use DateInterval;
-use DateTime;
-
 class TimeloopVariable
 {
     /**

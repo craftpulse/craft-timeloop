@@ -17,8 +17,6 @@ use percipioglobal\timeloop\services\TimeloopService;
 
 use Craft;
 use craft\base\Plugin;
-use craft\services\Plugins;
-use craft\events\PluginEvent;
 use craft\services\Fields;
 use craft\events\RegisterComponentTypesEvent;
 use craft\web\twig\variables\CraftVariable;
@@ -118,6 +116,7 @@ class Timeloop extends Plugin
         $this->setComponents([
             'timeloop' => TimeloopService::class,
         ]);
+
 
         // Do something after we're installed
         // Event::on(
