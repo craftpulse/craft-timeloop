@@ -13,6 +13,7 @@ namespace percipioglobal\timeloop;
 use percipioglobal\timeloop\models\Settings;
 use percipioglobal\timeloop\fields\TimeloopField as TimeloopField;
 use percipioglobal\timeloop\variables\TimeloopVariable;
+use percipioglobal\timeloop\services\TimeloopService;
 
 use Craft;
 use craft\base\Plugin;
@@ -112,6 +113,11 @@ class Timeloop extends Plugin
             $variable = $event->sender;
             $variable->set('timeloop', TimeloopVariable::class);
         });
+
+        // Register services as components
+        $this->setComponents([
+            'timeloop' => TimeloopService::class,
+        ]);
 
         // Do something after we're installed
         // Event::on(

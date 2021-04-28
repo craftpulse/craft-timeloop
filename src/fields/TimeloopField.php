@@ -142,8 +142,6 @@ class TimeloopField extends Field
         $jsonVars = Json::encode($jsonVars);
         Craft::$app->getView()->registerJs("$('#{$namespacedId}-field').TimeloopTimeloop(" . $jsonVars . ");");
 
-        // Craft::dd($value);
-
         // Render the input template
         return Craft::$app->getView()->renderTemplate(
             'timeloop/_components/fields/Timeloop_input',
