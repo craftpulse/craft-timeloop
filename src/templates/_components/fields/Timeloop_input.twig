@@ -16,7 +16,7 @@
 {% import "_includes/forms" as forms %}
 
 <div class="bg-gray-100 p-6">
-    <div class="flex flex-nowrap"> 
+    <div class="flex flex-nowrap">
         <div class="w-1/2">
             {{ forms.dateField({
                 label: 'Loop from',
@@ -38,8 +38,8 @@
 
     {{ forms.selectField({
             label: 'Repeat',
-            id: name ~ "[repeat]",
-            name: name ~ "[repeat]",
+            id: name ~ "[loopPeriod]",
+            name: name ~ "[loopPeriod]",
             required: true,
             options: [
                     {label: 'None'|t('timeloop'), value: 'none'},
@@ -48,6 +48,6 @@
                     {label: 'Every Month'|t('timeloop'), value: 'monthly'},
                     {label: 'Every Year'|t('timeloop'), value: 'yearly'},
             ],
-            value: value.repeat ?? null,
+            value: value.loopPeriod ?? null,
     }) }}
 </div>
