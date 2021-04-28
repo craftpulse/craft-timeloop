@@ -37,17 +37,17 @@
     </div>
 
     {{ forms.selectField({
-            label: 'Loop Period',
-            id: name ~ "[loopPeriod]",
-            name: name ~ "[loopPeriod]",
-            required: true,
-            options: [
-                    {label: 'None'|t('timeloop'), value: 'none'},
-                    {label: 'Every Day'|t('timeloop'), value: 'daily'},
-                    {label: 'Every Week'|t('timeloop'), value: 'weekly'},
-                    {label: 'Every Month'|t('timeloop'), value: 'monthly'},
-                    {label: 'Every Year'|t('timeloop'), value: 'yearly'},
-            ],
-            value: value.loopPeriod ?? null,
+        label: 'Repeat',
+        id: name ~ "[loopPeriod]",
+        name: name ~ "[loopPeriod]",
+        required: true,
+        options: [
+            {label: 'None'|t('timeloop'), value: 'none'},
+            {label: 'Every Day'|t('timeloop'), value: 'daily'},
+            {label: 'Every Week'|t('timeloop'), value: 'weekly'},
+            {label: 'Every Month'|t('timeloop'), value: 'monthly'},
+            {label: 'Every Year'|t('timeloop'), value: 'yearly'},
+        ],
+        value: value.loopPeriod ?? null,
     }) }}
 </div>
