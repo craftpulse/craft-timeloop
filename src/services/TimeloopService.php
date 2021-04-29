@@ -19,6 +19,8 @@ class TimeloopService extends Component
         "daily" => "P1D",
         "weekly" => "P1W",
         "monthly" => "P1M",
+        "quarter" => "P3M",
+        "sixmonths" => "P6M",
         "yearly" => "P1Y",
     ];
 
@@ -41,7 +43,7 @@ class TimeloopService extends Component
         //check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
         $next = new DateTime();
         $end = array_key_exists('loopEnd', $data) && "" !== $data['loopEnd']['date'] ?
-            $data['loopEnd']:
+            new DateTime($data['loopEnd']['date']):
             $next->modify('+20 years');
 
         //get ISO 8601 from the repeater in data object
@@ -69,7 +71,10 @@ class TimeloopService extends Component
     {
         $today = new DateTime();
 
-        $startDate = craft\helpers\DateTimeHelper::toDateTime($start);
+//        $startDate = craft\helpers\DateTimeHelper::toDateTime($start);
+        $startDate = new DateTime($start['date'].' '.$start['time']);
+        $startDate->setTimezone(new \DateTimeZone($start['timezone']));
+
         $endDate = craft\helpers\DateTimeHelper::toDateTime($end);
 
         $interval = new DateInterval($interval);

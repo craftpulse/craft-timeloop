@@ -73,10 +73,11 @@
         required: true,
         instructions: "Define a recurring loop for this date",
         options: [
-            {label: 'None'|t('timeloop'), value: 'none'},
             {label: 'Every Day'|t('timeloop'), value: 'daily'},
             {label: 'Every Week'|t('timeloop'), value: 'weekly'},
             {label: 'Every Month'|t('timeloop'), value: 'monthly'},
+            {label: 'Every Quarter'|t('timeloop'), value: 'quarter'},
+            {label: 'Every Six Months'|t('timeloop'), value: 'sixmonths'},
             {label: 'Every Year'|t('timeloop'), value: 'yearly'},
         ],
         value: value.loopPeriod ?? null,
