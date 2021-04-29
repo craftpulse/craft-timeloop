@@ -5,10 +5,10 @@
  * This is a plugin to make repeating dates
  *
  * @link      https://percipio.london
- * @copyright Copyright (c) 2021 percipioglobal
+ * @copyright Copyright (c) 2021 percipiolondon
  */
 
-namespace percipioglobal\timeloop\assetbundles\timeloop;
+namespace percipiolondon\timeloop\assetbundles\timeloop;
 
 use Craft;
 use craft\web\AssetBundle;
@@ -28,7 +28,7 @@ use craft\web\assets\cp\CpAsset;
  *
  * http://www.yiiframework.com/doc-2.0/guide-structure-assets.html
  *
- * @author    percipioglobal
+ * @author    percipiolondon
  * @package   Timeloop
  * @since     0.1.0
  */
@@ -43,7 +43,7 @@ class TimeloopAsset extends AssetBundle
     public function init()
     {
         // define the path that your publishable resources live
-        $this->sourcePath = "@percipioglobal/timeloop/assetbundles/timeloop/dist";
+        $this->sourcePath = "@percipiolondon/timeloop/assetbundles/timeloop/dist";
 
         // define the dependencies
         $this->depends = [

@@ -5,7 +5,7 @@
  * This is a plugin to make repeating dates
  *
  * @link      https://percipio.london
- * @copyright Copyright (c) 2021 percipioglobal
+ * @copyright Copyright (c) 2021 percipiolondon
  */
 
 /**
@@ -16,7 +16,7 @@
  *
  * http://www.yiiframework.com/doc-2.0/guide-tutorial-i18n.html
  *
- * @author    percipioglobal
+ * @author    percipiolondon
  * @package   Timeloop
  * @since     0.1.0
  */

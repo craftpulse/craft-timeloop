@@ -3,8 +3,8 @@
  *
  * Timeloop Field JS
  *
- * @author    percipioglobal
- * @copyright Copyright (c) 2021 percipioglobal
+ * @author    percipiolondon
+ * @copyright Copyright (c) 2021 percipiolondon
  * @link      https://percipio.london
  * @package   Timeloop
  * @since     0.1.0TimeloopTimeloop
@@ -36,7 +36,7 @@
             $(function () {
 
                 /* -- _this.options gives us access to the $jsonVars that our FieldType passed down to us */
-                
+
 
             });
         }

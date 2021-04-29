@@ -5,15 +5,15 @@
  * This is a plugin to make repeating dates
  *
  * @link      https://percipio.london
- * @copyright Copyright (c) 2021 percipioglobal
+ * @copyright Copyright (c) 2021 percipiolondon
  */
 
-namespace percipioglobal\timeloop;
+namespace percipiolondon\timeloop;
 
-use percipioglobal\timeloop\models\Settings;
-use percipioglobal\timeloop\fields\TimeloopField as TimeloopField;
-use percipioglobal\timeloop\variables\TimeloopVariable;
-use percipioglobal\timeloop\services\TimeloopService;
+use percipiolondon\timeloop\models\Settings;
+use percipiolondon\timeloop\fields\TimeloopField as TimeloopField;
+use percipiolondon\timeloop\variables\TimeloopVariable;
+use percipiolondon\timeloop\services\TimeloopService;
 
 use Craft;
 use craft\base\Plugin;
@@ -33,7 +33,7 @@ use yii\base\Event;
  *
  * https://docs.craftcms.com/v3/extend/
  *
- * @author    percipioglobal
+ * @author    percipiolondon
  * @package   Timeloop
  * @since     0.1.0
  *

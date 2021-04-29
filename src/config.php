@@ -5,7 +5,7 @@
  * This is a plugin to make repeating dates
  *
  * @link      https://percipio.london
- * @copyright Copyright (c) 2021 percipioglobal
+ * @copyright Copyright (c) 2021 percipiolondon
  */
 
 /**
@@ -23,5 +23,5 @@
  */
 
 return [
-    
+
 ];
