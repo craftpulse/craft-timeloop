@@ -76,6 +76,8 @@ query{
         loopStart,
         loopEnd,
         loopPeriod,
+        loopStartTime,
+        loopEndTime,
         dates(limit: 5) @formatDateTime(format: "d/m/Y" )
       }
     }
