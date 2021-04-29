@@ -68,7 +68,7 @@ class Timeloop extends Plugin
      *
      * @var bool
      */
-    public $hasCpSettings = true;
+    public $hasCpSettings = false;
 
     /**
      * Set to `true` if the plugin should have its own section (main nav item) in the control panel.
@@ -146,15 +146,15 @@ class Timeloop extends Plugin
      *
      * @return string The rendered settings HTML
      */
-    protected function settingsHtml(): string
-    {
-        return Craft::$app->view->renderTemplate(
-            'timeloop/settings',
-            [
-                'settings' => $this->getSettings()
-            ]
-        );
-    }
+//    protected function settingsHtml(): string
+//    {
+//        return Craft::$app->view->renderTemplate(
+//            'timeloop/settings',
+//            [
+//                'settings' => $this->getSettings()
+//            ]
+//        );
+//    }
 }
 
 /**

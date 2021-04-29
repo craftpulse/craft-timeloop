@@ -23,6 +23,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
 use percipiolondon\timeloop\Timeloop;
+use yii\base\BaseObject;
 use yii\db\Schema;
 use craft\helpers\Json;
 
@@ -43,7 +44,7 @@ class TimeloopField extends Field
 {
     // Public Properties
     // =========================================================================
-
+    public $showTime = 0;
 
     // Static Methods
     // =========================================================================
@@ -67,6 +68,9 @@ class TimeloopField extends Field
     public function rules()
     {
         $rules = parent::rules();
+        $rules = array_merge($rules, [
+            ['showTime', 'boolean'],
+        ]);
         return $rules;
     }
 
@@ -113,13 +117,14 @@ class TimeloopField extends Field
      */
     public function getSettingsHtml()
     {
+
         // Render the settings template
-//         return Craft::$app->getView()->renderTemplate(
-//             'timeloop/_components/fields/Timeloop_settings',
-//             [
-//                 'field' => $this,
-//             ]
-//         );
+        return Craft::$app->getView()->renderTemplate(
+            'timeloop/field_settings',
+            [
+                'settings' => $this->getSettings()
+            ]
+        );
     }
 
     /**
@@ -157,9 +162,7 @@ class TimeloopField extends Field
                 'field' => $this,
                 'id' => $id,
                 'namespacedId' => $namespacedId,
-                'settings' => [
-                    'showTime' => Timeloop::$plugin->getSettings()->showTime,
-                ]
+                'settings' => $this->getSettings(),
             ]
         );
     }
@@ -183,16 +186,6 @@ class TimeloopField extends Field
                     'name' => 'loopStart',
                     'type' => DateTime::getType(),
                     'description' => 'The start date of the loop'
-                ],
-                'loopStartHour' => [
-                    'name' => 'loopStartHour',
-                    'type' => DateTime::getType(),
-                    'description' => 'The start hour of the loop'
-                ],
-                'loopEndHour' => [
-                    'name' => 'loopEndHour',
-                    'type' => DateTime::getType(),
-                    'description' => 'The end hour of the loop'
                 ],
                 'loopEnd' => [
                     'name' => 'loopEnd',

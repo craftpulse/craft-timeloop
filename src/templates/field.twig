@@ -15,7 +15,7 @@
 
 {% import "_includes/forms" as forms %}
 
-{%- set showTime = settings['showTime'] ?? false -%}
+{%- set showTime = settings.showTime ?? false -%}
 
 <div class="bg-gray-100 p-6">
 {#    <div class="flex flex-nowrap">#}
@@ -30,33 +30,29 @@
 {#        </div>#}
 {#    </div>#}
 
-    {{ forms.dateField({
-        label: 'Loop from',
-        instructions: 'Enter a startdate from when the loop should start',
-        name: name ~ '[loopStart]',
-        required: true,
-        value: value.loopStart.date ?? now
-    }) }}
-
     {% if showTime %}
-        <div class="flex flex-nowrap">
-            <div class="w-1/2 field">
-                {{ forms.timeField({
-                    label: 'Start hour',
-                    instructions: 'Enter a start hour for the Loop from',
-                    name: name ~ '[loopStartHour]',
-                    value: value.loopStartHour.time ?? ''
-                }) }}
-            </div>
-            <div class="w-1/2">
-                {{ forms.timeField({
-                    label: 'End hour',
-                    instructions: 'Enter an end hour for the Loop from',
-                    name: name ~ '[loopEndHour]',
-                    value: value.loopEndHour.time ?? ''
-                }) }}
-            </div>
-        </div>
+        {{ forms.dateTimeField({
+            label: 'Loop from',
+            instructions: 'Enter a startdate from when the loop should start',
+            name: name ~ '[loopStart]',
+            required: true,
+            value: value.loopStart.date ?? now
+        }) }}
+
+        {{ forms.timeField({
+            label: 'End hour',
+            instructions: 'Provide an end hour if the recurring date has one.',
+            name: name ~ '[loopEndHour]',
+            value: value.loopEndHour.time ?? ''
+        }) }}
+    {% else %}
+        {{ forms.dateField({
+            label: 'Loop from',
+            instructions: 'Enter a startdate from when the loop should start',
+            name: name ~ '[loopStart]',
+            required: true,
+            value: value.loopStart.date ?? now
+        }) }}
     {% endif %}
 
     <hr />
