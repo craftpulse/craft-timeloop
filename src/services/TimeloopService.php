@@ -1,6 +1,6 @@
 <?php
 
-namespace percipioglobal\timeloop\services;
+namespace percipiolondon\timeloop\services;
 
 use Craft;
 use craft\base\Component;
@@ -10,7 +10,7 @@ use DatePeriod;
 
 /**
  * Class TimeloopService
- * @package percipioglobal\timeloop\services
+ * @package percipiolondon\timeloop\services
  */
 class TimeloopService extends Component
 {

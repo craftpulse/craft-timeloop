@@ -5,10 +5,10 @@
  * This is a plugin to make repeating dates
  *
  * @link      https://percipio.london
- * @copyright Copyright (c) 2021 percipioglobal
+ * @copyright Copyright (c) 2021 percipiolondon
  */
 
-namespace percipioglobal\timeloop\fields;
+namespace percipiolondon\timeloop\fields;
 
 use craft\gql\GqlEntityRegistry;
 use craft\gql\TypeLoader;
@@ -17,12 +17,12 @@ use craft\helpers\Gql;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
-use percipioglobal\timeloop\assetbundles\timeloopfield\TimeloopFieldAsset;
+use percipiolondon\timeloop\assetbundles\timeloopfield\TimeloopFieldAsset;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
-use percipioglobal\timeloop\Timeloop;
+use percipiolondon\timeloop\Timeloop;
 use yii\db\Schema;
 use craft\helpers\Json;
 
@@ -35,7 +35,7 @@ use craft\helpers\Json;
  *
  * https://craftcms.com/docs/plugins/field-types
  *
- * @author    percipioglobal
+ * @author    percipiolondon
  * @package   Timeloop
  * @since     0.1.0
  */

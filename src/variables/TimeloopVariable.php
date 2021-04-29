@@ -1,8 +1,8 @@
 <?php
 
-namespace percipioglobal\timeloop\variables;
+namespace percipiolondon\timeloop\variables;
 
-use percipioglobal\timeloop\Timeloop;
+use percipiolondon\timeloop\Timeloop;
 
 class TimeloopVariable
 {

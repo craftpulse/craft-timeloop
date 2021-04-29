@@ -1,5 +1,5 @@
 {
-    "name": "percipioglobal/craft-timeloop",
+    "name": "percipiolondon/craft-timeloop",
     "description": "This is a plugin to make repeating dates",
     "type": "craft-plugin",
     "version": "0.1.0",
@@ -11,13 +11,13 @@
         "timeloop"
     ],
     "support": {
-        "docs": "https://github.com/percipioglobal/timeloop/blob/master/README.md",
-        "issues": "https://github.com/percipioglobal/timeloop/issues"
+        "docs": "https://github.com/percipiolondon/timeloop/blob/master/README.md",
+        "issues": "https://github.com/percipiolondon/timeloop/issues"
     },
     "license": "MIT",
     "authors": [
         {
-            "name": "percipioglobal",
+            "name": "Percipio.London",
             "homepage": "https://percipio.london"
         }
     ],
@@ -31,16 +31,16 @@
     },
     "autoload": {
         "psr-4": {
-            "percipioglobal\\timeloop\\": "src/"
+            "percipiolondon\\timeloop\\": "src/"
         }
     },
     "extra": {
         "name": "Timeloop",
         "handle": "timeloop",
-        "developer": "percipioglobal",
+        "developer": "percipiolondon",
         "developerUrl": "https://percipio.london",
-        "documentationUrl": "https://github.com/percipioglobal/timeloop/blob/master/README.md",
-        "changelogUrl": "https://raw.githubusercontent.com/percipioglobal/timeloop/master/CHANGELOG.md",
-        "class": "percipioglobal\\timeloop\\Timeloop"
+        "documentationUrl": "https://github.com/percipiolondon/timeloop/blob/master/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/percipiolondon/timeloop/master/CHANGELOG.md",
+        "class": "percipiolondon\\timeloop\\Timeloop"
     }
 }
