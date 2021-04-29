@@ -12,7 +12,13 @@ class TimeloopVariable
      */
     public function getUpcoming($data)
     {
-        return Timeloop::$plugin->timeloop->getUpcoming($data);
+        $upcoming = Timeloop::$plugin->timeloop->getLoop($data, 1);
+
+        if(count($upcoming) > 0) {
+            return $upcoming[0];
+        }else {
+            return false;
+        }
     }
 
     /**
