@@ -13,6 +13,7 @@ namespace percipiolondon\timeloop\fields;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\TypeLoader;
 use craft\gql\types\DateTime;
+use craft\helpers\Gql;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
@@ -105,12 +106,6 @@ class TimeloopField extends Field
     public function serializeValue($value, ElementInterface $element = null)
     {
         return parent::serializeValue($value, $element);
-//        $value['loopStartDate'] = $value['loopStart']['date'];
-//        $value['loopStartTimezone'] = $value['loopStart']['timezone'];
-//        $value['loopEndDate'] = $value['loopEnd']['date'];
-//        $value['loopEndTimezone'] = $value['loopEnd']['timezone'];
-//
-//        return $value;
     }
 
     /**
@@ -208,7 +203,13 @@ class TimeloopField extends Field
                     ],
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $timeloopData = $source;
-                        return Timeloop::$plugin->timeloop->getLoop($timeloopData, $arguments['limit'] ?? 0, $arguments['futureDates'] ?? true);
+                        $dates = Timeloop::$plugin->timeloop->getLoop($timeloopData, $arguments['limit'] ?? 0, $arguments['futureDates'] ?? true);
+
+                        foreach ($dates as &$date) {
+                            $date = Gql::applyDirectives($source, $resolveInfo, $date);
+                        }
+
+                        return $dates;
                     }
                 ]
             ]
