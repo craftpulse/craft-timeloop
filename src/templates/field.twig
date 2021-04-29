@@ -1,0 +1,88 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * Timeloop plugin for Craft CMS 3.x
+ *
+ * Timeloop Field Input
+ *
+ * @author    percipiolondon
+ * @copyright Copyright (c) 2021 percipiolondon
+ * @link      https://percipio.london
+ * @package   Timeloop
+ * @since     0.1.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+{%- set showTime = settings['showTime'] ?? false -%}
+
+<div class="bg-gray-100 p-6">
+{#    <div class="flex flex-nowrap">#}
+{#        <div class="w-1/2 field">#}
+
+{#        </div>#}
+{#        <div class="w-1/2">#}
+{#        </div>#}
+{#    </div>#}
+{#    <div class="flex flex-nowrap">#}
+{#        <div class="w-1/2 field">#}
+{#        </div>#}
+{#    </div>#}
+
+    {{ forms.dateField({
+        label: 'Loop from',
+        instructions: 'Enter a startdate from when the loop should start',
+        name: name ~ '[loopStart]',
+        required: true,
+        value: value.loopStart.date ?? now
+    }) }}
+
+    {% if showTime %}
+        <div class="flex flex-nowrap">
+            <div class="w-1/2 field">
+                {{ forms.timeField({
+                    label: 'Start hour',
+                    instructions: 'Enter a start hour for the Loop from',
+                    name: name ~ '[loopStartHour]',
+                    value: value.loopStartHour.time ?? ''
+                }) }}
+            </div>
+            <div class="w-1/2">
+                {{ forms.timeField({
+                    label: 'End hour',
+                    instructions: 'Enter an end hour for the Loop from',
+                    name: name ~ '[loopEndHour]',
+                    value: value.loopEndHour.time ?? ''
+                }) }}
+            </div>
+        </div>
+    {% endif %}
+
+    <hr />
+
+    {{ forms.dateField({
+        label: 'Loop until',
+        instructions: 'Enter an end date when the loop should end',
+        name: name ~ "[loopEnd]",
+        value: value.loopEnd.date ?? "",
+    }) }}
+
+    <hr />
+
+    {{ forms.selectField({
+        label: 'Loop Period',
+        id: name ~ "[loopPeriod]",
+        name: name ~ "[loopPeriod]",
+        required: true,
+        instructions: "Define a recurring loop for this date",
+        options: [
+            {label: 'None'|t('timeloop'), value: 'none'},
+            {label: 'Every Day'|t('timeloop'), value: 'daily'},
+            {label: 'Every Week'|t('timeloop'), value: 'weekly'},
+            {label: 'Every Month'|t('timeloop'), value: 'monthly'},
+            {label: 'Every Year'|t('timeloop'), value: 'yearly'},
+        ],
+        value: value.loopPeriod ?? null,
+    }) }}
+</div>

@@ -15,18 +15,18 @@
 
 {% import "_includes/forms" as forms %}
 
+{%- set showTime = settings['showTime'] ?? false -%}
+
 <div class="bg-gray-100 p-6">
     <div class="flex flex-nowrap">
-        <div class="w-1/2">
-            {{ forms.dateField({
-                label: 'Loop from',
-                instructions: 'Enter a startdate from when the loop should start',
-                name: name ~ '[loopStart]',
-                required: true,
-                value: value.loopStart.date ?? now
-            }) }}
+        <div class="w-1/2 field">
+
         </div>
         <div class="w-1/2">
+        </div>
+    </div>
+    <div class="flex flex-nowrap">
+        <div class="w-1/2 field">
             {{ forms.dateField({
                 label: 'Loop until',
                 instructions: 'Enter an end date when the loop should end',
@@ -35,6 +35,21 @@
             }) }}
         </div>
     </div>
+
+    {{ forms.dateField({
+        label: 'Loop from',
+        instructions: 'Enter a startdate from when the loop should start',
+        name: name ~ '[loopStart]',
+        required: true,
+        value: value.loopStart.date ?? now
+    }) }}
+
+    {{ forms.dateField({
+        label: 'Loop until',
+        instructions: 'Enter an end date when the loop should end',
+        name: name ~ "[loopEnd]",
+        value: value.loopEnd.date ?? "",
+    }) }}
 
     {{ forms.selectField({
         label: 'Loop Period',
