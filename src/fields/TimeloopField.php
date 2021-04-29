@@ -114,12 +114,12 @@ class TimeloopField extends Field
     public function getSettingsHtml()
     {
         // Render the settings template
-        // return Craft::$app->getView()->renderTemplate(
-        //     'timeloop/_components/fields/Timeloop_settings',
-        //     [
-        //         'field' => $this,
-        //     ]
-        // );
+//         return Craft::$app->getView()->renderTemplate(
+//             'timeloop/_components/fields/Timeloop_settings',
+//             [
+//                 'field' => $this,
+//             ]
+//         );
     }
 
     /**
@@ -150,13 +150,16 @@ class TimeloopField extends Field
 
         // Render the input template
         return Craft::$app->getView()->renderTemplate(
-            'timeloop/_components/fields/Timeloop_input',
+            'timeloop/field',
             [
                 'name' => $this->handle,
                 'value' => $value,
                 'field' => $this,
                 'id' => $id,
                 'namespacedId' => $namespacedId,
+                'settings' => [
+                    'showTime' => Timeloop::$plugin->getSettings()->showTime,
+                ]
             ]
         );
     }
@@ -180,6 +183,16 @@ class TimeloopField extends Field
                     'name' => 'loopStart',
                     'type' => DateTime::getType(),
                     'description' => 'The start date of the loop'
+                ],
+                'loopStartHour' => [
+                    'name' => 'loopStartHour',
+                    'type' => DateTime::getType(),
+                    'description' => 'The start hour of the loop'
+                ],
+                'loopEndHour' => [
+                    'name' => 'loopEndHour',
+                    'type' => DateTime::getType(),
+                    'description' => 'The end hour of the loop'
                 ],
                 'loopEnd' => [
                     'name' => 'loopEnd',
