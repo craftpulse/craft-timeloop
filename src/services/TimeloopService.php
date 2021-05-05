@@ -38,12 +38,12 @@ class TimeloopService extends Component
     public function getLoop(array $data, $limit = 0, bool $futureDates = true)
     {
         //get start date from data object
-        $startUnix = strtotime($data['loopStart']['date']);
+//        $startUnix = strtotime($data['loopStart']['date']);
 
         //check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
         $next = new DateTime();
-        $end = array_key_exists('loopEnd', $data) && "" !== $data['loopEnd']['date'] ?
-            new DateTime($data['loopEnd']['date']):
+        $end = $data['loopEnd'] instanceof \DateTime ?
+            $data['loopEnd']:
             $next->modify('+20 years');
 
         //get ISO 8601 from the repeater in data object
@@ -71,10 +71,7 @@ class TimeloopService extends Component
     {
         $today = new DateTime();
 
-//        $startDate = craft\helpers\DateTimeHelper::toDateTime($start);
-        $startDate = new DateTime($start['date'].' '.$start['time']);
-        $startDate->setTimezone(new \DateTimeZone($start['timezone']));
-
+        $startDate = craft\helpers\DateTimeHelper::toDateTime($start);
         $endDate = craft\helpers\DateTimeHelper::toDateTime($end);
 
         $interval = new DateInterval($interval);

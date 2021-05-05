@@ -83,7 +83,7 @@ class TimeloopField extends Field
      */
     public function getContentColumnType(): string
     {
-        return Schema::TYPE_STRING;
+        return \yii\db\Schema::TYPE_TEXT;
     }
 
     /**
@@ -98,6 +98,14 @@ class TimeloopField extends Field
             $value = rtrim($value);
             $value = Json::decode($value);
         }
+        
+        if (isset($value['loopStart']) ) {
+            $value['loopStart'] = craft\helpers\DateTimeHelper::toDateTime($value['loopStart']);
+        }
+        
+        if (isset($value['loopEnd']) ) {
+            $value['loopEnd'] = craft\helpers\DateTimeHelper::toDateTime($value['loopEnd']);
+        }
 
         return $value;
     }
@@ -109,6 +117,14 @@ class TimeloopField extends Field
      */
     public function serializeValue($value, ElementInterface $element = null)
     {
+
+        if (isset($value['loopStart']) && $value['loopStart'] instanceof \DateTime) {
+            $value['loopStart'] = $value['loopStart']->format(\DateTime::ATOM);
+        }
+        if (isset($value['loopEnd']) && $value['loopEnd'] instanceof \DateTime) {
+            $value['loopEnd'] = $value['loopEnd']->format(\DateTime::ATOM);
+        }
+
         return parent::serializeValue($value, $element);
     }
 
@@ -185,7 +201,12 @@ class TimeloopField extends Field
                 'loopStart' => [
                     'name' => 'loopStart',
                     'type' => DateTime::getType(),
-                    'description' => 'The start date of the loop'
+                    'description' => 'The start date of the loop',
+                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        $fieldName = $resolveInfo->fieldName;
+                        $value = craft\helpers\DateTimeHelper::toDateTime($source[$fieldName]);
+                        return Gql::applyDirectives($source, $resolveInfo, $value);
+                    }
                 ],
                 'loopEnd' => [
                     'name' => 'loopEnd',
