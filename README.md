@@ -1,6 +1,6 @@
 # Timeloop plugin for Craft CMS 3.x
 
-This is a plugin to make repeating dates
+This plugin created repeating dates without complex inputs
 
 ![timeloop-banner-light (1)](https://user-images.githubusercontent.com/20947573/117322933-bcbca200-ae8e-11eb-834f-1a2aeba472b6.png)
 
