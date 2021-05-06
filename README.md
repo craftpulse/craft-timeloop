@@ -2,7 +2,7 @@
 
 This is a plugin to make repeating dates
 
-![Screenshot](resources/img/plugin-logo.png)
+![timeloop-banner-light (1)](https://user-images.githubusercontent.com/20947573/117322933-bcbca200-ae8e-11eb-834f-1a2aeba472b6.png)
 
 ## Requirements
 
@@ -46,6 +46,15 @@ Props:
 {{ craft.timeloop.getUpcoming(entry.timeloop) ? craft.timeloop.getUpcoming(entry.timeloop)|date('d/m/Y') : "There's no upciming date" }}
 ```
 
+#### getReminder
+Use getReminder if you want to fetch the next reminder date in line. 
+
+Props:
+* data: pass the field through the function
+```twig
+{{ craft.timeloop.getReminder(entry.timeloop) ? craft.timeloop.getReminder(entry.timeloop)|date('d/m/Y') : "There's no upciming reminder date" }}
+```
+
 #### getDates
 Use getUpcoming if you want to fetch the next date in line. Pass the field to the variable.
 
@@ -76,6 +85,7 @@ query{
         loopStart,
         loopEnd,
         loopPeriod,
+        reminder @formatDateTime(format: "d-m-Y g:ia", timezone: "Europe/London"),
         dates(limit: 5) @formatDateTime(format: "d/m/Y" )
       }
     }
@@ -90,6 +100,8 @@ Some things to do, and ideas for potential features:
 
 * Adding timeslots for the recurring date
 * Adding a custom period loop where you can set custom recurring dates
+* Providing a controller to fetch if today is the first upcoming date
+* Providing a controller to fetch if today is the first reminder upcoming date
 
 
 Brought to you by [Percipio.London](https://percipio.london)
