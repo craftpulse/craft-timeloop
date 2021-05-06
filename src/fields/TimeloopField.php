@@ -98,11 +98,11 @@ class TimeloopField extends Field
             $value = rtrim($value);
             $value = Json::decode($value);
         }
-        
+
         if (isset($value['loopStart']) ) {
             $value['loopStart'] = craft\helpers\DateTimeHelper::toDateTime($value['loopStart']);
         }
-        
+
         if (isset($value['loopEnd']) ) {
             $value['loopEnd'] = craft\helpers\DateTimeHelper::toDateTime($value['loopEnd']);
         }
@@ -197,6 +197,11 @@ class TimeloopField extends Field
                     'name' => 'loopPeriod',
                     'type' => Type::string(),
                     'description' => 'The loop repeater period (daily / weekly / monthly / yearly)'
+                ],
+                'loopReminder' => [
+                    'name' => 'loopReminder',
+                    'type' => Type::string(),
+                    'description' => 'The loop reminder period'
                 ],
                 'loopStart' => [
                     'name' => 'loopStart',
