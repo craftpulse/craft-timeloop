@@ -8,6 +8,7 @@ class TimeloopVariable
 {
     /**
      * Returns the first upcoming date from the timeloop date
+     * @param array $data
      *
      */
     public function getUpcoming($data)
@@ -19,6 +20,15 @@ class TimeloopVariable
         }else {
             return false;
         }
+    }
+    /**
+     * Returns the first upcoming reminder date from the timeloop date
+     * @param array $data
+     *
+     */
+    public function getReminder($data)
+    {
+        return Timeloop::$plugin->timeloop->getReminder($data, 1);
     }
 
     /**

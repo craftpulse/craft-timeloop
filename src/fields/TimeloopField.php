@@ -218,6 +218,15 @@ class TimeloopField extends Field
                     'type' => DateTime::getType(),
                     'description' => 'The end date where the loop should stop'
                 ],
+                'reminder' => [
+                    'name' => 'reminder',
+                    'type' => DateTime::getType(),
+                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        $reminder = Timeloop::$plugin->timeloop->getReminder($source);
+
+                        return false == $reminder ? $reminder : Gql::applyDirectives($source, $resolveInfo, $reminder);
+                    }
+                ],
                 'dates' => [
                     'name' =>'dates',
                     'type' => Type::listOf(DateTime::getType()),
@@ -234,8 +243,7 @@ class TimeloopField extends Field
                         ]
                     ],
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
-                        $timeloopData = $source;
-                        $dates = Timeloop::$plugin->timeloop->getLoop($timeloopData, $arguments['limit'] ?? 0, $arguments['futureDates'] ?? true);
+                        $dates = Timeloop::$plugin->timeloop->getLoop($source, $arguments['limit'] ?? 0, $arguments['futureDates'] ?? true);
 
                         foreach ($dates as &$date) {
                             $date = Gql::applyDirectives($source, $resolveInfo, $date);
