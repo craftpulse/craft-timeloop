@@ -4,6 +4,7 @@ namespace percipiolondon\timeloop\services;
 
 use Craft;
 use craft\base\Component;
+use craft\helpers\Gql;
 use DateInterval;
 use DateTime;
 use DatePeriod;
@@ -59,6 +60,21 @@ class TimeloopService extends Component
 
         // return the array with dates
         return $this->_fetchDates($data['loopStart'], $end, $repeater, $limit, $futureDates);
+    }
+
+    public function getReminder(array $data)
+    {
+        $date = $this->getLoop($data, 1);
+        $loopReminder = $data['loopReminder'] ?? '0 days';
+
+        if(count($date) > 0)
+        {
+            $remindDate = $date[0];
+            $remindDate->modify('-'.$loopReminder);
+            return $remindDate;
+        }
+
+        return false;
     }
 
 
