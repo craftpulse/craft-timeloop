@@ -55,20 +55,47 @@
 
     <hr />
 
-    {{ forms.selectField({
-        label: 'Loop Period',
-        id: name ~ "[loopPeriod]",
-        name: name ~ "[loopPeriod]",
-        required: true,
-        instructions: "Define a recurring loop for this date",
-        options: [
-            {label: 'Every Day'|t('timeloop'), value: 'daily'},
-            {label: 'Every Week'|t('timeloop'), value: 'weekly'},
-            {label: 'Every Month'|t('timeloop'), value: 'monthly'},
-            {label: 'Every Quarter'|t('timeloop'), value: 'quarter'},
-            {label: 'Every Six Months'|t('timeloop'), value: 'sixmonths'},
-            {label: 'Every Year'|t('timeloop'), value: 'yearly'},
-        ],
-        value: value.loopPeriod ?? null,
-    }) }}
+    <div class="flex flex-nowrap">
+        <div class="w-1/2">
+            {{ forms.selectField({
+                label: 'Loop Period',
+                id: name ~ "[loopPeriod]",
+                name: name ~ "[loopPeriod]",
+                required: true,
+                instructions: "Define a recurring loop for this date",
+                options: [
+                    {label: 'Every Day'|t('timeloop'), value: 'daily'},
+                    {label: 'Every Week'|t('timeloop'), value: 'weekly'},
+                    {label: 'Every Month'|t('timeloop'), value: 'monthly'},
+                    {label: 'Every Quarter'|t('timeloop'), value: 'quarter'},
+                    {label: 'Every Six Months'|t('timeloop'), value: 'sixmonths'},
+                    {label: 'Every Year'|t('timeloop'), value: 'yearly'},
+                ],
+                value: value.loopPeriod ?? null,
+            }) }}
+        </div>
+        <div class="w-1/2">
+            {{ forms.selectField({
+                label: 'Loop Reminder',
+                id: name ~ "[loopReminder]",
+                name: name ~ "[loopReminder]",
+                instructions: "Define a recurring reminder for this loop",
+                options: [
+                    {label: 'None'|t('timeloop'), value: 'None'},
+                    {label: '30 minutes before'|t('timeloop'), value: '30 minutes'},
+                    {label: '1 hour before'|t('timeloop'), value: '1 hour'},
+                    {label: '2 hours before'|t('timeloop'), value: '2 hours'},
+                    {label: '1 day before'|t('timeloop'), value: '1 day'},
+                    {label: '2 days before'|t('timeloop'), value: '2 days'},
+                    {label: '1 week before'|t('timeloop'), value: '1 week'},
+                    {label: '2 weeks before'|t('timeloop'), value: '2 weeks'},
+                    {label: '3 weeks before'|t('timeloop'), value: '3 weeks'},
+                    {label: '1 month before'|t('timeloop'), value: '1 month'},
+                ],
+                value: value.loopReminder ?? null,
+            }) }}
+        </div>
+
+    </div>
+
 </div>
