@@ -17,6 +17,7 @@ use craft\helpers\Gql;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
+use craft\base\PreviewableFieldInterface;
 use percipiolondon\timeloop\assetbundles\timeloopfield\TimeloopFieldAsset;
 
 use Craft;
@@ -40,7 +41,7 @@ use craft\helpers\Json;
  * @package   Timeloop
  * @since     0.1.0
  */
-class TimeloopField extends Field
+class TimeloopField extends Field implements PreviewableFieldInterface
 {
     // Public Properties
     // =========================================================================
@@ -141,6 +142,18 @@ class TimeloopField extends Field
                 'settings' => $this->getSettings()
             ]
         );
+    }
+
+    /**
+     * @param mixed $value
+     * @param ElementInterface $element
+     * @return string
+     */
+    public function getTableAttributeHtml($value, ElementInterface $element): string
+    {
+        $upcoming = Timeloop::$plugin->timeloop->getLoop($value, 1)[0];
+        $upcoming = false == $upcoming ? 'No upcoming dates' : $upcoming->format('d-m-Y g:ia');
+        return '<div>Next: '.$upcoming.'</div>';
     }
 
     /**
