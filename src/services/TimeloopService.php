@@ -65,16 +65,18 @@ class TimeloopService extends Component
     public function getReminder(array $data)
     {
         $date = $this->getLoop($data, 1);
-        $loopReminder = $data['loopReminder'] ?? '0 days';
+        $loopReminderValue = $data['loopReminderValue'] ?? 0;
+        $loopReminderPeriod = $data['loopReminderPeriod'] ?? 'days';
+        $loopReminder = $loopReminderValue. ' ' .$loopReminderPeriod;
 
-        if(count($date) > 0)
+        if(count($date) > 0 && $data['loopReminderPeriod'])
         {
             $remindDate = $date[0];
             $remindDate->modify('-'.$loopReminder);
             return $remindDate;
         }
 
-        return false;
+        return null;
     }
 
 

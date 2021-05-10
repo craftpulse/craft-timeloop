@@ -118,12 +118,15 @@ class TimeloopField extends Field implements PreviewableFieldInterface
      */
     public function serializeValue($value, ElementInterface $element = null)
     {
-
         if (isset($value['loopStart']) && $value['loopStart'] instanceof \DateTime) {
             $value['loopStart'] = $value['loopStart']->format(\DateTime::ATOM);
         }
         if (isset($value['loopEnd']) && $value['loopEnd'] instanceof \DateTime) {
             $value['loopEnd'] = $value['loopEnd']->format(\DateTime::ATOM);
+        }
+
+        if( isset($value['loopReminderPeriod']) && '' === $value['loopReminderPeriod']) {
+            $value['loopReminderValue'] = 0;
         }
 
         return parent::serializeValue($value, $element);
