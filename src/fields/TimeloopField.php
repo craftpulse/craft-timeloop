@@ -151,9 +151,13 @@ class TimeloopField extends Field implements PreviewableFieldInterface
      */
     public function getTableAttributeHtml($value, ElementInterface $element): string
     {
-        $upcoming = Timeloop::$plugin->timeloop->getLoop($value, 1)[0];
-        $upcoming = false == $upcoming ? 'No upcoming dates' : ($this->getSettings()['showTime'] ? $upcoming->format('d-m-y g:ia') : $upcoming->format('d-m-y'));
-        return '<div>Next up: '.$upcoming.'</div>';
+        if($value) {
+            $upcoming = Timeloop::$plugin->timeloop->getLoop($value, 1)[0];
+            $upcoming = false == $upcoming ? 'No upcoming dates' : ($this->getSettings()['showTime'] ? $upcoming->format('d-m-y g:ia') : $upcoming->format('d-m-y'));
+            return '<div>Next up: '.$upcoming.'</div>';
+        }
+
+        return '-';
     }
 
     /**
