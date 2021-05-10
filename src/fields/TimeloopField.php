@@ -185,7 +185,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
             'name' => $this->handle,
             'namespace' => $namespacedId,
             'prefix' => Craft::$app->getView()->namespaceInputId(''),
-            ];
+        ];
         $jsonVars = Json::encode($jsonVars);
         Craft::$app->getView()->registerJs("$('#{$namespacedId}-field').TimeloopTimeloop(" . $jsonVars . ");");
 
@@ -238,8 +238,8 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'type' => DateTime::getType(),
                     'description' => 'The end date where the loop should stop'
                 ],
-                'reminder' => [
-                    'name' => 'reminder',
+                'getReminder' => [
+                    'name' => 'getReminder',
                     'type' => DateTime::getType(),
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $reminder = Timeloop::$plugin->timeloop->getReminder($source);
@@ -247,8 +247,8 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                         return false == $reminder ? $reminder : Gql::applyDirectives($source, $resolveInfo, $reminder);
                     }
                 ],
-                'dates' => [
-                    'name' =>'dates',
+                'getDates' => [
+                    'name' =>'getDates',
                     'type' => Type::listOf(DateTime::getType()),
                     'args' => [
                         'limit' => [
@@ -271,7 +271,20 @@ class TimeloopField extends Field implements PreviewableFieldInterface
 
                         return $dates;
                     }
-                ]
+                ],
+                'getUpcoming' => [
+                    'name' => 'getUpcoming',
+                    'type' => DateTime::getType(),
+                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        $upcoming = Timeloop::$plugin->timeloop->getLoop($source);
+
+                        if(count($upcoming) > 0){
+                            return  Gql::applyDirectives($source, $resolveInfo, $upcoming[0]);
+                        }
+
+                        return false;
+                    }
+                ],
             ]
         ]));
 
