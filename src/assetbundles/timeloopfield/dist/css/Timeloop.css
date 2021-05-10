@@ -24,4 +24,18 @@
 
 .w-1\/2{
     width: 50%;
+    box-sizing: border-box;
+    padding-right: 10px;
+}
+
+.w-16{
+    width: 4rem;
+}
+
+.flex-start{
+    align-items: start;
+}
+
+.flex-end{
+    align-items: flex-end;
 }
