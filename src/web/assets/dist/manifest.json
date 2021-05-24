@@ -1,0 +1,21 @@
+{
+  "src/js/app.ts": {
+    "file": "assets/app.25837277.js",
+    "src": "src/js/app.ts",
+    "isEntry": true,
+    "css": [
+      "assets/app.b4515f35.css"
+    ]
+  },
+  "src/js/timeloop.ts": {
+    "file": "assets/timeloop.c9856633.js",
+    "src": "src/js/timeloop.ts",
+    "isEntry": true,
+    "imports": [
+      "_vendor.f30ede7f.js"
+    ]
+  },
+  "_vendor.f30ede7f.js": {
+    "file": "assets/vendor.f30ede7f.js"
+  }
+}
