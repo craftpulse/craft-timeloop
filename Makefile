@@ -4,12 +4,12 @@ DOCKERRUN=docker container run \
 	--name ${CONTAINER} \
 	--rm \
 	-t \
-	--network craft-plugin-playground_default \ 
+	--network craft-plugin-playground_default \
 	-p 8081:8081 \
 	-v `pwd`:/app \
 	${CONTAINER}:${TAG}
 
-.PHONY: build dev docker install npm
+.PHONY: build dev docker docs install npm
 
 build: docker install
 	${DOCKERRUN} \
