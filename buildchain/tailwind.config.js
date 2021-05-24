@@ -1,11 +1,11 @@
-  
+
 // module exports
 module.exports = {
     mode: 'jit',
     purge: {
         content: [
             '../src/templates/**/*.{twig,html}',
-            '../src/assetbundles/company-management/src/vue/**/*.{vue,html}',
+            '../src/assetbundles/timeloop/src/vue/**/*.{vue,html}',
         ],
         layers: [
             'base',
@@ -15,7 +15,7 @@ module.exports = {
         mode: 'layers',
         options: {
             whitelist: [
-                '../src/assetbundles/company-management/src/css/components/*.css',
+                '../src/assetbundles/timeloop/src/css/components/*.css',
             ],
         }
     },

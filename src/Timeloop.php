@@ -35,7 +35,7 @@ use yii\base\Event;
  *
  * @author    percipiolondon
  * @package   Timeloop
- * @since     0.1.0
+ * @since     1.0.0
  *
  * @property  Settings $settings
  * @method    Settings getSettings()
@@ -61,7 +61,7 @@ class Timeloop extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '0.1.0';
+    public $schemaVersion = '1.0.0';
 
     /**
      * Set to `true` if the plugin should have a settings view in the control panel.

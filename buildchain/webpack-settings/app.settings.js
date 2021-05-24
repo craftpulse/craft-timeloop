@@ -7,25 +7,20 @@ const path = require('path');
 // settings
 module.exports = {
     alias: {
-        'vue$': 'vue/dist/vue.esm.js',
-        '@': path.resolve('../src'),
+        '@': path.resolve('../src/assetbundles/timeloop/src'),
     },
     copyright: '©2020 Percipio.London',
     entry: {
         'app': [
-            '@/js/app.ts',
-            '@/js/assets/icons.js',
-            '@/css/app.pcss',
+            '@/js/timeloop.js',
         ],
-        'lazysizes-wrapper': '../src/js/utils/lazysizes-wrapper.ts',
     },
     extensions: ['.ts', '.js', '.vue', '.json'],
-    name: 'hardinghub',
+    name: 'timeloop',
     paths: {
-        dist: path.resolve('../cms/web/dist'),
+        dist: path.resolve('../src/assetbundles/timeloop/dist'),
     },
     urls: {
-        criticalCss: 'https://sandbox.hardinghub.co.uk/',
-        publicPath: () => process.env.PUBLIC_PATH || '/dist/',
+        publicPath: () => process.env.PUBLIC_PATH || '',
     },
 };

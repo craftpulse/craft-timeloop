@@ -10,9 +10,9 @@
 
 namespace percipiolondon\timeloop\assetbundles\timeloop;
 
-use Craft;
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
+use craft\web\assets\vue\VueAsset;
 
 /**
  * TimeloopAsset AssetBundle
@@ -30,7 +30,7 @@ use craft\web\assets\cp\CpAsset;
  *
  * @author    percipiolondon
  * @package   Timeloop
- * @since     0.1.0
+ * @since     1.0.0
  */
 class TimeloopAsset extends AssetBundle
 {
@@ -48,16 +48,15 @@ class TimeloopAsset extends AssetBundle
         // define the dependencies
         $this->depends = [
             CpAsset::class,
+            VueAsset::class,
         ];
 
         // define the relative path to CSS/JS files that should be registered with the page
         // when this asset bundle is registered
         $this->js = [
-            'js/Timeloop.js',
         ];
 
         $this->css = [
-            'css/Timeloop.css',
         ];
 
         parent::init();
