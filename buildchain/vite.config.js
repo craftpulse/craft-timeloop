@@ -11,8 +11,8 @@ export default ({ command }) => ({
         outDir: '../src/web/assets/dist',
         rollupOptions: {
             input: {
-                app: '/src/js/app.ts',
                 timeloop: '/src/js/timeloop.ts',
+                'timeloop-field': '/src/js/timeloop-field.ts',
             },
             output: {
                 sourcemap: true

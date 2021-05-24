@@ -13,14 +13,14 @@
  */
 #}
 
- {% set scriptTagOptions = {
-     'depends': [
-         'percipiolondon\\timeloop\\assetbundles\\timeloop\\TimeloopAsset'
-     ],
- } %}
+{% set scriptTagOptions = {
+    'depends': [
+        'percipiolondon\\timeloop\\assetbundles\\timeloop\\TimeloopAsset'
+    ],
+} %}
 
-{{ craft.timeloop.register('/src/js/app.ts', false, scriptTagOptions) }}
 {{ craft.timeloop.register('/src/js/timeloop.ts', false, scriptTagOptions) }}
+{{ craft.timeloop.register('/src/js/timeloop-field.ts', false, scriptTagOptions) }}
 
 {% import "_includes/forms" as forms %}
 
