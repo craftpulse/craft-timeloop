@@ -18,7 +18,7 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use craft\base\PreviewableFieldInterface;
-use percipiolondon\timeloop\assetbundles\timeloopfield\TimeloopFieldAsset;
+use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -173,7 +173,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
     public function getInputHtml($value, ElementInterface $element = null): string
     {
         // Register our asset bundle
-        Craft::$app->getView()->registerAssetBundle(TimeloopFieldAsset::class);
+        Craft::$app->getView()->registerAssetBundle(TimeloopAsset::class);
 
         // Get our id and namespace
         $id = Craft::$app->getView()->formatInputId($this->handle);

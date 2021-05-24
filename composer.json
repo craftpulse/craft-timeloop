@@ -2,7 +2,7 @@
     "name": "percipiolondon/craft-timeloop",
     "description": "This is a plugin to make repeating dates",
     "type": "craft-plugin",
-    "version": "1.0.0-rc",
+    "version": "1.0.0-RC2",
     "keywords": [
         "craft",
         "cms",
@@ -14,21 +14,27 @@
         "docs": "https://github.com/percipiolondon/timeloop/blob/master/README.md",
         "issues": "https://github.com/percipiolondon/timeloop/issues"
     },
-    "license": "MIT",
+    "license": "proprietary",
     "authors": [
         {
-            "name": "Percipio",
+            "name": "Percipio.London",
             "homepage": "https://percipio.london"
         }
     ],
     "require": {
-        "craftcms/cms": "^3.0.0"
+        "craftcms/cms": "^3.0.0",
+        "nystudio107/craft-plugin-vite": "^1.0.0"
     },
     "require-dev": {
-        "craftcms/cms": "^3.2.0",
         "codeception/codeception": "^3.0",
         "vlucas/phpdotenv": "^3.0"
     },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "percipiolondon\\timeloop\\": "src/"

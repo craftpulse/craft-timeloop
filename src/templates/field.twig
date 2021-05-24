@@ -13,6 +13,15 @@
  */
 #}
 
+ {% set scriptTagOptions = {
+     'depends': [
+         'percipiolondon\\timeloop\\assetbundles\\timeloop\\TimeloopAsset'
+     ],
+ } %}
+
+{{ craft.timeloop.register('/src/js/app.ts', false, scriptTagOptions) }}
+{{ craft.timeloop.register('/src/js/timeloop.ts', false, scriptTagOptions) }}
+
 {% import "_includes/forms" as forms %}
 
 {%- set showTime = settings.showTime ?? false -%}
@@ -119,7 +128,11 @@
         <div class="instructions">
             <span>Click to create your own human readable date</span>
         </div>
-        <!-- VUE THING HERE -->
+
+        <div id="timeloop">
+
+        </div>
+
     </div>
 
 </div>

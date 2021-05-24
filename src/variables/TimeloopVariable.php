@@ -4,8 +4,14 @@ namespace percipiolondon\timeloop\variables;
 
 use percipiolondon\timeloop\Timeloop;
 
-class TimeloopVariable
+use nystudio107\pluginvite\variables\ViteVariableInterface;
+use nystudio107\pluginvite\variables\ViteVariableTrait;
+
+class TimeloopVariable implements ViteVariableInterface
 {
+
+    use ViteVariableTrait;
+
     /**
      * Returns the first upcoming date from the timeloop date
      * @param array $data

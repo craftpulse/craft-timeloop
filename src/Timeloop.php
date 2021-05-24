@@ -10,10 +10,13 @@
 
 namespace percipiolondon\timeloop;
 
+use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
 use percipiolondon\timeloop\models\Settings;
 use percipiolondon\timeloop\fields\TimeloopField as TimeloopField;
 use percipiolondon\timeloop\variables\TimeloopVariable;
 use percipiolondon\timeloop\services\TimeloopService;
+
+use nystudio107\pluginvite\services\VitePluginService;
 
 use Craft;
 use craft\base\Plugin;
@@ -77,6 +80,31 @@ class Timeloop extends Plugin
      */
     public $hasCpSection = false;
 
+    // Static Methods
+    // =========================================================================
+    /**
+     * @inheritdoc
+     */
+
+    public function __construct($id, $parent = null, array $config = [])
+    {
+        $config['components'] = [
+            'timeloop' => Timeloop::class,
+            'vite' => [
+                'class' => VitePluginService::class,
+                'assetClass' => TimeloopAsset::class,
+                'useDevServer' => true,
+                'devServerPublic' => 'http://localhost:3001',
+                'serverPublic' => 'http://localhost:8000',
+                'errorEntry' => '/src/js/app.ts',
+                'devServerInternal' => 'http://craft-timeloop-buildchain:3001',
+                'checkDevServer' => true,
+            ]
+        ];
+
+        parent::__construct($id, $parent, $config);
+    }
+
     // Public Methods
     // =========================================================================
 
@@ -109,7 +137,10 @@ class Timeloop extends Plugin
         Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
             /** @var CraftVariable $variable */
             $variable = $event->sender;
-            $variable->set('timeloop', TimeloopVariable::class);
+            $variable->set('timeloop', [
+                'class' => TimeloopVariable::class,
+                'viteService' => $this->vite,
+            ]);
         });
 
         // Register services as components
