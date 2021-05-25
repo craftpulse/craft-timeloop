@@ -1,0 +1,85 @@
+<template>
+    <div 
+        :class="[ 
+            'input flex flex-nowrap items-center bg-gray-300 px-8 py-1 rounded-md',
+            utilities
+        ]"
+    >
+        <span>
+            Every
+        </span>
+
+        <input type="number" class="w-16 text" autocomplete="off" v-model="cycle">
+        
+        <span>
+            {{ frequencyLabel }}
+        </span>
+    </div>
+</template>
+
+<script lang="ts">
+
+    // Async load the Vue 3 APIs we need from the Vue ESM
+    import { computed, defineComponent } from 'vue'
+    import { useModelWrapper } from '@/js/utils/modelWrapper'
+
+    export default defineComponent({
+
+        props: {
+            // Initial Value
+            cycle: {
+                type: Number,
+                required: true,
+            },
+
+            // Frequency in datePeriod
+            frequency: {
+                type: String,
+                required: true,
+            },
+
+            // Field Settings ( name, id, required, ... )
+            settings: {
+                type: Object,
+                required: true,
+            },
+
+            // Tailwind Utilities
+            utilities: {
+                type: String,
+                required: false,
+            },
+            
+        },
+
+        setup(props, { emit }) {
+
+            const frequencyLabel = computed(() => {
+                
+                switch(props.frequency) {
+
+                    case 'P1D':
+                        return 'day(s)'
+
+                    case 'P1W':
+                        return 'week(s)'
+
+                    case 'P1M':
+                        return 'month(s)'
+
+                    case 'P1Y':
+                        return 'year(s)'
+
+                }
+
+            });
+
+            return {
+                frequencyLabel,
+                cycle: useModelWrapper(props, emit, 'cycle'),
+            }
+        },
+
+    });
+
+</script>

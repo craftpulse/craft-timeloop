@@ -28,8 +28,8 @@
 
 <div class="bg-gray-100 p-6">
 
-    <div class="flex flex-nowrap flex-start">
-        <div class="w-1/2">
+    <div class="flex flex-nowrap items-start -mx-8">
+        <div class="w-1/2 px-8">
             {% if showTime %}
                 {{ forms.dateTimeField({
                     label: 'Loop from',
@@ -55,7 +55,7 @@
                 }) }}
             {% endif %}
         </div>
-        <div class="w-1/2">
+        <div class="w-1/2 px-8">
             {{ forms.dateField({
                 label: 'Loop until',
                 instructions: 'Enter an end date when the loop should end',
@@ -66,6 +66,18 @@
     </div>
 
     <hr />
+
+    {% set loopPeriodOptions = {
+        label: 'Loop Period',
+        id: name ~ '[loopPeriod]',
+        name: name ~ '[loopPeriod]',
+        required: true,
+        instructions: "Define a recurring loop for this date"
+    } %}
+
+    <div id="timeloop">
+        <loop-period :options="{{- loopPeriodOptions | json_encode -}}"></loop-period>
+    </div>
 
     {{ forms.selectField({
         label: 'Loop Period',
@@ -94,7 +106,7 @@
             <span>Define a recurring loop reminder for this date</span>
         </div>
 
-        <div class="flex flex-nowrap flex-end">
+        <div class="flex flex-nowrap">
             {{ forms.text({
                 type: 'number',
                 class: 'w-16',
@@ -117,22 +129,6 @@
             }) }}
 
         </div>
-    </div>
-
-    <hr />
-
-    <div class="field">
-        <div class="heading">
-            <label>Human Readable Date Test</label>
-        </div>
-        <div class="instructions">
-            <span>Click to create your own human readable date</span>
-        </div>
-
-        <div id="timeloop">
-
-        </div>
-
     </div>
 
 </div>

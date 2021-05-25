@@ -96,7 +96,7 @@ class Timeloop extends Plugin
                 'useDevServer' => true,
                 'devServerPublic' => 'http://localhost:3001',
                 'serverPublic' => 'http://localhost:8000',
-                'errorEntry' => '/src/js/app.ts',
+                'errorEntry' => '/src/js/timeloop.ts',
                 'devServerInternal' => 'http://craft-timeloop-buildchain:3001',
                 'checkDevServer' => true,
             ]
