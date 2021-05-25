@@ -79,23 +79,6 @@
         <loop-period :options="{{- loopPeriodOptions | json_encode -}}"></loop-period>
     </div>
 
-    {{ forms.selectField({
-        label: 'Loop Period',
-        id: name ~ "[loopPeriod]",
-        name: name ~ "[loopPeriod]",
-        required: true,
-        instructions: "Define a recurring loop for this date",
-        options: [
-            {label: 'Every Day'|t('timeloop'), value: 'daily'},
-            {label: 'Every Week'|t('timeloop'), value: 'weekly'},
-            {label: 'Every Month'|t('timeloop'), value: 'monthly'},
-            {label: 'Every Quarter'|t('timeloop'), value: 'quarter'},
-            {label: 'Every Six Months'|t('timeloop'), value: 'sixmonths'},
-            {label: 'Every Year'|t('timeloop'), value: 'yearly'},
-        ],
-        value: value.loopPeriod ?? null,
-    }) }}
-
     <hr />
 
     <div class="field">

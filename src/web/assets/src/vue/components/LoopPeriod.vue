@@ -30,14 +30,35 @@
                 v-model:selected="period.frequency"
             />
 
-            <cycle-field 
-                v-if="period.frequency && period.frequency !== 'P3M'" 
+            <cycle-field
+                v-if="period.frequency && period.frequency !== 'P3M'"
                 :settings="options"
                 :frequency="period.frequency"
                 utilities="ml-8"
                 v-model:cycle="period.cycle"
-            />            
+            />
 
+        </div>
+
+        <div
+            class="flex flex-nowrap mt-8 items-start"
+            v-if="period.frequency && period.frequency === 'P1W'"
+        >
+            <days-field
+                :settings="options"
+                :frequency="period.frequency"
+                v-model:days="period.days"
+            />
+        </div>
+
+        <div
+            class="flex flex-nowrap mt-8 items-start"
+            v-if="period.frequency && period.frequency === 'P1M'"
+        >
+            <time-string-field
+                :settings="options"
+                :frequency="period.frequency"
+            />
         </div>
 
     </div>
@@ -47,13 +68,18 @@
 
     // Async load the Vue 3 APIs we need from the Vue ESM
     import { defineComponent } from 'vue'
-    import SelectField from '@/vue/components/SelectField.vue'
     import CycleField from '@/vue/components/CycleField.vue'
+    import DaysField from '@/vue/components/DaysField.vue'
+    import TimeStringField from '@/vue/components/TimeStringField.vue'
+    import SelectField from '@/vue/components/SelectField.vue'
+
 
     export default defineComponent({
         components: {
             'select-field': SelectField,
             'cycle-field': CycleField,
+            'days-field': DaysField,
+            'time-string-field': TimeStringField
         },
 
         props: {
@@ -75,9 +101,13 @@
 
             period: {
                 frequency: 'P1D',
-                days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                cycle: 1
-            }
+                days: [],
+                cycle: 1,
+                timestring: {
+                    ordinal: null,
+                    day: null
+                }
+            },
 
         }),
 
