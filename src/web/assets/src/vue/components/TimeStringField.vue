@@ -2,7 +2,7 @@
 
     <div
         :class="[
-            'input grid grid-cols-7 gap-1 items-center bg-blue-200 rounded-md',
+            'input grid grid-cols-7 gap-1 items-center',
             utilities
         ]"
     >
@@ -15,12 +15,15 @@
                 :settings="settings"
                 :options="ordinals"
                 v-model:selected="timestring.ordinal"
+                @change="$emit('update:ordinal', timestring.ordinal)"
+                
             />
 
             <select-field
                 :settings="settings"
                 :options="days"
                 v-model:selected="timestring.day"
+                @change="$emit('update:day', timestring.day)"
             />
 
         </div>
@@ -32,7 +35,6 @@
 
     // Async load the Vue 3 APIs we need from the Vue ESM
     import { defineComponent } from 'vue'
-    import { useModelWrapper } from '@/js/utils/modelWrapper'
     import SelectField from '@/vue/components/SelectField.vue'
 
     export default defineComponent({
@@ -54,6 +56,16 @@
                 type: String,
                 required: false,
             },
+
+            ordinal: {
+                type: String,
+                default: 'first',
+            },
+
+            day: { 
+                type: String,
+                default: 'monday',
+            }
 
         },
 
@@ -78,19 +90,16 @@
             },
 
             timestring: {
-                ordinal: '',
-                day: '',
+                ordinal: 'first',
+                day: 'monday',
             }
 
         }),
 
-        setup(props, { emit }) {
-
-            return {
-                temp: useModelWrapper(props, emit, 'temp'),
-            }
-
-        },
+        mounted() {
+            this.timestring.ordinal = this.ordinal
+            this.timestring.day = this.day
+        }
 
     });
 

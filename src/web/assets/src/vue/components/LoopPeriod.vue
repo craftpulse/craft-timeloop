@@ -28,6 +28,7 @@
                 :settings="options"
                 :options="periods"
                 v-model:selected="period.frequency"
+                @change="sanitizeData(period)"
             />
 
             <cycle-field
@@ -35,7 +36,7 @@
                 :settings="options"
                 :frequency="period.frequency"
                 utilities="ml-8"
-                v-model:cycle="period.cycle"
+                v-model:cycle.number="period.cycle"
             />
 
         </div>
@@ -57,8 +58,29 @@
         >
             <time-string-field
                 :settings="options"
-                :frequency="period.frequency"
+                v-model:ordinal="period.timestring.ordinal"
+                v-model:day="period.timestring.day"
             />
+        </div>
+
+        <input
+            type="hidden"
+            :id="'fields-' + options.id"
+            :name="'fields' + options.name"
+            :aria-describedby="'fields-' + options.name + '-instructions'"
+            :value="JSON.stringify(period)"
+        >
+
+        <h4>Craft Data</h4>
+
+        <div class="bg-purple-300 px-8 py-4 rounded-md text-xl my-4">
+            {{ options.value }}
+        </div>
+
+        <h4>Vue Data</h4>
+
+        <div class="bg-green-300 px-8 py-4 rounded-md text-xl my-4">
+            {{ period }}
         </div>
 
     </div>
@@ -95,7 +117,6 @@
                 'P1D': 'Every Day',
                 'P1W': 'Every Week',
                 'P1M': 'Every Month',
-                'P3M': 'Every Quarter',
                 'P1Y': 'Every Year',
             },
 
@@ -112,10 +133,50 @@
         }),
 
         methods: {
+
+            sanitizeData(data) {
+
+                switch (data.frequency) {
+                    case 'P1D':
+                    case 'P1Y': 
+
+                        this.period.days = [];
+                        this.period.timestring.ordinal = null;
+                        this.period.timestring.day = null;
+                        
+                        break
+
+                    case 'P1W': 
+
+                        this.period.timestring.ordinal = null
+                        this.period.timestring.day = null
+
+                        break
+
+                    case 'P1M': 
+
+                        this.period.days = []
+
+                        break
+
+                    default:
+
+                        this.period = null
+
+                }
+
+            }
+
         },
 
         mounted() {
-        },
+
+            if ( this.options.value ) {
+                this.period = this.options.value
+            }
+
+        }
+
     });
 
 </script>

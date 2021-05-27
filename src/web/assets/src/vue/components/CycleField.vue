@@ -9,7 +9,13 @@
             Every
         </span>
 
-        <input type="number" class="w-16 text" autocomplete="off" v-model="cycle">
+        <input 
+            class="w-16 text" 
+            autocomplete="off"
+            type="Number"
+            min="1"
+            v-model.number="cycle"
+        />
         
         <span>
             {{ frequencyLabel }}
@@ -29,7 +35,7 @@
             // Initial Value
             cycle: {
                 type: Number,
-                required: true,
+                default: 1
             },
 
             // Frequency in datePeriod
@@ -38,7 +44,7 @@
                 required: true,
             },
 
-            // Field Settings ( name, id, required, ... )
+            // Field Settings ( name, id, required, placeholder... )
             settings: {
                 type: Object,
                 required: true,

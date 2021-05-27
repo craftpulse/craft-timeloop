@@ -7,9 +7,9 @@
         >
         <div class="select">
             <select
-                :id="'fields-' + settings.id"
-                :name="'fields' + settings.name"
-                :aria-describedby="'fields-' + settings.name + '-instructions'"
+                :id="settings.id"
+                :name="settings.name"
+                :aria-describedby="settings.name"
                 v-model="selected"
             >
                 <option v-for="(label, key) in options" :key="key" :value="key">
