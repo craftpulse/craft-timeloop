@@ -10,23 +10,28 @@ use DateTime;
 use DatePeriod;
 
 /**
- * Class TimeloopService
- * @package percipiolondon\timeloop\services
+ * @author    percipiolondon
+ * @package   Timeloop
+ * @since     1.0.0
  */
+
 class TimeloopService extends Component
 {
     const MAX_ARRAY_ENTRIES = 100;
-    const REPEAT_PATTERN = [
-        "daily" => "P1D",
-        "weekly" => "P1W",
-        "monthly" => "P1M",
-        "quarter" => "P3M",
-        "sixmonths" => "P6M",
-        "yearly" => "P1Y",
-    ];
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * Returns the $limit upcoming dates from the timeloop start date
+     *
+     * @param array $data
+     *
+     */
+    public function showPeriod(array $data)
+    {
+        return $data['loopPeriod'];
+    }
 
     /**
      * Returns the $limit upcoming dates from the timeloop start date
@@ -38,8 +43,8 @@ class TimeloopService extends Component
      */
     public function getLoop(array $data, $limit = 0, bool $futureDates = true)
     {
-        //get start date from data object
-//        $startUnix = strtotime($data['loopStart']['date']);
+        //  get start date from data object
+        //  $startUnix = strtotime($data['loopStart']['date']);
 
         //check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
         $next = new DateTime();
@@ -47,10 +52,10 @@ class TimeloopService extends Component
             $data['loopEnd']:
             $next->modify('+20 years');
 
-        //get ISO 8601 from the repeater in data object
-        $repeater = self::REPEAT_PATTERN[$data['loopPeriod']] ?? false;
+        // get ISO 8601 from the repeater in data object
+        $repeater = $data['loopPeriod']['frequency'] ?? false;
 
-        //if no limit is set, use the default so we don't end up with high number arrays
+        // if no limit is set, use the default so we don't end up with high number arrays
         $limit = $limit == 0 ? self::MAX_ARRAY_ENTRIES : $limit;
 
         // check if repeater exist, throw exception is no value is added
@@ -99,8 +104,8 @@ class TimeloopService extends Component
 
         foreach ( $period as $date ) {
 
-            //if the date is larger than today and only future dates are accepted, only fill the array.
-            //Otherwise, if we don't have to check on future dates, add everything in it
+            // if the date is larger than today and only future dates are accepted, only fill the array.
+            // Otherwise, if we don't have to check on future dates, add everything in it
             if($date > $today && $futureDates) {
                 $arrDates[] = $date;
             }
