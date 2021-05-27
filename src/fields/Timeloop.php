@@ -10,23 +10,28 @@
 
 namespace percipiolondon\timeloop\fields;
 
-use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeLoader;
-use craft\gql\types\DateTime;
-use craft\helpers\Gql;
-use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Type\Definition\ResolveInfo;
-use GraphQL\Type\Definition\Type;
-use craft\base\PreviewableFieldInterface;
-use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
-
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
+use craft\base\PreviewableFieldInterface;
+
+use craft\gql\GqlEntityRegistry;
+use craft\gql\TypeLoader;
+use craft\gql\types\DateTime;
+
+use craft\helpers\Gql;
+use craft\helpers\Json;
+
+use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\ResolveInfo;
+use GraphQL\Type\Definition\Type;
+
+
+use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
 use percipiolondon\timeloop\Timeloop;
+
 use yii\base\BaseObject;
 use yii\db\Schema;
-use craft\helpers\Json;
 
 /**
  * Timeloop Field
@@ -108,6 +113,10 @@ class TimeloopField extends Field implements PreviewableFieldInterface
             $value['loopEnd'] = craft\helpers\DateTimeHelper::toDateTime($value['loopEnd']);
         }
 
+        if (isset($value['loopPeriod'])) {
+            $value['loopPeriod'] = craft\helpers\Json::decode($value['loopPeriod']);
+        }
+
         return $value;
     }
 
@@ -118,6 +127,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
      */
     public function serializeValue($value, ElementInterface $element = null)
     {
+
         if (isset($value['loopStart']) && $value['loopStart'] instanceof \DateTime) {
             $value['loopStart'] = $value['loopStart']->format(\DateTime::ATOM);
         }
@@ -127,6 +137,10 @@ class TimeloopField extends Field implements PreviewableFieldInterface
 
         if( isset($value['loopReminderPeriod']) && '' === $value['loopReminderPeriod']) {
             $value['loopReminderValue'] = 0;
+        }
+
+        if( isset($value['loopPeriod'])) {
+            $value['loopPeriod'] = craft\helpers\Json::encode($value['loopPeriod']);
         }
 
         return parent::serializeValue($value, $element);
@@ -216,7 +230,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                 'loopPeriod' => [
                     'name' => 'loopPeriod',
                     'type' => Type::string(),
-                    'description' => 'The loop repeater period (daily / weekly / monthly / yearly)'
+                    'description' => 'The loop repeater period (daily / weekly / monthly / yearly)',
                 ],
                 'loopReminder' => [
                     'name' => 'loopReminder',

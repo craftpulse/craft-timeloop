@@ -1,0 +1,33 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * Timeloop plugin for Craft CMS 3.x
+ *
+ * Timeloop Settings.twig
+ *
+ * @author    percipiolondon
+ * @copyright Copyright (c) 2021 percipiolondon
+ * @link      https://percipio.london
+ * @package   Timeloop
+ * @since     0.1.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+{% do view.registerAssetBundle("percipiolondon\\timeloop\\assetbundles\\timeloop\\TimeloopAsset") %}
+
+{{ forms.lightSwitchField({
+    label: 'Show Times',
+    instructions: 'If you switch on the show time settings. The start and end date will come with a set of times',
+    name: 'showTime',
+    on: settings.showTime
+}) }}
+
+{#{{ forms.textField({#}
+{#    label: 'Some Field',#}
+{#    instructions: 'Enter some setting here.',#}
+{#    id: 'someAttribute',#}
+{#    name: 'someAttribute',#}
+{#    value: settings['someAttribute']})#}
+{#}}#}
