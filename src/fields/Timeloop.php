@@ -10,6 +10,9 @@
 
 namespace percipiolondon\timeloop\fields;
 
+use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
+use percipiolondon\timeloop\models\Timeloop as TimeloopModel;
+
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
@@ -25,10 +28,6 @@ use craft\helpers\Json;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
-
-
-use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
-use percipiolondon\timeloop\Timeloop;
 
 use yii\base\BaseObject;
 use yii\db\Schema;
@@ -46,7 +45,7 @@ use yii\db\Schema;
  * @package   Timeloop
  * @since     0.1.0
  */
-class TimeloopField extends Field implements PreviewableFieldInterface
+class Timeloop extends Field implements PreviewableFieldInterface
 {
     // Public Properties
     // =========================================================================
@@ -77,6 +76,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
         $rules = array_merge($rules, [
             ['showTime', 'boolean'],
         ]);
+
         return $rules;
     }
 
@@ -100,6 +100,32 @@ class TimeloopField extends Field implements PreviewableFieldInterface
      */
     public function normalizeValue($value, ElementInterface $element = null)
     {
+
+        if (is_string($value) && !empty($value)) {
+            $value = Json::decode($value);
+        }
+
+        if (isset($value['loopStart']) ) {
+            $value['loopStart'] = craft\helpers\DateTimeHelper::toDateTime($value['loopStart']);
+        }
+
+        if (isset($value['loopEnd']) ) {
+            $value['loopEnd'] = craft\helpers\DateTimeHelper::toDateTime($value['loopEnd']);
+        }
+
+        if (isset($value['loopPeriod'])) {
+            $value['loopPeriod'] = craft\helpers\Json::decode($value['loopPeriod']);
+        }
+
+        $model = new TimeloopModel($value);
+
+        return $model;
+
+    }
+
+
+    /*public function normalizeValue($value, ElementInterface $element = null)
+    {
         if (is_string($value) && !empty($value)) {
             $value = rtrim($value);
             $value = Json::decode($value);
@@ -118,7 +144,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
         }
 
         return $value;
-    }
+    }*/
 
     /**
      * @param mixed $value The raw field value
@@ -154,7 +180,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
 
         // Render the settings template
         return Craft::$app->getView()->renderTemplate(
-            'timeloop/field_settings',
+            'timeloop/fields/timeloop-settings',
             [
                 'settings' => $this->getSettings()
             ]
@@ -205,7 +231,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
 
         // Render the input template
         return Craft::$app->getView()->renderTemplate(
-            'timeloop/field',
+            'timeloop/fields/timeloop-input',
             [
                 'name' => $this->handle,
                 'value' => $value,

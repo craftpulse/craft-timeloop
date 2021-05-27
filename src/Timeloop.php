@@ -12,7 +12,7 @@ namespace percipiolondon\timeloop;
 
 use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
 use percipiolondon\timeloop\models\Settings;
-use percipiolondon\timeloop\fields\TimeloopField as TimeloopField;
+use percipiolondon\timeloop\fields\Timeloop as TimeloopField;
 use percipiolondon\timeloop\variables\TimeloopVariable;
 use percipiolondon\timeloop\services\TimeloopService;
 
@@ -43,6 +43,7 @@ use yii\base\Event;
  * @property  Settings $settings
  * @method    Settings getSettings()
  */
+
 class Timeloop extends Plugin
 {
     // Static Properties
