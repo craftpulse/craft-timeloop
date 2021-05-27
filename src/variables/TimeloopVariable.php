@@ -2,15 +2,33 @@
 
 namespace percipiolondon\timeloop\variables;
 
+use Craft;
+use craft\helpers\Json;
+
 use percipiolondon\timeloop\Timeloop;
 
 use nystudio107\pluginvite\variables\ViteVariableInterface;
 use nystudio107\pluginvite\variables\ViteVariableTrait;
 
+/**
+ * @author    percipiolondon
+ * @package   Timeloop
+ * @since     1.0.0
+ */
+
 class TimeloopVariable implements ViteVariableInterface
 {
 
     use ViteVariableTrait;
+
+
+    /**
+     * Returns just the JSON code
+     */
+    public function period($data)
+    {
+        return Timeloop::$plugin->timeloop->showPeriod($data);
+    }
 
     /**
      * Returns the first upcoming date from the timeloop date
@@ -23,7 +41,7 @@ class TimeloopVariable implements ViteVariableInterface
 
         if(count($upcoming) > 0) {
             return $upcoming[0];
-        }else {
+        } else {
             return false;
         }
     }
