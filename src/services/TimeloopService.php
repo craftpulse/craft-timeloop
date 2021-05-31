@@ -54,7 +54,8 @@ class TimeloopService extends Component
             $next->modify('+20 years');
 
         // get ISO 8601 from the repeater in data object
-        $repeater = $data->period->frequency ?? false;
+        // Parse our period object to fetch dates
+        $repeater = $data->period ?? false;
 
         // if no limit is set, use the default so we don't end up with high number arrays
         $limit = $limit == 0 ? self::MAX_ARRAY_ENTRIES : $limit;
@@ -91,8 +92,11 @@ class TimeloopService extends Component
     /**
      * @throws \Exception
      */
-    private function _fetchDates($start, $end, $interval, $limit = 0, $futureDates = true)
+    private function _fetchDates($start, $end, $period, $limit = 0, $futureDates = true)
     {
+
+        $interval = _calculateInterval($period);
+
         $today = new DateTime();
 
         $startDate = DateTimeHelper::toDateTime($start);
@@ -121,5 +125,12 @@ class TimeloopService extends Component
         }
 
         return $arrDates;
+    }
+
+    private function _calculateInterval($period)
+    {
+        if ($period->frequency === 'P1D') {
+            return 'P' . $period->cycle . 'D';
+        }
     }
 }
