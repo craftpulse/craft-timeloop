@@ -30,6 +30,7 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 
+use percipiolondon\timeloop\Timeloop;
 use yii\base\BaseObject;
 use yii\db\Schema;
 
@@ -114,6 +115,14 @@ class TimeloopField extends Field implements PreviewableFieldInterface
             $value['loopEnd'] = DateTimeHelper::toDateTime($value['loopEnd']);
         }
 
+        if (isset($value['loopStartHour']) ) {
+            $value['loopStartHour'] = DateTimeHelper::toDateTime($value['loopStartHour']);
+        }
+
+        if (isset($value['loopEndHour']) ) {
+            $value['loopEndHour'] = DateTimeHelper::toDateTime($value['loopEndHour']);
+        }
+
         if (isset($value['loopPeriod'])) {
             $value['loopPeriod'] = Json::decodeIfJson($value['loopPeriod']);
         }
@@ -137,6 +146,12 @@ class TimeloopField extends Field implements PreviewableFieldInterface
         }
         if (isset($value['loopEnd']) && $value['loopEnd'] instanceof \DateTime) {
             $value['loopEnd'] = $value['loopEnd']->format(\DateTime::ATOM);
+        }
+        if (isset($value['loopStartHour']) && $value['loopStartHour'] instanceof \DateTime) {
+            $value['loopStartHour'] = $value['loopStartHour']->format(\DateTime::ATOM);
+        }
+        if (isset($value['loopEndHour']) && $value['loopEndHour'] instanceof \DateTime) {
+            $value['loopEndHour'] = $value['loopEndHour']->format(\DateTime::ATOM);
         }
 
         if( isset($value['loopReminderPeriod']) && '' === $value['loopReminderPeriod']) {
@@ -235,6 +250,11 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'name' => 'loopPeriod',
                     'type' => Type::string(),
                     'description' => 'The loop repeater period (daily / weekly / monthly / yearly)',
+                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        $fieldName = $resolveInfo->fieldName;
+//                        Craft::dd($source[$fieldName]);
+                        return "TO BE DEFINED WHAT SHOULD BE RETURNED HERE";
+                    }
                 ],
                 'loopReminder' => [
                     'name' => 'loopReminder',
@@ -251,10 +271,30 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                         return Gql::applyDirectives($source, $resolveInfo, $value);
                     }
                 ],
+                'loopStartHour' => [
+                    'name' => 'loopStartHour',
+                    'type' => DateTime::getType(),
+                    'description' => 'The end date where the loop should stop',
+                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        $fieldName = $resolveInfo->fieldName;
+                        $value = DateTimeHelper::toDateTime($source[$fieldName]);
+                        return  $value ? $value->format('g:ia') : false;
+                    }
+                ],
                 'loopEnd' => [
                     'name' => 'loopEnd',
                     'type' => DateTime::getType(),
-                    'description' => 'The end date where the loop should stop'
+                    'description' => 'The start hour of the loop'
+                ],
+                'loopEndHour' => [
+                    'name' => 'loopEndHour',
+                    'type' => DateTime::getType(),
+                    'description' => 'The end hour of the loop',
+                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        $fieldName = $resolveInfo->fieldName;
+                        $value = DateTimeHelper::toDateTime($source[$fieldName]);
+                        return  $value ? $value->format('g:ia') : false;
+                    }
                 ],
                 'getReminder' => [
                     'name' => 'getReminder',
