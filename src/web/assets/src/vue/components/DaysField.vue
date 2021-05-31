@@ -2,7 +2,7 @@
 
     <div
         :class="[
-            'input grid grid-cols-7 gap-1 items-center rounded-md',
+            'input grid grid-cols-7 gap-1 items-center rounded-md mt-1',
             utilities
         ]"
     >
@@ -11,8 +11,8 @@
             v-for="(day, key, index) in weekDays" :key="key"
             :class="[
                 'inline-flex items-center justify-center w-8 h-8 font-bold bg-white',
-                'hover:bg-blue-100 cursor-pointer',
-                days.includes(key) ? 'bg-blue-200' : '',
+                'hover:bg-black hover:text-white cursor-pointer',
+                days.includes(key) ? 'bg-black text-white' : '',
             ]"
             @click="selectDay(key)"
         >

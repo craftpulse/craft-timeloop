@@ -2,29 +2,24 @@
 
     <div
         :class="[
-            'input grid grid-cols-7 gap-1 items-center',
+            'flex flex-nowrap mb-0',
             utilities
         ]"
     >
 
-        <div 
-            class="flex flex-nowrap"   
-        >
+        <select-field
+            :options="ordinals"
+            v-model:selected="timestring.ordinal"
+            @change="$emit('update:ordinal', timestring.ordinal)"
 
-            <select-field
-                :options="ordinals"
-                v-model:selected="timestring.ordinal"
-                @change="$emit('update:ordinal', timestring.ordinal)"
-                
-            />
+        />
 
-            <select-field
-                :options="days"
-                v-model:selected="timestring.day"
-                @change="$emit('update:day', timestring.day)"
-            />
+        <select-field
+            :options="days"
+            v-model:selected="timestring.day"
+            @change="$emit('update:day', timestring.day)"
+        />
 
-        </div>
 
     </div>
 </template>
@@ -54,7 +49,7 @@
                 default: 'first',
             },
 
-            day: { 
+            day: {
                 type: String,
                 default: 'monday',
             }

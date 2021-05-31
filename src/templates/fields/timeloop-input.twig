@@ -65,8 +65,6 @@
         </div>
     </div>
 
-    <hr />
-
     {% set loopPeriodOptions = {
         label: 'Loop Period',
         id: name ~ '[loopPeriod]',
@@ -76,7 +74,7 @@
         value: value.loopPeriod ?? null,
     } %}
 
-    <div id="timeloop">
+    <div id="timeloop" class="mt-6">
         <loop-period :options="{{- loopPeriodOptions | json_encode -}}"></loop-period>
     </div>
 
