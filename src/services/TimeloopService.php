@@ -129,8 +129,21 @@ class TimeloopService extends Component
 
     private function _calculateInterval($period)
     {
-        if ($period->frequency === 'P1D') {
-            return 'P' . $period->cycle . 'D';
+
+        switch($period->frequency) {
+            case 'P1D':
+                return 'P' . $period->cycle . 'D';
+
+            case 'P1W':
+                return 'P1W';
+
+            case 'P1M':
+                return 'P1M';
+
+            case 'P1Y':
+                return 'P' . $period->cycle . 'Y';
+
         }
+
     }
 }
