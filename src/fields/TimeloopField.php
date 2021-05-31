@@ -278,7 +278,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $fieldName = $resolveInfo->fieldName;
                         $value = DateTimeHelper::toDateTime($source[$fieldName]);
-                        return  $value ? $value->format('g:ia') : false;
+                        return  $value ? $value->format('G:i') : false;
                     }
                 ],
                 'loopEnd' => [
@@ -293,7 +293,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $fieldName = $resolveInfo->fieldName;
                         $value = DateTimeHelper::toDateTime($source[$fieldName]);
-                        return  $value ? $value->format('g:ia') : false;
+                        return  $value ? $value->format('G:i') : false;
                     }
                 ],
                 'getReminder' => [
