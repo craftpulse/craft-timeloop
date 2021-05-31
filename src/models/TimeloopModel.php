@@ -31,12 +31,12 @@ class TimeloopModel extends Model
     public $loopEnd;
 
     /**
-     * @var string
+     * @var DateTime
      */
     public $loopStartHour;
 
     /**
-     * @var string
+     * @var DateTime
      */
     public $loopEndHour;
 
@@ -66,8 +66,8 @@ class TimeloopModel extends Model
             ['loopStart', 'datetime'],
             ['loopEnd', 'datetime'],
             ['loopPeriod', 'array'],
-            ['loopStartHour', 'string'],
-            ['loopEndHour', 'string'],
+            ['loopStartHour', 'datetime'],
+            ['loopEndHour', 'datetime'],
             ['loopReminderValue', 'number'],
         ];
     }
