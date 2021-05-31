@@ -7,9 +7,6 @@
         >
         <div class="select">
             <select
-                :id="settings.id"
-                :name="settings.name"
-                :aria-describedby="settings.name"
                 v-model="selected"
             >
                 <option v-for="(label, key) in options" :key="key" :value="key">
@@ -35,15 +32,11 @@
                 type: Object,
                 required: true,
             },
-            // Field Settings ( name, id, required, ... )
-            settings: {
-                type: Object,
-                required: true,
-            },
             selected: {
                 type: String,
                 required: true,
             },
+            
             // Tailwind Utilities
             utilities: {
                 type: String,

@@ -32,7 +32,7 @@
             />
 
             <cycle-field
-                v-if="period.frequency && period.frequency !== 'P3M'"
+                v-if="period.frequency"
                 :settings="options"
                 :frequency="period.frequency"
                 utilities="ml-8"
@@ -58,6 +58,8 @@
         >
             <time-string-field
                 :settings="options"
+                :ordinal="period.timestring.ordinal"
+                :day="period.timestring.day"
                 v-model:ordinal="period.timestring.ordinal"
                 v-model:day="period.timestring.day"
             />
@@ -156,6 +158,11 @@
                     case 'P1M': 
 
                         this.period.days = []
+
+                        if ( !this.period.timestring.ordinal && !this.period.timestring.day ) {
+                            this.period.timestring.ordinal = 'first'
+                            this.period.timestring.day = 'monday'
+                        }
 
                         break
 

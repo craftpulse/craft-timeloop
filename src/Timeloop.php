@@ -11,8 +11,8 @@
 namespace percipiolondon\timeloop;
 
 use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
-use percipiolondon\timeloop\models\Settings;
-use percipiolondon\timeloop\fields\Timeloop as TimeloopField;
+use percipiolondon\timeloop\models\SettingsModel;
+use percipiolondon\timeloop\fields\TimeloopField;
 use percipiolondon\timeloop\variables\TimeloopVariable;
 use percipiolondon\timeloop\services\TimeloopService;
 
@@ -169,7 +169,7 @@ class Timeloop extends Plugin
      */
     protected function createSettingsModel()
     {
-        return new Settings();
+        return new SettingsModel();
     }
 
     /**

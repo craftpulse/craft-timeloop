@@ -44,12 +44,6 @@
                 required: true,
             },
 
-            // Field Settings ( name, id, required, placeholder... )
-            settings: {
-                type: Object,
-                required: true,
-            },
-
             // Tailwind Utilities
             utilities: {
                 type: String,

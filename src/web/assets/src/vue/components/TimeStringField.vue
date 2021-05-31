@@ -12,19 +12,21 @@
         >
 
             <select-field
-                :settings="settings"
                 :options="ordinals"
                 v-model:selected="timestring.ordinal"
                 @change="$emit('update:ordinal', timestring.ordinal)"
                 
             />
 
+            {{ timestring.ordinal }}
+
             <select-field
-                :settings="settings"
                 :options="days"
                 v-model:selected="timestring.day"
                 @change="$emit('update:day', timestring.day)"
             />
+
+            {{ timestring.day }}
 
         </div>
 
@@ -44,12 +46,6 @@
         },
 
         props: {
-
-            // Field Settings ( name, id, required, ... )
-            settings: {
-                type: Object,
-                required: true,
-            },
 
             // Tailwind Utilities
             utilities: {

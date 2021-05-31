@@ -11,7 +11,7 @@
 namespace percipiolondon\timeloop\fields;
 
 use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
-use percipiolondon\timeloop\models\Timeloop as TimeloopModel;
+use percipiolondon\timeloop\models\TimeloopModel;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -46,7 +46,7 @@ use yii\db\Schema;
  * @package   Timeloop
  * @since     0.1.0
  */
-class Timeloop extends Field implements PreviewableFieldInterface
+class TimeloopField extends Field implements PreviewableFieldInterface
 {
     // Public Properties
     // =========================================================================
@@ -247,7 +247,7 @@ class Timeloop extends Field implements PreviewableFieldInterface
                     'description' => 'The start date of the loop',
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $fieldName = $resolveInfo->fieldName;
-                        $value = craft\helpers\DateTimeHelper::toDateTime($source[$fieldName]);
+                        $value = DateTimeHelper::toDateTime($source[$fieldName]);
                         return Gql::applyDirectives($source, $resolveInfo, $value);
                     }
                 ],
