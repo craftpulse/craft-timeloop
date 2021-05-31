@@ -4,6 +4,7 @@ namespace percipiolondon\timeloop\services;
 
 use Craft;
 use craft\base\Component;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Gql;
 use DateInterval;
 use DateTime;
@@ -30,7 +31,7 @@ class TimeloopService extends Component
      */
     public function showPeriod(array $data)
     {
-        return $data['loopPeriod'];
+        return $data->period;
     }
 
     /**
@@ -46,14 +47,15 @@ class TimeloopService extends Component
         //  get start date from data object
         //  $startUnix = strtotime($data['loopStart']['date']);
 
-        //check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
+        // check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
         $next = new DateTime();
         $end = $data['loopEnd'] instanceof \DateTime ?
             $data['loopEnd']:
             $next->modify('+20 years');
 
         // get ISO 8601 from the repeater in data object
-        $repeater = $data['loopPeriod']['frequency'] ?? false;
+        // Parse our period object to fetch dates
+        $repeater = $data->period ?? false;
 
         // if no limit is set, use the default so we don't end up with high number arrays
         $limit = $limit == 0 ? self::MAX_ARRAY_ENTRIES : $limit;
@@ -64,17 +66,17 @@ class TimeloopService extends Component
         }
 
         // return the array with dates
-        return $this->_fetchDates($data['loopStart'], $data['loopStartHour'], $end, $repeater, $limit, $futureDates);
+        return $this->_fetchDates($data->loopStart, $end, $repeater, $limit, $futureDates);
     }
 
     public function getReminder(array $data)
     {
         $date = $this->getLoop($data, 1);
-        $loopReminderValue = $data['loopReminderValue'] ?? 0;
-        $loopReminderPeriod = $data['loopReminderPeriod'] ?? 'days';
+        $loopReminderValue = $data->loopReminderValue ?? 0;
+        $loopReminderPeriod = $data->loopReminderPeriod ?? 'days';
         $loopReminder = $loopReminderValue. ' ' .$loopReminderPeriod;
 
-        if(count($date) > 0 && $data['loopReminderPeriod'])
+        if(count($date) > 0 && $data->loopReminderPeriod)
         {
             $remindDate = $date[0];
             $remindDate->modify('-'.$loopReminder);
@@ -90,12 +92,15 @@ class TimeloopService extends Component
     /**
      * @throws \Exception
      */
-    private function _fetchDates($start, $startHour, $end, $interval, $limit = 0, $futureDates = true)
+    private function _fetchDates($start, $end, $period, $limit = 0, $futureDates = true)
     {
+
+        $interval = _calculateInterval($period);
+
         $today = new DateTime();
 
-        $startDate = craft\helpers\DateTimeHelper::toDateTime($start);
-        $endDate = craft\helpers\DateTimeHelper::toDateTime($end);
+        $startDate = DateTimeHelper::toDateTime($start);
+        $endDate = DateTimeHelper::toDateTime($end);
 
         $interval = new DateInterval($interval);
         $arrDates = [];
@@ -106,6 +111,7 @@ class TimeloopService extends Component
 
             // if the date is larger than today and only future dates are accepted, only fill the array.
             // Otherwise, if we don't have to check on future dates, add everything in it
+
             if($date > $today && $futureDates) {
                 $arrDates[] = $date;
             }
@@ -119,5 +125,25 @@ class TimeloopService extends Component
         }
 
         return $arrDates;
+    }
+
+    private function _calculateInterval($period)
+    {
+
+        switch($period->frequency) {
+            case 'P1D':
+                return 'P' . $period->cycle . 'D';
+
+            case 'P1W':
+                return 'P1W';
+
+            case 'P1M':
+                return 'P1M';
+
+            case 'P1Y':
+                return 'P' . $period->cycle . 'Y';
+
+        }
+
     }
 }
