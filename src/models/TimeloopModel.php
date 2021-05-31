@@ -2,11 +2,13 @@
 
 namespace percipiolondon\timeloop\models;
 
+use craft\helpers\DateTimeHelper;
 use percipiolondon\timeloop\models\PeriodModel;
 
 use Craft;
 use craft\base\Model;
 use craft\helpers\Json;
+use percipiolondon\timeloop\Timeloop;
 
 /**
  * @author    percipiolondon
@@ -92,4 +94,30 @@ class TimeloopModel extends Model
         }
     }
 
+    public function getLoopStartHour()
+    {
+        $value = DateTimeHelper::toDateTime($this->loopStartHour);
+        return  $value ? $value->format('G:i') : false;
+    }
+
+    public function getLoopEndHour()
+    {
+        $value = DateTimeHelper::toDateTime($this->loopEndHour);
+        return  $value ? $value->format('G:i') : false;
+    }
+
+    public function getReminder()
+    {
+        return Timeloop::$plugin->timeloop->getReminder($this);
+    }
+
+    public function getDates(int $limit = 0, bool $futureDates = true)
+    {
+        return Timeloop::$plugin->timeloop->getLoop($this, $limit, $futureDates);
+    }
+
+    public function getUpcoming()
+    {
+        return Timeloop::$plugin->timeloop->getLoop($this, 1);
+    }
 }
