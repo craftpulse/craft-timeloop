@@ -1,22 +1,22 @@
 <template>
-    <div 
-        :class="[ 
-            'input flex flex-nowrap items-center bg-gray-300 px-8 py-1 rounded-md',
+    <div
+        :class="[
+            'input flex flex-nowrap mb-0 flex-nowrap items-center',
             utilities
         ]"
     >
         <span>
-            Every
+            Repeats Every
         </span>
 
-        <input 
-            class="w-16 text" 
+        <input
+            class="w-16 text"
             autocomplete="off"
             type="Number"
             min="1"
             v-model.number="cycle"
         />
-        
+
         <span>
             {{ frequencyLabel }}
         </span>
@@ -49,13 +49,13 @@
                 type: String,
                 required: false,
             },
-            
+
         },
 
         setup(props, { emit }) {
 
             const frequencyLabel = computed(() => {
-                
+
                 switch(props.frequency) {
 
                     case 'P1D':

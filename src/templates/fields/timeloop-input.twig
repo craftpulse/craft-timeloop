@@ -30,30 +30,13 @@
 
     <div class="flex flex-nowrap items-start -mx-8">
         <div class="w-1/2 px-8">
-            {% if showTime %}
-                {{ forms.dateTimeField({
-                    label: 'Loop from',
-                    instructions: 'Enter a startdate from when the loop should start',
-                    name: name ~ '[loopStart]',
-                    required: true,
-                    value: value.loopStart ?? now
-                }) }}
-
-                {{ forms.timeField({
-                    label: 'End hour',
-                    instructions: 'Provide an end hour if the recurring date has one.',
-                    name: name ~ '[loopEndHour]',
-                    value: value.loopEndHour.time ?? ''
-                }) }}
-            {% else %}
-                {{ forms.dateField({
-                    label: 'Loop from',
-                    instructions: 'Enter a startdate from when the loop should start',
-                    name: name ~ '[loopStart]',
-                    required: true,
-                    value: value.loopStart ?? now
-                }) }}
-            {% endif %}
+            {{ forms.dateField({
+                label: 'Loop from',
+                instructions: 'Enter a startdate from when the loop should start',
+                name: name ~ '[loopStart]',
+                required: true,
+                value: value.loopStart ?? now
+            }) }}
         </div>
         <div class="w-1/2 px-8">
             {{ forms.dateField({
@@ -64,6 +47,29 @@
             }) }}
         </div>
     </div>
+
+    {% if showTime %}
+
+        <div class="flex flex-nowrap items-start -mx-8 mt-6">
+            <div class="w-1/2 px-8">
+                {{ forms.timeField({
+                    label: 'Start hour',
+                    instructions: 'Provide a start hour if the recurring date has one',
+                    name: name ~ '[loopStartHour]',
+                    value: value.loopStartHour.time ?? ''
+                }) }}
+            </div>
+            <div class="w-1/2 px-8">
+                {{ forms.timeField({
+                    label: 'End hour',
+                    instructions: 'Provide an end hour if the recurring date has one.',
+                    name: name ~ '[loopEndHour]',
+                    value: value.loopEndHour.time ?? ''
+                }) }}
+            </div>
+        </div>
+
+    {% endif %}
 
     <hr />
 
@@ -76,7 +82,7 @@
         value: value.loopPeriod ?? null,
     } %}
 
-    <div id="timeloop">
+    <div id="timeloop" class="mt-6">
         <loop-period :options="{{- loopPeriodOptions | json_encode -}}"></loop-period>
     </div>
 
