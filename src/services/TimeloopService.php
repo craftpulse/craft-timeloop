@@ -64,7 +64,7 @@ class TimeloopService extends Component
         }
 
         // return the array with dates
-        return $this->_fetchDates($data['loopStart'], $end, $repeater, $limit, $futureDates);
+        return $this->_fetchDates($data['loopStart'], $data['loopStartHour'], $end, $repeater, $limit, $futureDates);
     }
 
     public function getReminder(array $data)
@@ -90,7 +90,7 @@ class TimeloopService extends Component
     /**
      * @throws \Exception
      */
-    private function _fetchDates($start, $end, $interval, $limit = 0, $futureDates = true)
+    private function _fetchDates($start, $startHour, $end, $interval, $limit = 0, $futureDates = true)
     {
         $today = new DateTime();
 
