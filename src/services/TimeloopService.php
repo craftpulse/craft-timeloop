@@ -107,6 +107,12 @@ class TimeloopService extends Component
         $startDate = DateTimeHelper::toDateTime($start);
         $endDate = DateTimeHelper::toDateTime($end);
 
+        if($startHour instanceof \DateTime) {
+            $hours = $startHour->format('H');
+            $minutes = $startHour->format('m');
+            $startDate->setTime($hours,$minutes);
+        }
+
         $interval = new DateInterval($interval);
         $arrDates = [];
 
