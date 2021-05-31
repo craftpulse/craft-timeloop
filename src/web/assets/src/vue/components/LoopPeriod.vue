@@ -161,7 +161,15 @@
 
                     default:
 
-                        this.period = null
+                        this.period = {
+                            frequency: 'P1D',
+                            days: [],
+                            cycle: 1,
+                            timestring: {
+                                ordinal: null,
+                                day: null
+                            }
+                        }
 
                 }
 

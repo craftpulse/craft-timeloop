@@ -12,7 +12,7 @@ use craft\helpers\Json;
  * @since     1.0.0
  */
 
-class Timeloop extends Model
+class LoopPeriod extends Model
 {
 
     // Public Properties
@@ -21,34 +21,7 @@ class Timeloop extends Model
     /**
      * @var DateTime
      */
-    public $loopStart;
-
-    /**
-     * @var DateTime
-     */
-    public $loopEnd;
-
-    /**
-     * @var string
-     */
-    public $loopEndHour;
-
-    /**
-     * @var string
-     */
-    public $loopReminderPeriod;
-
-    /**
-     * @var number
-     */
-    public $loopReminderValue;
-
-    /**
-     * @var array
-     */
     public $loopPeriod;
-
-    
 
     // Public Methods
     // =========================================================================
@@ -56,11 +29,7 @@ class Timeloop extends Model
     public function rules()
     {
         return [
-            ['loopStart', 'datetime'],
-            ['loopEnd', 'datetime'],
-            ['loopPeriod', 'array'],
-            ['loopEndHour', 'string'],
-            ['loopReminderValue', 'number'],
+
         ];
     }
 
@@ -70,9 +39,9 @@ class Timeloop extends Model
      * @param bool $raw
      *
      */
-    public function renderLoopPeriod()
+    public function getLoopPeriod()
     {
-        $loopPeriod = craft\helpers\Json::decode(craft\helpers\Json::decode($this->loopPeriod));
+
         return $loopPeriod;
 
     }

@@ -73,7 +73,7 @@
         name: '[' ~ name ~ ']' ~ '[loopPeriod]',
         required: true,
         instructions: "Define a recurring loop for this date",
-        value: value.loopPeriod ?? {}
+        value: value.loopPeriod ?? null,
     } %}
 
     <div id="timeloop">

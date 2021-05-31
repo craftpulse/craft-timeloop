@@ -22,6 +22,7 @@ use craft\gql\GqlEntityRegistry;
 use craft\gql\TypeLoader;
 use craft\gql\types\DateTime;
 
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Gql;
 use craft\helpers\Json;
 
@@ -106,15 +107,15 @@ class Timeloop extends Field implements PreviewableFieldInterface
         }
 
         if (isset($value['loopStart']) ) {
-            $value['loopStart'] = craft\helpers\DateTimeHelper::toDateTime($value['loopStart']);
+            $value['loopStart'] = DateTimeHelper::toDateTime($value['loopStart']);
         }
 
         if (isset($value['loopEnd']) ) {
-            $value['loopEnd'] = craft\helpers\DateTimeHelper::toDateTime($value['loopEnd']);
+            $value['loopEnd'] = DateTimeHelper::toDateTime($value['loopEnd']);
         }
 
         if (isset($value['loopPeriod'])) {
-            $value['loopPeriod'] = craft\helpers\Json::decode($value['loopPeriod']);
+            $value['loopPeriod'] = Json::decodeIfJson($value['loopPeriod']);
         }
 
         $model = new TimeloopModel($value);
@@ -122,29 +123,6 @@ class Timeloop extends Field implements PreviewableFieldInterface
         return $model;
 
     }
-
-
-    /*public function normalizeValue($value, ElementInterface $element = null)
-    {
-        if (is_string($value) && !empty($value)) {
-            $value = rtrim($value);
-            $value = Json::decode($value);
-        }
-
-        if (isset($value['loopStart']) ) {
-            $value['loopStart'] = craft\helpers\DateTimeHelper::toDateTime($value['loopStart']);
-        }
-
-        if (isset($value['loopEnd']) ) {
-            $value['loopEnd'] = craft\helpers\DateTimeHelper::toDateTime($value['loopEnd']);
-        }
-
-        if (isset($value['loopPeriod'])) {
-            $value['loopPeriod'] = craft\helpers\Json::decode($value['loopPeriod']);
-        }
-
-        return $value;
-    }*/
 
     /**
      * @param mixed $value The raw field value
@@ -165,8 +143,8 @@ class Timeloop extends Field implements PreviewableFieldInterface
             $value['loopReminderValue'] = 0;
         }
 
-        if( isset($value['loopPeriod'])) {
-            $value['loopPeriod'] = craft\helpers\Json::encode($value['loopPeriod']);
+        if( is_string($value) && !empty($value['loopPeriod'])) {
+            $value['loopPeriod'] = Json::encode($value['loopPeriod']);
         }
 
         return parent::serializeValue($value, $element);
@@ -197,7 +175,7 @@ class Timeloop extends Field implements PreviewableFieldInterface
         if($value) {
             $upcoming = Timeloop::$plugin->timeloop->getLoop($value, 1)[0];
             $upcoming = false == $upcoming ? 'No upcoming dates' : ($this->getSettings()['showTime'] ? $upcoming->format('d-m-y g:ia') : $upcoming->format('d-m-y'));
-            return '<div>Next up: '.$upcoming.'</div>';
+            return '<div>Next up: ' . $upcoming . '</div>';
         }
 
         return '-';
