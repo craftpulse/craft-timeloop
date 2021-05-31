@@ -18,15 +18,11 @@
                 
             />
 
-            {{ timestring.ordinal }}
-
             <select-field
                 :options="days"
                 v-model:selected="timestring.day"
                 @change="$emit('update:day', timestring.day)"
             />
-
-            {{ timestring.day }}
 
         </div>
 
@@ -36,7 +32,7 @@
 <script lang="ts">
 
     // Async load the Vue 3 APIs we need from the Vue ESM
-    import { defineComponent } from 'vue'
+    import { reactive, defineComponent } from 'vue'
     import SelectField from '@/vue/components/SelectField.vue'
 
     export default defineComponent({
@@ -85,16 +81,17 @@
                 'sunday': 'Sunday',
             },
 
-            timestring: {
-                ordinal: 'first',
-                day: 'monday',
-            }
-
         }),
 
-        mounted() {
-            this.timestring.ordinal = this.ordinal
-            this.timestring.day = this.day
+        setup: (props) => {
+
+            const timestring = reactive({
+                ordinal: props.ordinal || 'first',
+                day: props.day || 'monday',
+            })
+
+            return { timestring }
+
         }
 
     });
