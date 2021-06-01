@@ -7,15 +7,15 @@
         ]"
     >
 
-        <div 
-            class="flex flex-nowrap"   
+        <div
+            class="flex flex-nowrap"
         >
 
             <select-field
                 :options="ordinals"
                 v-model:selected="timestring.ordinal"
                 @change="$emit('update:ordinal', timestring.ordinal)"
-                
+
             />
 
             <select-field
@@ -54,7 +54,7 @@
                 default: 'first',
             },
 
-            day: { 
+            day: {
                 type: String,
                 default: 'monday',
             }
@@ -64,6 +64,7 @@
         data: () => ({
 
             ordinals: {
+                'none': 'None',
                 'first': 'First',
                 'second': 'Second',
                 'third': 'Third',
@@ -72,6 +73,7 @@
             },
 
             days: {
+                'none': 'None',
                 'monday': 'Monday',
                 'tuesday': 'Tuesday',
                 'wednesday': 'Wednesday',

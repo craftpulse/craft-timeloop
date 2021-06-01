@@ -62,7 +62,7 @@ class TimeloopService extends Component
 
         // check if repeater exist, throw exception is no value is added
         if(!$repeater) {
-            throw new \yii\base\Exception( "There's no correct repeater value set. Use daily / weekly / monthly / yearly." );
+            throw new \yii\base\Exception( "There's no correct repeater value set. Use P1D / P1W / P1M / P1Y." );
         }
 
         // return the array with dates
@@ -108,6 +108,11 @@ class TimeloopService extends Component
         $period = new DatePeriod($startDate, $interval, $endDate);
 
         foreach ( $period as $date ) {
+
+            // check if we have a timestring set ( ordinal/day )
+
+
+            // check if we have days selected
 
             // if the date is larger than today and only future dates are accepted, only fill the array.
             // Otherwise, if we don't have to check on future dates, add everything in it
