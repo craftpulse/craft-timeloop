@@ -10,6 +10,7 @@
 
 namespace percipiolondon\timeloop\fields;
 
+use percipiolondon\timeloop\Timeloop;
 use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
 use percipiolondon\timeloop\models\TimeloopModel;
 
@@ -29,7 +30,7 @@ use craft\helpers\Json;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
-
+n
 use yii\base\BaseObject;
 use yii\db\Schema;
 

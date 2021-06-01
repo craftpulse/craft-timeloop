@@ -111,6 +111,7 @@ class TimeloopService extends Component
 
             // check if we have a timestring set ( ordinal/day )
 
+            Craft::dd($period);
 
             // check if we have days selected
 
