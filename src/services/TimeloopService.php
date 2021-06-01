@@ -2,15 +2,19 @@
 
 namespace percipiolondon\timeloop\services;
 
+use percipiolondon\timeloop\models\TimeloopModel;
+
 use Craft;
 use craft\base\Component;
+
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Gql;
 use craft\helpers\Json;
+
 use DateInterval;
 use DateTime;
 use DatePeriod;
-use percipiolondon\timeloop\models\TimeloopModel;
+
 
 /**
  * @author    percipiolondon
@@ -101,29 +105,29 @@ class TimeloopService extends Component
      */
     private function _fetchDates($start, $startHour, $end, $period, $limit = 0, $futureDates = true)
     {
-        $interval = $this->_calculateInterval($period);
-
-        $today = new DateTime();
+        $interval2 = $this->_calculateInterval($period)[0]->interval;
+        $frequency = $this->_calculateInterval($period)[0]->frequency;
 
         $startDate = DateTimeHelper::toDateTime($start);
         $endDate = DateTimeHelper::toDateTime($end);
+        $today = new DateTime();
 
-        if($startHour instanceof \DateTime) {
+        if ( $startHour instanceof \DateTime ) {
             $hours = $startHour->format('H');
             $minutes = $startHour->format('m');
-            $startDate->setTime($hours,$minutes);
+            $startDate->setTime($hours, $minutes);
         }
 
-        $dateInterval = new DateInterval($interval);
+        $dateInterval = new DateInterval($interval2);
         $arrDates = [];
 
         $datePeriod = new DatePeriod($startDate, $dateInterval, $endDate);
 
+        $counter = 0;
+
         foreach ( $datePeriod as $date ) {
 
             // check if we have a timestring set ( ordinal/day )
-
-            //$arrDates[] = 'test';
 
             // check if we have days selected
 
@@ -131,14 +135,21 @@ class TimeloopService extends Component
             // Otherwise, if we don't have to check on future dates, add everything in it
 
             if ($date > $today && $futureDates) {
-                $arrDates[] = $date;
-            } elseif(!$futureDates) {
-                $arrDates[] = $date;
+
+                $arrDates[] = $this->_parseDate($frequency, $startDate, $counter);
+
+
+            } elseif (!$futureDates) {
+
+                $arrDates[] = $this->_parseDate($frequency, $startDate, $counter);
+
             }
 
             if ($limit > 0 && count($arrDates) >= $limit) {
                 break;
             };
+
+            $counter++;
         }
 
         return $arrDates;
@@ -147,20 +158,46 @@ class TimeloopService extends Component
     private function _calculateInterval($period)
     {
 
+        $frequency = [];
+
         switch($period->frequency) {
             case 'P1D':
-                return 'P' . $period->cycle . 'D';
+                $frequency[] = (object) [
+                    'interval' => 'P' . $period->cycle . 'D',
+                    'frequency' => 'daily',
+                ];
+
+                break;
 
             case 'P1W':
-                return 'P' . $period->cycle . 'W';
+
+                $frequency[] = (object) [
+                    'interval' => 'P' . $period->cycle . 'W' ,
+                    'frequency' => 'weekly',
+                ];
+
+                break;
 
             case 'P1M':
-                return 'P' . $period->cycle . 'M';
+
+                $frequency[] = (object) [
+                    'interval' => 'P' . $period->cycle . 'M',
+                    'frequency' => 'monthly',
+                ];
+
+                break;
 
             case 'P1Y':
-                return 'P' . $period->cycle . 'Y';
 
+                $frequency[] = (object) [
+                    'interval' => 'P' . $period->cycle . 'Y',
+                    'frequency' => 'yearly',
+                ];
+
+                break;
         }
+
+        return $frequency;
 
     }
 
@@ -183,16 +220,37 @@ class TimeloopService extends Component
         $date1 = clone($date);
         $date2 = clone($date);
 
-        $months = $date->modify($months . ' Month');
+        $addedMonths = clone($date1->modify($months . ' Month'));
 
-        if( $date1 != $date2->modify($months*-1 . ' Month') ) {
-            $result = $months->modify('last day of last month');
-        } elseif ( $date1 == $date2->modify('last day of this month')) {
-            $result = $months->modify('last day of this month');
+
+        if( $date2 != $date1->modify($months*-1 . ' Month') ) {
+
+            $result = $addedMonths->modify('last day of last month');
+
+        } elseif ( $date == $date2->modify('last day of this month')) {
+
+            $result = $addedMonths->modify('last day of this month');
+
         } else {
-            $result = $months;
+
+            $result = $addedMonths;
+
         }
 
         return $result;
+    }
+
+    private function _parseDate(String $frequency, DateTime $date, Int $counter) {
+
+        switch($frequency) {
+
+            case 'monthly':
+
+                $loopDate = $this->_monthCorrection($date, $counter);
+
+        }
+
+        return $loopDate;
+
     }
 }

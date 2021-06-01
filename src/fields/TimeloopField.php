@@ -144,12 +144,15 @@ class TimeloopField extends Field implements PreviewableFieldInterface
         if (isset($value['loopStart']) && $value['loopStart'] instanceof \DateTime) {
             $value['loopStart'] = $value['loopStart']->format(\DateTime::ATOM);
         }
+
         if (isset($value['loopEnd']) && $value['loopEnd'] instanceof \DateTime) {
             $value['loopEnd'] = $value['loopEnd']->format(\DateTime::ATOM);
         }
+
         if (isset($value['loopStartHour']) && $value['loopStartHour'] instanceof \DateTime) {
             $value['loopStartHour'] = $value['loopStartHour']->format(\DateTime::ATOM);
         }
+
         if (isset($value['loopEndHour']) && $value['loopEndHour'] instanceof \DateTime) {
             $value['loopEndHour'] = $value['loopEndHour']->format(\DateTime::ATOM);
         }
