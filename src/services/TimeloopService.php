@@ -6,6 +6,7 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Gql;
+use craft\helpers\Json;
 use DateInterval;
 use DateTime;
 use DatePeriod;
@@ -116,13 +117,16 @@ class TimeloopService extends Component
         $interval = new DateInterval($interval);
         $arrDates = [];
 
-        $period = new DatePeriod($startDate, $interval, $endDate);
+        $datePeriod = new DatePeriod($startDate, $interval, $endDate);
 
-        foreach ( $period as $date ) {
+        foreach ( $datePeriod as $date ) {
 
             // check if we have a timestring set ( ordinal/day )
 
-            Craft::dd($period);
+            if ($period->frequency === 'P1M') {
+                $arrDates[] = 'test';
+                Craft:dd($arrDates);
+            }
 
             // check if we have days selected
 
@@ -152,10 +156,10 @@ class TimeloopService extends Component
                 return 'P' . $period->cycle . 'D';
 
             case 'P1W':
-                return 'P1W';
+                return 'P' . $period->cycle . 'W';
 
             case 'P1M':
-                return 'P1M';
+                return 'P' . $period->cycle . 'M';
 
             case 'P1Y':
                 return 'P' . $period->cycle . 'Y';

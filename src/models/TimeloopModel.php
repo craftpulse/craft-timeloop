@@ -2,14 +2,13 @@
 
 namespace percipiolondon\timeloop\models;
 
-use craft\helpers\DateTimeHelper;
+use percipiolondon\timeloop\Timeloop;
 use percipiolondon\timeloop\models\PeriodModel;
 
 use Craft;
 use craft\base\Model;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use percipiolondon\timeloop\Timeloop;
 
 /**
  * @author    percipiolondon
@@ -72,11 +71,6 @@ class TimeloopModel extends Model
             ['loopEndHour', 'datetime'],
             ['loopReminderValue', 'number'],
         ];
-    }
-
-    public function getLoopStartHour()
-    {
-        return $this->loopEndHour['time'];
     }
 
     public function getPeriod()
