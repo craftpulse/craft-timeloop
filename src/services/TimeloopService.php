@@ -114,29 +114,25 @@ class TimeloopService extends Component
             $startDate->setTime($hours,$minutes);
         }
 
-        $interval = new DateInterval($interval);
+        $dateInterval = new DateInterval($interval);
         $arrDates = [];
 
-        $datePeriod = new DatePeriod($startDate, $interval, $endDate);
+        $datePeriod = new DatePeriod($startDate, $dateInterval, $endDate);
 
         foreach ( $datePeriod as $date ) {
 
             // check if we have a timestring set ( ordinal/day )
 
-            if ($period->frequency === 'P1M') {
-                $arrDates[] = 'test';
-                Craft:dd($arrDates);
-            }
+            //$arrDates[] = 'test';
 
             // check if we have days selected
 
             // if the date is larger than today and only future dates are accepted, only fill the array.
             // Otherwise, if we don't have to check on future dates, add everything in it
 
-            if($date > $today && $futureDates) {
+            if ($date > $today && $futureDates) {
                 $arrDates[] = $date;
-            }
-            elseif(!$futureDates) {
+            } elseif(!$futureDates) {
                 $arrDates[] = $date;
             }
 
@@ -166,5 +162,37 @@ class TimeloopService extends Component
 
         }
 
+    }
+
+    /**
+     * correctly calculates end of months when we shift to a shorter or longer month
+     *
+     * Shifting from the 28th Feb +1 month is 31st March
+     * Shifting from the 28th Feb -1 month is 31st Jan
+     * Shifting from the 29,30,31 Jan +1 month is 28th (or 29th) Feb
+     *
+     *
+     * @param DateTime $date
+     * @param int $months positive or negative
+     *
+     */
+
+    private function _monthCorrection(DateTime $date, $months) {
+
+        // making 2 clones of our dates to be able to do calculations
+        $date1 = clone($date);
+        $date2 = clone($date);
+
+        $months = $date->modify($months . ' Month');
+
+        if( $date1 != $date2->modify($months*-1 . ' Month') ) {
+            $result = $months->modify('last day of last month');
+        } elseif ( $date1 == $date2->modify('last day of this month')) {
+            $result = $months->modify('last day of this month');
+        } else {
+            $result = $months;
+        }
+
+        return $result;
     }
 }
