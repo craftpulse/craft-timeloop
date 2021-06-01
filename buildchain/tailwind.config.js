@@ -19,6 +19,11 @@ module.exports = {
         }
     },
     theme: {
+        extend: {
+            minHeight: (theme) => ({
+                12: theme('height.12')
+            })
+        }
     },
     corePlugins: {},
     plugins: [],

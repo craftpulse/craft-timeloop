@@ -31,38 +31,50 @@
                 @change="sanitizeData(period)"
             />
 
-            <cycle-field
-                v-if="period.frequency"
-                :settings="options"
-                :frequency="period.frequency"
-                utilities="ml-8"
-                v-model:cycle.number="period.cycle"
-            />
-
         </div>
 
-        <div
-            class="flex flex-nowrap mt-8 items-start"
-            v-if="period.frequency && period.frequency === 'P1W'"
-        >
-            <days-field
-                :settings="options"
-                :frequency="period.frequency"
-                v-model:days="period.days"
-            />
+        <div class="heading">
+            <label class="mt-6">
+                Inverval
+            </label>
         </div>
 
-        <div
-            class="flex flex-nowrap mt-8 items-start"
-            v-if="period.frequency && period.frequency === 'P1M'"
-        >
-            <time-string-field
-                :settings="options"
-                :ordinal="period.timestring.ordinal"
-                :day="period.timestring.day"
-                v-model:ordinal="period.timestring.ordinal"
-                v-model:day="period.timestring.day"
-            />
+        <div class="mb-0 items-center w-full bg-gray-300">
+            <div class="flex flex-nowrap px-3 py-1 min-h-12">
+                <cycle-field
+                    v-if="period.frequency"
+                    :settings="options"
+                    :frequency="period.frequency"
+                    utilities=""
+                    v-model:cycle.number="period.cycle"
+                />
+
+                <div
+                    class="flex flex-nowrap items-center mb-0"
+                    v-if="period.frequency && period.frequency === 'P1W'"
+                >
+                    <span>on</span>
+                    <days-field
+                        :settings="options"
+                        :frequency="period.frequency"
+                        v-model:days="period.days"
+                    />
+                </div>
+
+                <div
+                    class="flex flex-nowrap items-center mb-0"
+                    v-if="period.frequency && period.frequency === 'P1M'"
+                >
+                    <span>on the</span>
+                    <time-string-field
+                        :settings="options"
+                        :ordinal="period.timestring.ordinal"
+                        :day="period.timestring.day"
+                        v-model:ordinal="period.timestring.ordinal"
+                        v-model:day="period.timestring.day"
+                    />
+                </div>
+            </div>
         </div>
 
         <input
@@ -73,7 +85,7 @@
             :value="JSON.stringify(period)"
         >
 
-        <h4>Craft Data</h4>
+        <!--h4>Craft Data</h4>
 
         <div class="bg-purple-300 px-8 py-4 rounded-md text-xl my-4">
             {{ options.value }}
@@ -83,7 +95,7 @@
 
         <div class="bg-green-300 px-8 py-4 rounded-md text-xl my-4">
             {{ period }}
-        </div>
+        </div-->
 
     </div>
 </template>
@@ -140,22 +152,22 @@
 
                 switch (data.frequency) {
                     case 'P1D':
-                    case 'P1Y': 
+                    case 'P1Y':
 
                         this.period.days = [];
                         this.period.timestring.ordinal = null;
                         this.period.timestring.day = null;
-                        
+
                         break
 
-                    case 'P1W': 
+                    case 'P1W':
 
                         this.period.timestring.ordinal = null
                         this.period.timestring.day = null
 
                         break
 
-                    case 'P1M': 
+                    case 'P1M':
 
                         this.period.days = []
 

@@ -9,6 +9,7 @@ use craft\helpers\Gql;
 use DateInterval;
 use DateTime;
 use DatePeriod;
+use percipiolondon\timeloop\models\TimeloopModel;
 
 /**
  * @author    percipiolondon
@@ -37,12 +38,12 @@ class TimeloopService extends Component
     /**
      * Returns the $limit upcoming dates from the timeloop start date
      *
-     * @param array $data
+     * @param TimeloopModel $data
      * @param bool $futureDates
      * @param integer $limit
      *
      */
-    public function getLoop(array $data, $limit = 0, bool $futureDates = true)
+    public function getLoop(TimeloopModel $data, $limit = 0, bool $futureDates = true)
     {
         //  get start date from data object
         //  $startUnix = strtotime($data['loopStart']['date']);
@@ -66,10 +67,15 @@ class TimeloopService extends Component
         }
 
         // return the array with dates
-        return $this->_fetchDates($data->loopStart, $end, $repeater, $limit, $futureDates);
+        return $this->_fetchDates($data->loopStart, $data->loopStartHour, $end, $repeater, $limit, $futureDates);
     }
 
-    public function getReminder(array $data)
+    /**
+     * @param TimeloopModel $data
+     * @return mixed|null
+     * @throws \yii\base\Exception
+     */
+    public function getReminder(TimeloopModel $data)
     {
         $date = $this->getLoop($data, 1);
         $loopReminderValue = $data->loopReminderValue ?? 0;
@@ -92,15 +98,20 @@ class TimeloopService extends Component
     /**
      * @throws \Exception
      */
-    private function _fetchDates($start, $end, $period, $limit = 0, $futureDates = true)
+    private function _fetchDates($start, $startHour, $end, $period, $limit = 0, $futureDates = true)
     {
-
-        $interval = _calculateInterval($period);
+        $interval = $this->_calculateInterval($period);
 
         $today = new DateTime();
 
         $startDate = DateTimeHelper::toDateTime($start);
         $endDate = DateTimeHelper::toDateTime($end);
+
+        if($startHour instanceof \DateTime) {
+            $hours = $startHour->format('H');
+            $minutes = $startHour->format('m');
+            $startDate->setTime($hours,$minutes);
+        }
 
         $interval = new DateInterval($interval);
         $arrDates = [];
