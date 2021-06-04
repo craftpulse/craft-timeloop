@@ -172,8 +172,8 @@
                         this.period.days = []
 
                         if ( !this.period.timestring.ordinal && !this.period.timestring.day ) {
-                            this.period.timestring.ordinal = 'first'
-                            this.period.timestring.day = 'monday'
+                            this.period.timestring.ordinal = 'none'
+                            this.period.timestring.day = 'none'
                         }
 
                         break
