@@ -1,21 +1,21 @@
 {
-  "src/js/app.ts": {
-    "file": "assets/app.25837277.js",
-    "src": "src/js/app.ts",
-    "isEntry": true,
-    "css": [
-      "assets/app.b4515f35.css"
-    ]
-  },
   "src/js/timeloop.ts": {
-    "file": "assets/timeloop.c9856633.js",
+    "file": "assets/timeloop.d6009942.js",
     "src": "src/js/timeloop.ts",
     "isEntry": true,
-    "imports": [
-      "_vendor.f30ede7f.js"
+    "css": [
+      "assets/timeloop.37994187.css"
     ]
   },
-  "_vendor.f30ede7f.js": {
-    "file": "assets/vendor.f30ede7f.js"
+  "src/js/timeloop-field.ts": {
+    "file": "assets/timeloop-field.31715934.js",
+    "src": "src/js/timeloop-field.ts",
+    "isEntry": true,
+    "imports": [
+      "_vendor.e8938c27.js"
+    ]
+  },
+  "_vendor.e8938c27.js": {
+    "file": "assets/vendor.e8938c27.js"
   }
 }
