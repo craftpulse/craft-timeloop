@@ -14,6 +14,7 @@ use craft\helpers\Json;
 use DateInterval;
 use DateTime;
 use DatePeriod;
+use DateTimeZone;
 
 
 /**
@@ -56,7 +57,7 @@ class TimeloopService extends Component
         // check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
         $next = new DateTime();
         $end = $data['loopEnd'] instanceof \DateTime ?
-            $data['loopEnd']:
+            $data['loopEnd'] :
             $next->modify('+20 years');
 
         // get ISO 8601 from the repeater in data object
@@ -64,7 +65,7 @@ class TimeloopService extends Component
         $repeater = $data->period ?? false;
 
         // if no limit is set, use the default so we don't end up with high number arrays
-        $limit = $limit == 0 ? self::MAX_ARRAY_ENTRIES : $limit;
+        $limit = $limit === 0 ? self::MAX_ARRAY_ENTRIES : $limit;
 
         // check if repeater exist, throw exception is no value is added
         if(!$repeater) {
@@ -72,7 +73,9 @@ class TimeloopService extends Component
         }
 
         // return the array with dates
-        return $this->_fetchDates($data->loopStart, $data->loopStartHour, $end, $repeater, $limit, $futureDates);
+        return $this->_fetchDates($data->loopStart, $end, $repeater, $limit, $futureDates);
+
+        //Craft::dd($this->_fetchDates($data->loopStart, $end, $repeater, $limit, $futureDates));
     }
 
     /**
@@ -103,22 +106,18 @@ class TimeloopService extends Component
     /**
      * @throws \Exception
      */
-    private function _fetchDates($start, $startHour, $end, $period, $limit = 0, $futureDates = true)
+    private function _fetchDates($start, $end, $period, $limit = 0, $futureDates = true)
     {
-        $interval2 = $this->_calculateInterval($period)[0]->interval;
+        $interval = $this->_calculateInterval($period)[0]->interval;
         $frequency = $this->_calculateInterval($period)[0]->frequency;
+        $cycle = $period->cycle;
 
         $startDate = DateTimeHelper::toDateTime($start);
         $endDate = DateTimeHelper::toDateTime($end);
+
         $today = new DateTime();
 
-        if ( $startHour instanceof \DateTime ) {
-            $hours = $startHour->format('H');
-            $minutes = $startHour->format('m');
-            $startDate->setTime($hours, $minutes);
-        }
-
-        $dateInterval = new DateInterval($interval2);
+        $dateInterval = new DateInterval($interval);
         $arrDates = [];
 
         $datePeriod = new DatePeriod($startDate, $dateInterval, $endDate);
@@ -136,12 +135,11 @@ class TimeloopService extends Component
 
             if ($date > $today && $futureDates) {
 
-                $arrDates[] = $this->_parseDate($frequency, $startDate, $counter);
-
+                $arrDates[] = $this->_parseDate($frequency, $start, $counter, $cycle);
 
             } elseif (!$futureDates) {
 
-                $arrDates[] = $this->_parseDate($frequency, $startDate, $counter);
+                $arrDates[] = $this->_parseDate($frequency, $start, $counter, $cycle);
 
             }
 
@@ -214,16 +212,18 @@ class TimeloopService extends Component
      *
      */
 
-    private function _monthCorrection(DateTime $date, $months) {
+    private function _monthCorrection(DateTime $date, Int $months, Int $cycle) {
+
+        $frequency = $months * $cycle;
 
         // making 2 clones of our dates to be able to do calculations
         $date1 = clone($date);
         $date2 = clone($date);
 
-        $addedMonths = clone($date1->modify($months . ' Month'));
+        $addedMonths = clone($date1->modify($frequency . ' Month'));
 
 
-        if( $date2 != $date1->modify($months*-1 . ' Month') ) {
+        if( $date2 != $date1->modify($frequency*-1 . ' Month') ) {
 
             $result = $addedMonths->modify('last day of last month');
 
@@ -240,17 +240,17 @@ class TimeloopService extends Component
         return $result;
     }
 
-    private function _parseDate(String $frequency, DateTime $date, Int $counter) {
+    private function _parseDate(String $frequency, DateTime $date, Int $counter, Int $cycle) {
 
         switch($frequency) {
 
             case 'monthly':
 
-                $loopDate = $this->_monthCorrection($date, $counter);
+                $loopDate = $this->_monthCorrection($date, $counter, $cycle);
 
         }
 
-        return $loopDate;
+        return DateTimeHelper::toDateTime($loopDate);
 
     }
 }

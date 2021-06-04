@@ -96,13 +96,13 @@ class TimeloopModel extends Model
     public function getLoopStartHour()
     {
         $value = DateTimeHelper::toDateTime($this->loopStartHour);
-        return  $value ? $value->format('G:i') : false;
+        return  $value ? $value->format('H:i') : false;
     }
 
     public function getLoopEndHour()
     {
         $value = DateTimeHelper::toDateTime($this->loopEndHour);
-        return  $value ? $value->format('G:i') : false;
+        return  $value ? $value->format('H:i') : false;
     }
 
     public function getReminder()
@@ -119,4 +119,5 @@ class TimeloopModel extends Model
     {
         return Timeloop::$plugin->timeloop->getLoop($this, 1);
     }
+
 }
