@@ -34,46 +34,101 @@ More configuration will be provided in the future
 
 ## Using Timeloop
 
-### Twig
-We have two twig variables you can use to fetch out the dates.
+### The Timeloop Model
 
-#### getUpcoming
-Use getUpcoming if you want to fetch the next date in line. 
+#### Getting the entered dates ( returned as DateTime Objects )
 
-Props:
-* data: pass the field through the function
+Getting the startDate for the loop ( this includes the time set in loopStartHour )
 ```twig
-{{ craft.timeloop.getUpcoming(entry.timeloop) ? craft.timeloop.getUpcoming(entry.timeloop)|date('d/m/Y') : "There's no upciming date" }}
+    {{ entry.timeloop.loopStart | date('Y-m-d\\TH:i:sP') }}
 ```
 
-#### getReminder
-Use getReminder if you want to fetch the next reminder date in line. 
-
-Props:
-* data: pass the field through the function
+Getting the endDate for the loop ( this includes the time set in loopEndHour )
 ```twig
-{{ craft.timeloop.getReminder(entry.timeloop) ? craft.timeloop.getReminder(entry.timeloop)|date('d/m/Y') : "There's no upciming reminder date" }}
+    {{ entry.timeloop.loopEnd | date('Y-m-d\\TH:i:sP') }}
 ```
 
-#### getDates
-Use getUpcoming if you want to fetch the next date in line. Pass the field to the variable.
-
-Props:
-* data[array]: pass the field through the function
-* limit[integer]: add a limit of dates you want to return. Default set to 100
-* futureDates[bool]: if you want the dates starting from today and only show future dates or start from the loopStart. Default set to true (only dates in the future)
+Getting the startTime for the loop ( this includes the time set in loopStartHour )
 ```twig
-{% set dates = craft.timeloop.getDates(entry.timeloop) %}
+    {{ entry.timeloop.loopStartHour | date('H:i:s') }}
 ```
+
+Getting the endTime for the loop ( this includes the time set in loopEndHour )
+```twig
+    {{ entry.timeloop.loopEndHour | date('H:i:s') }}
+```
+
+Getting an array of dates between the selected start and end dates ( Array with DateTime Objects ).
+This generated set of dates takes all the field values into consideration ( frequency, cycle, custom )
+```twig
+    {% for date in entry.timeloop.dates %}
+        {{ date | date('Y-m-d\\TH:i:sP') }}
+    {% endfor %}
+```
+
+
+#### Upcoming Dates ( returned as DateTime Objects )
+
+Getting the first upcoming date
+```twig
+    {{ entry.timeloop.upcoming | date('Y-m-d\\TH:i:sP') }}
+```
+
+Getting the next upcoming date
+```twig
+    {{ entry.timeloop.nextUpcoming | date('Y-m-d\\TH:i:sP') }}
+```
+
+### Period Model
+
+Getting the frequency ( DateTimePeriod String )
+```twig
+    {{ entry.timeloop.period.frequency }}
+```
+
+Getting the cycle ( Integer )
+```twig
+    {{ entry.timeloop.period.cycle }}
+```
+
+Getting the days ( Array ),
+This will parse the names of the days selected when Daily has been chosen as frequency
+```twig
+    {% for day in entry.timeloop.period.days %}
+        {{ day }}
+    {% endfor %}
+```
+
+### Timestring Model
+
+Get the ordinal of a monthly set loop (e.g. first, second, ..., last)
+
+**warning:** This will return `null` if the loop is set to anything else than monthly!<br>
+**warning:** This will return `none` as string if the loop is set to monthly, but no timestring selection has been made!
+
+```twig
+    {{ entry.timeloop.timestring.ordinal ?? 'not set' }}
+```
+
+### Reminder Model ( WIP - not ready for production )
 
 ### GraphQL
 If you want to use the plugin throughout GraphQL, we've added a type to provide the data to use headless
 
-You can get the types from the data directly for `loopStart`, `loopEnd`, `loopPeriod`. To get the dates, use `dates`.
+You can get the DateTimeTypes from the data directly for `loopStart`, `loopStartHour`, `loopEnd`, `loopEndHour`, `loopPeriod`, `loopReminder`.
+
+You can get a simple array for the loopPeriod values with `loopPeriod` ( will be updated to a new GQL Type )
+
+To get an array of dates in formatted dates, use `dates`.
 
 Dates arguments:
 * limit[integer]: add a limit of dates you want to return. Default set to 100
 * futureDates[bool]: if you want the dates starting from today and only show future dates or start from the loopStart. Default set to true (only dates in the future)
+
+Dates directives:
+* formatDateTime(timezone: "Europe/London" format: "d/m/Y")
+
+
 ```graphql
 query{
   entries(section: "homepage"){
@@ -82,10 +137,12 @@ query{
       dateCreated,
       title,
       timeloop {
+        loopReminder,
         loopStart,
+        loopStartHour,
         loopEnd,
+        loopEndHour,
         loopPeriod,
-        reminder @formatDateTime(format: "d-m-Y g:ia", timezone: "Europe/London"),
         dates(limit: 5) @formatDateTime(format: "d/m/Y" )
       }
     }
@@ -98,10 +155,17 @@ query{
 
 Some things to do, and ideas for potential features:
 
-* Adding timeslots for the recurring date
-* Adding a custom period loop where you can set custom recurring dates
+* Mutations for GQL
+* Reminder Support - with custom entries
+* Provide additional GQL Type for LoopPeriod and TimeString Models
+* Make Field Translatable
+* Provide Translations
+* Add the posibilities to blocklist dates ( which shouldn't be parsed )
+* Add Bank Holidays and Holiday settings
+* Localise Bank Holidays and Holidays based on Craft TimeZone Settings
 * Providing a controller to fetch if today is the first upcoming date
 * Providing a controller to fetch if today is the first reminder upcoming date
+* And Many more!
 
 
 Brought to you by [Percipio.London](https://percipio.london)
