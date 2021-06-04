@@ -186,7 +186,7 @@ class TimeloopService extends Component
      * @param PeriodModel $period
      *
      */
-    private function _calculateInterval(PeriodModel $period): string
+    private function _calculateInterval(PeriodModel $period): array
     {
 
         $frequency = [];
