@@ -305,10 +305,12 @@ class TimeloopService extends Component
             case 'weekly':
 
                 $weekDates = [];
+                $hours = $date->format('H');
+                $minutes = $date->format('i');
 
                 foreach ($period->days as $day) {
-                    $weekDay = clone($date);
-                    $weekDates[] = DateTimeHelper::toDateTime($weekDay->modify(strtolower($day) . ' this week'));
+                    $weekDay = clone($date)->modify(strtolower($day) . ' this week')->setTime($hours, $minutes);
+                    $weekDates[] = DateTimeHelper::toDateTime($weekDay);
                 }
 
                 $loopDate = $weekDates;
