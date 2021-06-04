@@ -23,14 +23,14 @@ class PeriodModel extends Model
     public $frequency;
 
     /**
+     * @var integer
+     */
+    public $cycle;
+
+    /**
      * @var array
      */
     public $days;
-
-    /**
-     * @var number
-     */
-    public $cycle;
 
     /**
      * @var array

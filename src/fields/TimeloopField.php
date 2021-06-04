@@ -13,6 +13,7 @@ namespace percipiolondon\timeloop\fields;
 use percipiolondon\timeloop\Timeloop;
 use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
 use percipiolondon\timeloop\models\TimeloopModel;
+use percipiolondon\timeloop\models\PeriodModel;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -252,11 +253,19 @@ class TimeloopField extends Field implements PreviewableFieldInterface
             'fields' => [
                 'loopPeriod' => [
                     'name' => 'loopPeriod',
-                    'type' => Type::string(),
-                    'description' => 'The loop repeater period (daily / weekly / monthly / yearly)',
+                    'type' => Type::listOf(DateTime::getType()),
+                    'description' => 'The loop period (daily / weekly / monthly / yearly)',
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $fieldName = $resolveInfo->fieldName;
-                        return "TO BE DEFINED WHAT SHOULD BE RETURNED HERE";
+                        $value = new PeriodModel($source[$fieldName]);
+                        $period = [
+                            'frequency' => $value->frequency,
+                            'cycle' => $value->cycle,
+                            'days' => $value->days,
+                            'timestring' => $value->timestring,
+                        ];
+
+                        return $period;
                     }
                 ],
                 'loopReminder' => [
