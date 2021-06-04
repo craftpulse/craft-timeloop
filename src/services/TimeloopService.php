@@ -306,8 +306,6 @@ class TimeloopService extends Component
 
                 $weekDates = [];
 
-                $counter = 0;
-
                 foreach ($period->days as $day) {
                     $weekDay = clone($date);
                     $weekDates[] = DateTimeHelper::toDateTime($weekDay->modify(strtolower($day) . ' this week'));
@@ -320,7 +318,7 @@ class TimeloopService extends Component
 
                 $monthlyDate = $this->_monthCorrection($date, $counter, $period->cycle);
 
-                if ( $timestring->ordinal && $timestring->day ) {
+                if ( $timestring->ordinal !== 'none' && $timestring->day !== 'none' ) {
                     // set to timestring variables else == $monthlyDate.
                     $loopDate = $monthlyDate->modify($timestring->ordinal . ' ' . $timestring->day . ' of this month');
                 } else {

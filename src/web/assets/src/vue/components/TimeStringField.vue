@@ -46,12 +46,12 @@
 
             ordinal: {
                 type: String,
-                default: 'first',
+                default: 'none',
             },
 
             day: {
                 type: String,
-                default: 'monday',
+                default: 'none',
             }
 
         },
