@@ -57,8 +57,8 @@ class TimeloopService extends Component
 
         // check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
         $next = new DateTime();
-        $end = $data['loopEnd'] instanceof \DateTime ?
-            $data['loopEnd'] :
+        $end = $data->loopEnd instanceof \DateTime ?
+            $data->loopEnd :
             $next->modify('+20 years');
 
         // get ISO 8601 from the repeater in data object
