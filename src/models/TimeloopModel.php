@@ -2,13 +2,13 @@
 
 namespace percipiolondon\timeloop\models;
 
-use craft\helpers\DateTimeHelper;
+use percipiolondon\timeloop\Timeloop;
 use percipiolondon\timeloop\models\PeriodModel;
 
 use Craft;
 use craft\base\Model;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use percipiolondon\timeloop\Timeloop;
 
 /**
  * @author    percipiolondon
@@ -58,7 +58,6 @@ class TimeloopModel extends Model
     public $loopPeriod;
 
 
-
     // Public Methods
     // =========================================================================
 
@@ -72,6 +71,16 @@ class TimeloopModel extends Model
             ['loopEndHour', 'datetime'],
             ['loopReminderValue', 'number'],
         ];
+    }
+
+    /**
+     * Use the handle as the string representation.
+     *
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return 'magical to string function for entry.timeloop';
     }
 
     public function getPeriod()
@@ -97,13 +106,13 @@ class TimeloopModel extends Model
     public function getLoopStartHour()
     {
         $value = DateTimeHelper::toDateTime($this->loopStartHour);
-        return  $value ? $value->format('G:i') : false;
+        return  $value ? $value->format('H:i') : false;
     }
 
     public function getLoopEndHour()
     {
         $value = DateTimeHelper::toDateTime($this->loopEndHour);
-        return  $value ? $value->format('G:i') : false;
+        return  $value ? $value->format('H:i') : false;
     }
 
     public function getReminder()
@@ -120,4 +129,5 @@ class TimeloopModel extends Model
     {
         return Timeloop::$plugin->timeloop->getLoop($this, 1);
     }
+
 }

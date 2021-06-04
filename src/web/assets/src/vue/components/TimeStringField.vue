@@ -59,6 +59,7 @@
         data: () => ({
 
             ordinals: {
+                'none': 'None',
                 'first': 'First',
                 'second': 'Second',
                 'third': 'Third',
@@ -67,6 +68,7 @@
             },
 
             days: {
+                'none': 'None',
                 'monday': 'Monday',
                 'tuesday': 'Tuesday',
                 'wednesday': 'Wednesday',
