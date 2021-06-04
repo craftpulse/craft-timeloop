@@ -251,23 +251,23 @@ class TimeloopField extends Field implements PreviewableFieldInterface
         $timeloopType = GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new ObjectType([
             'name' => $typeName,
             'fields' => [
-                'loopPeriod' => [
-                    'name' => 'loopPeriod',
-                    'type' => Type::listOf(DateTime::getType()),
-                    'description' => 'The loop period (daily / weekly / monthly / yearly)',
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
-                        $fieldName = $resolveInfo->fieldName;
-                        $value = new PeriodModel($source[$fieldName]);
-                        $period = [
-                            'frequency' => $value->frequency,
-                            'cycle' => $value->cycle,
-                            'days' => $value->days,
-                            'timestring' => $value->timestring,
-                        ];
-
-                        return $period;
-                    }
-                ],
+                //'loopPeriod' => [
+                //    'name' => 'loopPeriod',
+                //    'type' => Type::ListOf(DateTime::getType()),
+                //    'description' => 'The loop period (daily / weekly / monthly / yearly)',
+                //    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                //        $fieldName = $resolveInfo->fieldName;
+                //        $value = new PeriodModel($source[$fieldName]);
+                //        $period = [
+                //            'frequency' => $value->frequency,
+                //            'cycle' => $value->cycle,
+                //            'days' => $value->days,
+                //            'timestring' => $value->timestring,
+                //        ];
+                //
+                //        return $period;
+                //   }
+                //],
                 'loopReminder' => [
                     'name' => 'loopReminder',
                     'type' => Type::string(),
