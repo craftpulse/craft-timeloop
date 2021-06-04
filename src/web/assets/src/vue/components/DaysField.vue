@@ -25,7 +25,7 @@
 <script lang="ts">
 
     // Async load the Vue 3 APIs we need from the Vue ESM
-    import { computed, defineComponent } from 'vue'
+    import { defineComponent } from 'vue'
     import { useModelWrapper } from '@/js/utils/modelWrapper'
 
     export default defineComponent({
@@ -48,31 +48,31 @@
         data: () => ({
 
             weekDays: {
-                Monday: {
+                'Monday': {
                     shortName: 'M',
                     dayOfWeek: 1,
                 },
-                Tuesday: {
+                'Tuesday': {
                     shortName: 'T',
                     dayOfWeek: 2,
                 },
-                Wednesday: {
+                'Wednesday': {
                     shortName: 'W',
                     dayOfWeek: 3,
                 },
-                Thursday: {
+                'Thursday': {
                     shortName: 'T',
                     dayOfWeek: 4,
                 },
-                Friday: {
+                'Friday': {
                     shortName: 'F',
                     dayOfWeek: 5,
                 },
-                Saturday: {
+                'Saturday': {
                     shortName: 'S',
                     dayOfWeek: 6,
                 },
-                Sunday: {
+                'Sunday': {
                     shortName: 'S',
                     dayOfWeek: 7,
                 }
@@ -92,12 +92,25 @@
             selectDay( day ) {
 
                 if (this.days.includes(day)) {
+
                     this.days = this.days.filter(name => name !== day)
+                        
                 } else {
+
                     this.days.push(day)
+
                 }
 
-            }
+                const map = this.weekDays;
+                // always sort our days
+
+                this.days.sort((a, b) => {
+                    return map[a].dayOfWeek - map[b].dayOfWeek
+                })
+
+            },
+
+
         }
 
     });

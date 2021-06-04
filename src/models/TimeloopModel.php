@@ -73,6 +73,16 @@ class TimeloopModel extends Model
         ];
     }
 
+    /**
+     * Use the handle as the string representation.
+     *
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return 'magical to string function for entry.timeloop';
+    }
+
     public function getPeriod()
     {
 

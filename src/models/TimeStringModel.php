@@ -38,4 +38,18 @@ class TimeStringModel extends Model
         ];
     }
 
+    public function getOrdinal()
+    {
+
+        return $this->ordinal !== 'none' ?: null;
+
+    }
+
+    public function getDay()
+    {
+
+        return $this->ordinal !== 'none' ?: null;
+
+    }
+
 }

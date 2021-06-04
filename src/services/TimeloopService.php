@@ -106,6 +106,20 @@ class TimeloopService extends Component
     /**
      * @throws \Exception
      */
+
+    /**
+     * Returns an array with all the dates between a start and end point
+     *
+     * Returned data is based on the period entered
+     *
+     * @param DateTime $start
+     * @param DateTime $end
+     * @param PeriodModel $period
+     * @param TimeStringModel $timestring
+     * @param int $limit positive
+     * @param Bool $futureDates
+     *
+     */
     private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, Int $limit = 0, Bool $futureDates = true)
     {
         $interval = $this->_calculateInterval($period)[0]->interval;
@@ -125,20 +139,34 @@ class TimeloopService extends Component
 
         foreach ( $datePeriod as $date ) {
 
-            // check if we have a timestring set ( ordinal/day )
-
-            // check if we have days selected
-
             // if the date is larger than today and only future dates are accepted, only fill the array.
             // Otherwise, if we don't have to check on future dates, add everything in it
 
+            $dateToParse = $frequency === 'monthly' ? $start : $date;
+
             if ($date > $today && $futureDates) {
 
-                $arrDates[] = $this->_parseDate($frequency, $start, $counter, $period, $timestring);
+                $loopDates = $this->_parseDate($frequency, $dateToParse, $counter, $period, $timestring);
+
+                if ( gettype($loopDates) === 'array' ) {
+                    foreach ( $loopDates as &$loopDate) {
+                        $arrDates[] = $loopDate;
+                    }
+                } else {
+                    $arrDates[] = $loopDates;
+                }
 
             } elseif (!$futureDates) {
 
-                $arrDates[] = $this->_parseDate($frequency, $start, $counter, $period, $timestring);
+                $loopDates = $this->_parseDate($frequency, $dateToParse, $counter, $period, $timestring);
+
+                if ( gettype($loopDates) === 'array' ) {
+                    foreach ( $loopDates as &$loopDate) {
+                        $arrDates[] = $loopDate;
+                    }
+                } else {
+                    $arrDates[] = $loopDates;
+                }
 
             }
 
@@ -152,7 +180,13 @@ class TimeloopService extends Component
         return $arrDates;
     }
 
-    private function _calculateInterval($period)
+    /**
+     * Returns the $interval for the DatePeriod
+     *
+     * @param PeriodModel $period
+     *
+     */
+    private function _calculateInterval(PeriodModel $period): string
     {
 
         $frequency = [];
@@ -199,6 +233,8 @@ class TimeloopService extends Component
     }
 
     /**
+     * Returns the $date with the month corrected for a monthly loop
+     *
      * correctly calculates end of months when we shift to a shorter or longer month
      *
      * Shifting from the 28th Feb +1 month is 31st March
@@ -208,10 +244,12 @@ class TimeloopService extends Component
      *
      * @param DateTime $date
      * @param int $months positive or negative
+     * @param int $cycle positive
      *
      */
 
-    private function _monthCorrection(DateTime $date, Int $months, Int $cycle) {
+    private function _monthCorrection(DateTime $date, Int $months, Int $cycle): DateTime
+    {
 
         $frequency = $months * $cycle;
 
@@ -239,18 +277,61 @@ class TimeloopService extends Component
         return $result;
     }
 
-    private function _parseDate(String $frequency, DateTime $date, Int $counter, PeriodModel $period, TimeStringModel $timestring) {
+    /**
+     * Returns the $date to add to the result could be DateTime or Array
+     *
+     * correctly calculates end of months when we shift to a shorter or longer month
+     *
+     *
+     * @param String $frequency
+     * @param DateTime $date
+     * @param int $counter The loop Counter
+     * @param PeriodModel $period
+     * @param TimeStringModel $timestring
+     *
+     */
+    private function _parseDate(String $frequency, DateTime $date, Int $counter, PeriodModel $period, TimeStringModel $timestring)
+    {
 
         switch($frequency) {
 
+            case 'daily':
+            case 'yearly':
+            default:
+
+                $loopDate = $date;
+                break;
+
+            case 'weekly':
+
+                $weekDates = [];
+
+                $counter = 0;
+
+                foreach ($period->days as $day) {
+                    $weekDay = clone($date);
+                    $weekDates[] = DateTimeHelper::toDateTime($weekDay->modify(strtolower($day) . ' this week'));
+                }
+
+                $loopDate = $weekDates;
+                break;
+
             case 'monthly':
 
-                $loopDate = $this->_monthCorrection($date, $counter, $period->cycle);
-                
+                $monthlyDate = $this->_monthCorrection($date, $counter, $period->cycle);
+
+                if ( $timestring->ordinal && $timestring->day ) {
+                    // set to timestring variables else == $monthlyDate.
+                    $loopDate = $monthlyDate->modify($timestring->ordinal . ' ' . $timestring->day . ' of this month');
+                } else {
+                    $loopDate = $monthlyDate;
+                }
+
+                break;
 
         }
 
-        return DateTimeHelper::toDateTime($loopDate) ?? null;
+        return gettype($loopDate) === 'array' ? $loopDate : DateTimeHelper::toDateTime($loopDate) ?? null;
 
     }
 }
