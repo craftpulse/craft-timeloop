@@ -76,7 +76,7 @@ class TimeloopModel extends Model
     }
 
     public function __construct() {
-        $this->upcomingDates = Timeloop::$plugin->timeloop->getLoop($this, 2);
+        $this->upcomingDates = Timeloop::$plugin->timeloop->getLoop($this, 2, true);
     }
 
     /**
