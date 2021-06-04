@@ -57,6 +57,8 @@ class TimeloopModel extends Model
      */
     public $loopPeriod;
 
+    private $upcomingDates;
+
 
     // Public Methods
     // =========================================================================
@@ -71,6 +73,10 @@ class TimeloopModel extends Model
             ['loopEndHour', 'datetime'],
             ['loopReminderValue', 'number'],
         ];
+    }
+
+    public function __construct() {
+        $this->upcomingDates = Timeloop::$plugin->timeloop->getLoop($this, 2);
     }
 
     /**
@@ -127,7 +133,20 @@ class TimeloopModel extends Model
 
     public function getUpcoming()
     {
-        return Timeloop::$plugin->timeloop->getLoop($this, 1);
+        if ( count($this->upcomingDates) > 1 ) {
+            return $this->upcomingDates[0];
+        } else {
+            return false;
+        }
+    }
+
+    public function getNextUpcoming()
+    {
+        if ( count($this->upcomingDates) > 1 ) {
+            return $this->upcomingDates[1];
+        } else {
+            return false;
+        }
     }
 
 }
