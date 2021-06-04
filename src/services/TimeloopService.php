@@ -308,12 +308,20 @@ class TimeloopService extends Component
                 $hours = $date->format('H');
                 $minutes = $date->format('i');
 
-                foreach ($period->days as $day) {
-                    $weekDay = clone($date)->modify(strtolower($day) . ' this week')->setTime($hours, $minutes);
-                    $weekDates[] = DateTimeHelper::toDateTime($weekDay);
+                if (count($period->days) > 0) {
+                    foreach ($period->days as $day) {
+                        $weekDay = clone($date)->modify(strtolower($day) . ' this week')->setTime($hours, $minutes);
+                        $weekDates[] = DateTimeHelper::toDateTime($weekDay);
+                    }
+
+                    $loopDate = $weekDates;
+                } else {
+
+                    $loopDate = $date;
+
                 }
 
-                $loopDate = $weekDates;
+
                 break;
 
             case 'monthly':
