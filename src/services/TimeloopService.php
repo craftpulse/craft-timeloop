@@ -3,6 +3,8 @@
 namespace percipiolondon\timeloop\services;
 
 use percipiolondon\timeloop\models\TimeloopModel;
+use percipiolondon\timeloop\models\TimeStringModel;
+use percipiolondon\timeloop\models\PeriodModel;
 
 use Craft;
 use craft\base\Component;
@@ -14,7 +16,6 @@ use craft\helpers\Json;
 use DateInterval;
 use DateTime;
 use DatePeriod;
-use DateTimeZone;
 
 
 /**
@@ -38,7 +39,7 @@ class TimeloopService extends Component
      */
     public function showPeriod(array $data)
     {
-        return $data->period;
+        return new PeriodModel($data->period);
     }
 
     /**
@@ -62,20 +63,19 @@ class TimeloopService extends Component
 
         // get ISO 8601 from the repeater in data object
         // Parse our period object to fetch dates
-        $repeater = $data->period ?? false;
+        $period = new PeriodModel($data->period);
+        $timestring = new TimeStringModel($period->timestring);
 
         // if no limit is set, use the default so we don't end up with high number arrays
         $limit = $limit === 0 ? self::MAX_ARRAY_ENTRIES : $limit;
 
         // check if repeater exist, throw exception is no value is added
-        if(!$repeater) {
+        if(!$period) {
             throw new \yii\base\Exception( "There's no correct repeater value set. Use P1D / P1W / P1M / P1Y." );
         }
 
         // return the array with dates
-        return $this->_fetchDates($data->loopStart, $end, $repeater, $limit, $futureDates);
-
-        //Craft::dd($this->_fetchDates($data->loopStart, $end, $repeater, $limit, $futureDates));
+        return $this->_fetchDates($data->loopStart, $end, $period, $timestring, $limit, $futureDates);
     }
 
     /**
@@ -106,11 +106,10 @@ class TimeloopService extends Component
     /**
      * @throws \Exception
      */
-    private function _fetchDates($start, $end, $period, $limit = 0, $futureDates = true)
+    private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, Int $limit = 0, Bool $futureDates = true)
     {
         $interval = $this->_calculateInterval($period)[0]->interval;
         $frequency = $this->_calculateInterval($period)[0]->frequency;
-        $cycle = $period->cycle;
 
         $startDate = DateTimeHelper::toDateTime($start);
         $endDate = DateTimeHelper::toDateTime($end);
@@ -135,11 +134,11 @@ class TimeloopService extends Component
 
             if ($date > $today && $futureDates) {
 
-                $arrDates[] = $this->_parseDate($frequency, $start, $counter, $cycle);
+                $arrDates[] = $this->_parseDate($frequency, $start, $counter, $period, $timestring);
 
             } elseif (!$futureDates) {
 
-                $arrDates[] = $this->_parseDate($frequency, $start, $counter, $cycle);
+                $arrDates[] = $this->_parseDate($frequency, $start, $counter, $period, $timestring);
 
             }
 
@@ -240,17 +239,18 @@ class TimeloopService extends Component
         return $result;
     }
 
-    private function _parseDate(String $frequency, DateTime $date, Int $counter, Int $cycle) {
+    private function _parseDate(String $frequency, DateTime $date, Int $counter, PeriodModel $period, TimeStringModel $timestring) {
 
         switch($frequency) {
 
             case 'monthly':
 
-                $loopDate = $this->_monthCorrection($date, $counter, $cycle);
+                $loopDate = $this->_monthCorrection($date, $counter, $period->cycle);
+                
 
         }
 
-        return DateTimeHelper::toDateTime($loopDate);
+        return DateTimeHelper::toDateTime($loopDate) ?? null;
 
     }
 }
