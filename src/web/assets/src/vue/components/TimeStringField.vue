@@ -83,8 +83,8 @@
         setup: (props) => {
 
             const timestring = reactive({
-                ordinal: props.ordinal || 'first',
-                day: props.day || 'monday',
+                ordinal: props.ordinal || 'none',
+                day: props.day || 'none',
             })
 
             return { timestring }

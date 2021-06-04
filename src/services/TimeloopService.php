@@ -50,15 +50,15 @@ class TimeloopService extends Component
      * @param integer $limit
      *
      */
-    public function getLoop(TimeloopModel $data, $limit = 0, bool $futureDates = true)
+    public function getLoop(TimeloopModel $data, Int $limit = 0, bool $futureDates = true)
     {
         //  get start date from data object
         //  $startUnix = strtotime($data['loopStart']['date']);
 
         // check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
         $next = new DateTime();
-        $end = $data['loopEnd'] instanceof \DateTime ?
-            $data['loopEnd'] :
+        $end = $data->loopEnd instanceof \DateTime ?
+            $data->loopEnd :
             $next->modify('+20 years');
 
         // get ISO 8601 from the repeater in data object
@@ -186,7 +186,7 @@ class TimeloopService extends Component
      * @param PeriodModel $period
      *
      */
-    private function _calculateInterval(PeriodModel $period): string
+    private function _calculateInterval(PeriodModel $period): array
     {
 
         $frequency = [];

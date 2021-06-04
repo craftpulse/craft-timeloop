@@ -35,7 +35,7 @@
 
         <div class="heading">
             <label class="mt-6">
-                Inverval
+                Interval
             </label>
         </div>
 

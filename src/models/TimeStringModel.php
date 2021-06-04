@@ -14,6 +14,8 @@ use craft\base\Model;
 class TimeStringModel extends Model
 {
 
+    const NOT_MONTHLY = 'Loop isn\'t monthly';
+
     // Public Properties
     // =========================================================================
 
@@ -38,18 +40,10 @@ class TimeStringModel extends Model
         ];
     }
 
-    public function getOrdinal()
+    public function init()
     {
-
-        return $this->ordinal !== 'none' ?: null;
-
-    }
-
-    public function getDay()
-    {
-
-        return $this->ordinal !== 'none' ?: null;
-
+        $this->ordinal = $this->ordinal ? $this->ordinal !== 'none' ?: null : self::NOT_MONTHLY;
+        $this->day = $this->day ? $this->day !== 'none' ?: null : self::NOT_MONTHLY;
     }
 
 }
