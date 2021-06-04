@@ -50,7 +50,7 @@ class TimeloopService extends Component
      * @param integer $limit
      *
      */
-    public function getLoop(TimeloopModel $data, $limit = 0, bool $futureDates = true)
+    public function getLoop(TimeloopModel $data, Int $limit = 0, bool $futureDates = true)
     {
         //  get start date from data object
         //  $startUnix = strtotime($data['loopStart']['date']);
