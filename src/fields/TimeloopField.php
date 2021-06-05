@@ -166,7 +166,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                 $minutes = $value['loopEndTime']->format('i');
             }
 
-            $value['loopEndDate'] = Db::prepareDateForDb($value['loopEndDate']->setTime($hours ?? 0, $minutes ?? 0));
+            $value['loopEndDate'] = Db::prepareDateForDb($value['loopEndDate']->setTime($hours ?? 23, $minutes ?? 59));
         }
 
         if (isset($value['loopStartTime']) && $value['loopStartTime'] instanceof \DateTime) {
