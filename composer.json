@@ -2,7 +2,7 @@
     "name": "percipiolondon/craft-timeloop",
     "description": "This Craft plugin will generate an array of dates between a start and end date based on frequency.",
     "type": "craft-plugin",
-    "version": "1.0.0-rc.3.1",
+    "version": "1.0.0-rc.3.2",
     "keywords": [
         "craft",
         "cms",
