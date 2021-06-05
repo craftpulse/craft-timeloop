@@ -121,8 +121,8 @@ class TimeloopField extends Field implements PreviewableFieldInterface
             $value['loopStartTime'] = DateTimeHelper::toDateTime($value['loopStartTime']);
         }
 
-        if (isset($value['loopEndHour']) ) {
-            $value['loopEndHour'] = DateTimeHelper::toDateTime($value['loopEndTime']);
+        if (isset($value['loopEndTime']) ) {
+            $value['loopEndTime'] = DateTimeHelper::toDateTime($value['loopEndTime']);
         }
 
         if (isset($value['loopPeriod'])) {
