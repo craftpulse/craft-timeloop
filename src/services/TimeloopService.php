@@ -53,12 +53,12 @@ class TimeloopService extends Component
     public function getLoop(TimeloopModel $data, Int $limit = 0, bool $futureDates = true)
     {
         //  get start date from data object
-        //  $startUnix = strtotime($data['loopStart']['date']);
+        //  $startUnix = strtotime($data['loopStartDate']['date']);
 
         // check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
         $next = new DateTime();
-        $end = $data->loopEnd instanceof \DateTime ?
-            $data->loopEnd :
+        $end = $data->loopEndDate instanceof \DateTime ?
+            $data->loopEndDate :
             $next->modify('+20 years');
 
         // get ISO 8601 from the repeater in data object
@@ -75,7 +75,7 @@ class TimeloopService extends Component
         }
 
         // return the array with dates
-        return $this->_fetchDates($data->loopStart, $end, $period, $timestring, $limit, $futureDates);
+        return $this->_fetchDates($data->loopStartDate, $end, $period, $timestring, $limit, $futureDates);
     }
 
     /**

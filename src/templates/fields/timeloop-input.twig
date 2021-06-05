@@ -33,7 +33,7 @@
             {{ forms.dateField({
                 label: 'Loop from',
                 instructions: 'Enter a startdate from when the loop should start',
-                name: name ~ '[loopStart]',
+                name: name ~ '[loopStartDate]',
                 required: true,
                 value: value.loopStart ?? now
             }) }}
@@ -42,7 +42,7 @@
             {{ forms.dateField({
                 label: 'Loop until',
                 instructions: 'Enter an end date when the loop should end',
-                name: name ~ '[loopEnd]',
+                name: name ~ '[loopEndDate]',
                 value: value.loopEnd ?? null
             }) }}
         </div>
@@ -55,7 +55,7 @@
                 {{ forms.timeField({
                     label: 'Start hour',
                     instructions: 'Provide a start hour if the recurring date has one',
-                    name: name ~ '[loopStartHour]',
+                    name: name ~ '[loopStartTime]',
                     value: value.loopStartHour ?? null
                 }) }}
             </div>
@@ -63,7 +63,7 @@
                 {{ forms.timeField({
                     label: 'End hour',
                     instructions: 'Provide an end hour if the recurring date has one.',
-                    name: name ~ '[loopEndHour]',
+                    name: name ~ '[loopEndTime]',
                     value: value.loopEndHour ?? null
                 }) }}
             </div>

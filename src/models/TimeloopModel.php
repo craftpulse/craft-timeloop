@@ -25,22 +25,22 @@ class TimeloopModel extends Model
     /**
      * @var DateTime
      */
-    public $loopStart;
+    public $loopStartDate;
 
     /**
      * @var DateTime
      */
-    public $loopEnd;
+    public $loopEndDate;
 
     /**
      * @var DateTime
      */
-    public $loopStartHour;
+    public $loopStartTime;
 
     /**
      * @var DateTime
      */
-    public $loopEndHour;
+    public $loopEndTime;
 
     /**
      * @var string
@@ -66,11 +66,11 @@ class TimeloopModel extends Model
     public function rules()
     {
         return [
-            ['loopStart', 'datetime'],
-            ['loopEnd', 'datetime'],
+            ['loopStartDate', 'datetime'],
+            ['loopEndDate', 'datetime'],
             ['loopPeriod', 'array'],
-            ['loopStartHour', 'datetime'],
-            ['loopEndHour', 'datetime'],
+            ['loopStartTime', 'datetime'],
+            ['loopEndTime', 'datetime'],
             ['loopReminderValue', 'number'],
         ];
     }
@@ -109,15 +109,15 @@ class TimeloopModel extends Model
         }
     }
 
-    public function getLoopStartHour()
+    public function getLoopStartTime()
     {
-        $value = DateTimeHelper::toDateTime($this->loopStartHour);
+        $value = DateTimeHelper::toDateTime($this->loopStartTime);
         return  $value ? $value->format('H:i') : false;
     }
 
-    public function getLoopEndHour()
+    public function getLoopEndTime()
     {
-        $value = DateTimeHelper::toDateTime($this->loopEndHour);
+        $value = DateTimeHelper::toDateTime($this->loopEndTime);
         return  $value ? $value->format('H:i') : false;
     }
 

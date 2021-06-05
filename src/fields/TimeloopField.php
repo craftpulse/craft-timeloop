@@ -274,7 +274,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'description' => 'The loop reminder period'
                 ],
                 'loopStart' => [
-                    'name' => 'loopStart',
+                    'name' => 'loopStartDate',
                     'type' => DateTime::getType(),
                     'description' => 'The start date of the loop',
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
@@ -284,7 +284,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     }
                 ],
                 'loopStartHour' => [
-                    'name' => 'loopStartHour',
+                    'name' => 'loopStartTime',
                     'type' => DateTime::getType(),
                     'description' => 'The start hour of the loop',
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
@@ -294,7 +294,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     }
                 ],
                 'loopEnd' => [
-                    'name' => 'loopEnd',
+                    'name' => 'loopEndDate',
                     'type' => DateTime::getType(),
                     'description' => 'The end date of the loop',
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
@@ -304,7 +304,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     }
                 ],
                 'loopEndHour' => [
-                    'name' => 'loopEndHour',
+                    'name' => 'loopEndTime',
                     'type' => DateTime::getType(),
                     'description' => 'The end hour of the loop',
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
