@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.0-rc.3 - 2021-06-05
+
+### Fixed
+- Fixed an issue where the entry wouldn't autosave / save in drafts as long as there was no startTime and endTime selected. Now defaults to `00:00:00` && `23:59:00` when none is selected
+
 ## 1.0.0-rc.2 - 2021-06-05
 
 ### Changed
