@@ -11,8 +11,8 @@
         "timeloop"
     ],
     "support": {
-        "docs": "https://github.com/percipiolondon/timeloop/blob/master/README.md",
-        "issues": "https://github.com/percipiolondon/timeloop/issues"
+        "docs": "https://github.com/percipiolondon/craft-timeloop/blob/v1/README.md",
+        "issues": "https://github.com/percipiolondon/craft-timeloop/issues"
     },
     "license": "proprietary",
     "authors": [
@@ -22,7 +22,7 @@
         }
     ],
     "require": {
-        "craftcms/cms": "^3.0.0",
+        "craftcms/cms": "^3.3.0",
         "nystudio107/craft-plugin-vite": "^1.0.0"
     },
     "require-dev": {
@@ -45,8 +45,8 @@
         "handle": "timeloop",
         "developer": "percipiolondon",
         "developerUrl": "https://percipio.london",
-        "documentationUrl": "https://github.com/percipiolondon/timeloop/blob/master/README.md",
-        "changelogUrl": "https://raw.githubusercontent.com/percipiolondon/timeloop/master/CHANGELOG.md",
+        "documentationUrl": "https://github.com/percipiolondon/craft-timeloop/blob/v1/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/percipiolondon/craft-timeloop/v1/CHANGELOG.md",
         "class": "percipiolondon\\timeloop\\Timeloop"
     }
 }
