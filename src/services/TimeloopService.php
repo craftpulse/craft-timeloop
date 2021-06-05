@@ -125,15 +125,12 @@ class TimeloopService extends Component
         $interval = $this->_calculateInterval($period)[0]->interval;
         $frequency = $this->_calculateInterval($period)[0]->frequency;
 
-        $startDate = DateTimeHelper::toDateTime($start);
-        $endDate = DateTimeHelper::toDateTime($end);
-
         $today = new DateTime();
 
         $dateInterval = new DateInterval($interval);
         $arrDates = [];
 
-        $datePeriod = new DatePeriod($startDate, $dateInterval, $endDate);
+        $datePeriod = new DatePeriod($start, $dateInterval, $end);
 
         $counter = 0;
 

@@ -109,20 +109,20 @@ class TimeloopField extends Field implements PreviewableFieldInterface
             $value = Json::decode($value);
         }
 
-        if (isset($value['loopStart']) ) {
-            $value['loopStart'] = DateTimeHelper::toDateTime($value['loopStart']);
+        if (isset($value['loopStartDate']) ) {
+            $value['loopStartDate'] = DateTimeHelper::toDateTime($value['loopStartDate']);
         }
 
-        if (isset($value['loopEnd']) ) {
-            $value['loopEnd'] = DateTimeHelper::toDateTime($value['loopEnd']);
+        if (isset($value['loopEndDate']) ) {
+            $value['loopEndDate'] = DateTimeHelper::toDateTime($value['loopEndDate']);
         }
 
-        if (isset($value['loopStartHour']) ) {
-            $value['loopStartHour'] = DateTimeHelper::toDateTime($value['loopStartHour']);
+        if (isset($value['loopStartTime']) ) {
+            $value['loopStartTime'] = DateTimeHelper::toDateTime($value['loopStartTime']);
         }
 
         if (isset($value['loopEndHour']) ) {
-            $value['loopEndHour'] = DateTimeHelper::toDateTime($value['loopEndHour']);
+            $value['loopEndHour'] = DateTimeHelper::toDateTime($value['loopEndTime']);
         }
 
         if (isset($value['loopPeriod'])) {
@@ -143,20 +143,38 @@ class TimeloopField extends Field implements PreviewableFieldInterface
     public function serializeValue($value, ElementInterface $element = null)
     {
 
-        if (isset($value['loopStart']) && $value['loopStart'] instanceof \DateTime) {
-            $value['loopStart'] = Db::prepareDateForDb($value['loopStart']->setTime($value['loopStartHour']->format('H'), $value['loopStartHour']->format('i')));
+        if (isset($value['loopStartDate']) && $value['loopStartDate'] instanceof \DateTime) {
+
+            $hours = null;
+            $minutes = null;
+
+            if (isset($value['loopStartTime']) && $value['loopStartTime'] instanceof \DateTime) {
+                $hours = $value['loopStartTime']->format('H');
+                $minutes = $value['loopStartTime']->format('i');
+            }
+
+            $value['loopStartDate'] = Db::prepareDateForDb($value['loopStartDate']->setTime($hours ?? 0, $minutes ?? 0));
         }
 
-        if (isset($value['loopEnd']) && $value['loopEnd'] instanceof \DateTime) {
-            $value['loopEnd'] = Db::prepareDateForDb($value['loopEnd']->setTime($value['loopEndHour']->format('H'), $value['loopEndHour']->format('i')));
+        if (isset($value['loopEndDate']) && $value['loopEndDate'] instanceof \DateTime) {
+
+            $hours = null;
+            $minutes = null;
+
+            if (isset($value['loopEndTime']) && $value['loopEndTime'] instanceof \DateTime) {
+                $hours = $value['loopEndTime']->format('H');
+                $minutes = $value['loopEndTime']->format('i');
+            }
+
+            $value['loopEndDate'] = Db::prepareDateForDb($value['loopEndDate']->setTime($hours ?? 0, $minutes ?? 0));
         }
 
-        if (isset($value['loopStartHour']) && $value['loopStartHour'] instanceof \DateTime) {
-            $value['loopStartHour'] = Db::prepareDateForDb($value['loopStartHour']);
+        if (isset($value['loopStartTime']) && $value['loopStartTime'] instanceof \DateTime) {
+            $value['loopStartTime'] = Db::prepareDateForDb($value['loopStartTime']);
         }
 
-        if (isset($value['loopEndHour']) && $value['loopEndHour'] instanceof \DateTime) {
-            $value['loopEndHour'] = Db::prepareDateForDb($value['loopEndHour']);
+        if (isset($value['loopEndTime']) && $value['loopEndTime'] instanceof \DateTime) {
+            $value['loopEndTime'] = Db::prepareDateForDb($value['loopEndTime']);
         }
 
         if( isset($value['loopReminderPeriod']) && '' === $value['loopReminderPeriod']) {
@@ -273,7 +291,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'type' => Type::string(),
                     'description' => 'The loop reminder period'
                 ],
-                'loopStart' => [
+                'loopStartDate' => [
                     'name' => 'loopStartDate',
                     'type' => DateTime::getType(),
                     'description' => 'The start date of the loop',
@@ -283,7 +301,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                         return Gql::applyDirectives($source, $resolveInfo, $value);
                     }
                 ],
-                'loopStartHour' => [
+                'loopStartTime' => [
                     'name' => 'loopStartTime',
                     'type' => DateTime::getType(),
                     'description' => 'The start hour of the loop',
@@ -293,7 +311,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                         return  $value ? $value->format('H:i') : false;
                     }
                 ],
-                'loopEnd' => [
+                'loopEndDate' => [
                     'name' => 'loopEndDate',
                     'type' => DateTime::getType(),
                     'description' => 'The end date of the loop',
@@ -303,7 +321,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                         return Gql::applyDirectives($source, $resolveInfo, $value);
                     }
                 ],
-                'loopEndHour' => [
+                'loopEndTime' => [
                     'name' => 'loopEndTime',
                     'type' => DateTime::getType(),
                     'description' => 'The end hour of the loop',

@@ -38,24 +38,24 @@ More configuration will be provided in the future
 
 #### Getting the entered dates ( returned as DateTime Objects )
 
-Getting the startDate for the loop ( this includes the time set in loopStartHour )
+Getting the startDate for the loop ( this includes the time set in loopStartTime )
 ```twig
-    {{ entry.timeloop.loopStart | date('Y-m-d\\TH:i:sP') }}
+    {{ entry.timeloop.loopStartDate | date('Y-m-d\\TH:i:sP') }}
 ```
 
 Getting the endDate for the loop ( this includes the time set in loopEndHour )
 ```twig
-    {{ entry.timeloop.loopEnd | date('Y-m-d\\TH:i:sP') }}
+    {{ entry.timeloop.loopEndDate | date('Y-m-d\\TH:i:sP') }}
 ```
 
-Getting the startTime for the loop ( this includes the time set in loopStartHour )
+Getting the startTime for the loop
 ```twig
-    {{ entry.timeloop.loopStartHour | date('H:i:s') }}
+    {{ entry.timeloop.loopStartTime | date('H:i:s') }}
 ```
 
-Getting the endTime for the loop ( this includes the time set in loopEndHour )
+Getting the endTime for the loop
 ```twig
-    {{ entry.timeloop.loopEndHour | date('H:i:s') }}
+    {{ entry.timeloop.loopEndTime | date('H:i:s') }}
 ```
 
 Getting an array of dates between the selected start and end dates ( Array with DateTime Objects ).
@@ -115,7 +115,7 @@ Get the ordinal of a monthly set loop (e.g. first, second, ..., last)
 ### GraphQL
 If you want to use the plugin throughout GraphQL, we've added a type to provide the data to use headless
 
-You can get the DateTimeTypes from the data directly for `loopStart`, `loopStartHour`, `loopEnd`, `loopEndHour`, `loopPeriod`, `loopReminder`.
+You can get the DateTimeTypes from the data directly for `loopStartDate`, `loopStartTime`, `loopEndDate`, `loopEndTime`, `loopPeriod`, `loopReminder`.
 
 You can get a simple array for the loopPeriod values with `loopPeriod` ( will be updated to a new GQL Type )
 
@@ -138,10 +138,10 @@ query{
       title,
       timeloop {
         loopReminder,
-        loopStart,
-        loopStartHour,
-        loopEnd,
-        loopEndHour,
+        loopStartDate,
+        loopStartTime,
+        loopEndDate,
+        loopEndTime,
         loopPeriod,
         dates(limit: 5) @formatDateTime(format: "d/m/Y" )
       }
