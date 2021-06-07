@@ -14,119 +14,139 @@ To install the plugin, follow these instructions.
 
 1. Open your terminal and go to your Craft project:
 
-        cd /path/to/project
+        `cd /path/to/project`
 
-2. Then tell Composer to load the plugin:
+2. Tell Composer to load the plugin:
 
-        composer require percipiolondon/craft-timeloop
+        `composer require percipiolondon/craft-timeloop`
 
-3. In the Control Panel, go to Settings → Plugins and click the “Install” button for Timeloop.
+3. In the Control Panel, go to Settings → Plugins and click the “Install” button.
 
 ## Timeloop Overview
 
-The Timeloop plugin provides a set of recurring dates based on a starting date and a recurring loop period.
+The Timeloop plugin provides recurring dates based on a starting date and a regular loop period.
 
-Example: I want to set a pay date for my employees on the first of each month
+**Example**: Set a payment date for employees on the first of each month.
 
-## Configuring Timeloop
+## Configuring the Timeloop field.
 
-More configuration will be provided in the future
+The following configuration options that are available for the field:
+
+- **ShowTimes**: When selected this will give the ability to choose a starting time and an end time for the recurring dates.
 
 ## Using Timeloop
 
 ### The Timeloop Model
 
-#### Getting the entered dates ( returned as DateTime Objects )
+#### Getting the entered dates (returned as DateTime Objects)
 
-Getting the startDate for the loop ( this includes the time set in loopStartTime )
-```twig
+Getting the start date for the loop (this includes the time set in `loopStartTime`):
+
+```
     {{ entry.timeloop.loopStartDate | date('Y-m-d\\TH:i:sP') }}
 ```
 
-Getting the endDate for the loop ( this includes the time set in loopEndHour )
-```twig
+Getting the end date for the loop (this includes the time set in `loopEndHour`):
+```
     {{ entry.timeloop.loopEndDate | date('Y-m-d\\TH:i:sP') }}
 ```
 
-Getting the startTime for the loop
-```twig
+Getting the start time for the loop:
+
+```
     {{ entry.timeloop.loopStartTime | date('H:i:s') }}
 ```
 
-Getting the endTime for the loop
-```twig
+Getting the end time for the loop:
+
+```
     {{ entry.timeloop.loopEndTime | date('H:i:s') }}
 ```
 
-Getting an array of dates between the selected start and end dates ( Array with DateTime Objects ).
-This generated set of dates takes all the field values into consideration ( frequency, cycle, custom )
-```twig
+Getting an array of dates between the selected start and end dates (Array with DateTime Objects):
+
+```
     {% for date in entry.timeloop.dates %}
         {{ date | date('Y-m-d\\TH:i:sP') }}
     {% endfor %}
 ```
 
+This generated set of dates takes all the field values into consideration (frequency, cycle and custom)
+
 
 #### Upcoming Dates ( returned as DateTime Objects )
 
-Getting the first upcoming date
-```twig
+Getting the first upcoming date:
+
+```
     {{ entry.timeloop.upcoming | date('Y-m-d\\TH:i:sP') }}
 ```
 
-Getting the next upcoming date
-```twig
+Getting the next upcoming date:
+
+```
     {{ entry.timeloop.nextUpcoming | date('Y-m-d\\TH:i:sP') }}
 ```
 
 ### Period Model
 
-Getting the frequency ( DateTimePeriod String )
-```twig
+Getting the frequency (DateTimePeriod String):
+
+```
     {{ entry.timeloop.period.frequency }}
 ```
 
-Getting the cycle ( Integer )
-```twig
+Getting the cycle (Integer):
+
+```
     {{ entry.timeloop.period.cycle }}
 ```
 
-Getting the days ( Array ),
-This will parse the names of the days selected when Daily has been chosen as frequency
-```twig
+Displaying the selected days (Array):
+
+```
     {% for day in entry.timeloop.period.days %}
         {{ day }}
     {% endfor %}
 ```
 
+This will parse the names of the selected days when weekly has been chosen as frequency.
+
 ### Timestring Model
 
 Get the ordinal of a monthly set loop (e.g. first, second, ..., last)
 
-**warning:** This will return `null` if the loop is set to anything else than monthly!<br>
-**warning:** This will return `none` as string if the loop is set to monthly, but no timestring selection has been made!
+**warning:** If the frequency is not set to monthly, the returned value will be `null`.<br>
+**warning:** If the frequency is set to monthly and no timestring selection has been made, the returned value will be `none` as `String`.
 
-```twig
+```
     {{ entry.timeloop.timestring.ordinal ?? 'not set' }}
 ```
 
 ### Reminder Model ( WIP - not ready for production )
 
 ### GraphQL
-If you want to use the plugin throughout GraphQL, we've added a type to provide the data to use headless
 
-You can get the DateTimeTypes from the data directly for `loopStartDate`, `loopStartTime`, `loopEndDate`, `loopEndTime`, `loopPeriod`, `loopReminder`.
+If you want to use the plugin through GraphQL, we've added a GraphQL Type to provide the field data.
 
-You can get a simple array for the loopPeriod values with `loopPeriod` ( will be updated to a new GQL Type )
+You can get the DateTime Types from the data directly for 
+* `loopStartDate`
+* `loopStartTime`
+* `loopEndDate`
+* `loopEndTime` 
+* `loopPeriod`
+* `loopReminder`
 
-To get an array of dates in formatted dates, use `dates`.
+To get an array of formatted dates, use `dates`.
 
-Dates arguments:
-* limit[integer]: add a limit of dates you want to return. Default set to 100
-* futureDates[bool]: if you want the dates starting from today and only show future dates or start from the loopStart. Default set to true (only dates in the future)
+#### Dates arguments:
 
-Dates directives:
-* formatDateTime(timezone: "Europe/London" format: "d/m/Y")
+* limit (Integer): add a limit of dates you want to return, default to `100`.
+* futureDates (Boolean): if you want to show future dates only, default to `true`.
+
+#### Dates directives:
+
+`formatDateTime(timezone: "Europe/London" format: "d/m/Y")`
 
 
 ```graphql
@@ -153,19 +173,17 @@ query{
 
 ## Timeloop Roadmap
 
-Some things to do, and ideas for potential features:
+Potential features for the future:
 
-* Mutations for GQL
-* Reminder Support - with custom entries
-* Provide additional GQL Type for LoopPeriod and TimeString Models
-* Make Field Translatable
-* Provide Translations
-* Add the posibilities to blocklist dates ( which shouldn't be parsed )
-* Add Bank Holidays and Holiday settings
-* Localise Bank Holidays and Holidays based on Craft TimeZone Settings
-* Providing a controller to fetch if today is the first upcoming date
-* Providing a controller to fetch if today is the first reminder upcoming date
-* And Many more!
+* Mutations for GraphQL
+* Reminder Support
+* Provide additional GraphQL types for LoopPeriod and TimeString models
+* Make the fieldtype translatable
+* Provide language translations
+* Add the possibility to blocklist dates
+* Add holiday settings
+* Localise holidays based on the CraftCMS timezone settings
 
+And many more!
 
 Brought to you by [Percipio.London](https://percipio.london)
