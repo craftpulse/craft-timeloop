@@ -74,7 +74,7 @@ Getting an array of dates between the selected start and end dates (Array with D
 This generated set of dates takes all the field values into consideration (frequency, cycle and custom)
 
 
-#### Upcoming Dates ( returned as DateTime Objects )
+#### Upcoming Dates ( returned as DateTime objects )
 
 Getting the first upcoming date:
 
@@ -123,7 +123,7 @@ Get the ordinal of a monthly set loop (e.g. first, second, ..., last)
     {{ entry.timeloop.timestring.ordinal ?? 'not set' }}
 ```
 
-### Reminder Model ( WIP - not ready for production )
+### Reminder Model (WIP - not ready for production)
 
 ### GraphQL
 
