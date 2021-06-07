@@ -32,13 +32,13 @@ The Timeloop plugin provides recurring dates based on a starting date and a regu
 
 The following configuration options that are available for the field:
 
-- **ShowTimes**: When selected this will give the ability to choose a starting time and an end time for the recurring dates.
+- **ShowTimes**: When selected, this will give the ability to choose a starting time and end time for the recurring dates.
 
 ## Using Timeloop
 
 ### The Timeloop Model
 
-#### Getting the entered dates (returned as DateTime Objects)
+#### Getting the entered dates (returned as DateTime objects)
 
 Getting the start date for the loop (this includes the time set in `loopStartTime`):
 
