@@ -14,7 +14,7 @@ To install the plugin, follow these instructions.
 
 1. Open your terminal and go to your Craft project:
 
-        `cd /path/to/project`
+        `cd/path/to/project`
 
 2. Tell Composer to load the plugin:
 
@@ -32,13 +32,13 @@ The Timeloop plugin provides recurring dates based on a starting date and a regu
 
 The following configuration options that are available for the field:
 
-- **ShowTimes**: When selected this will give the ability to choose a starting time and an end time for the recurring dates.
+- **ShowTimes**: When selected, this will give the ability to choose a starting time and end time for the recurring dates.
 
 ## Using Timeloop
 
 ### The Timeloop Model
 
-#### Getting the entered dates (returned as DateTime Objects)
+#### Getting the entered dates (returned as DateTime objects)
 
 Getting the start date for the loop (this includes the time set in `loopStartTime`):
 
@@ -74,7 +74,7 @@ Getting an array of dates between the selected start and end dates (Array with D
 This generated set of dates takes all the field values into consideration (frequency, cycle and custom)
 
 
-#### Upcoming Dates ( returned as DateTime objects )
+#### Upcoming Dates (returned as DateTime Objects)
 
 Getting the first upcoming date:
 
