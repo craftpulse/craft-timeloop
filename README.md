@@ -74,7 +74,7 @@ Getting an array of dates between the selected start and end dates (Array with D
 This generated set of dates takes all the field values into consideration (frequency, cycle and custom)
 
 
-#### Upcoming Dates ( returned as DateTime Objects )
+#### Upcoming Dates (returned as DateTime Objects)
 
 Getting the first upcoming date:
 
