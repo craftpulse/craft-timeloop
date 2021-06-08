@@ -22,71 +22,76 @@
             </span>
         </div>
 
-        <div class="border border-gray-500 rounded-md p-4">
+        <div class="bg-gray-200 rounded-md p-4">
 
-            <div class="heading">
-                <label>Frequency</label>
-            </div>
+            <div class="field">
+                <div class="heading">
+                    <label>Frequency</label>
+                </div>
 
-            <div class="instructions">
-                <span>Select a frequency</span>
-            </div>
+                <div class="instructions">
+                    <span>Select a frequency</span>
+                </div>
 
-            <div class="flex flex-nowrap">
+                <div class="flex flex-nowrap">
 
-                <select-field
-                    :settings="options"
-                    :options="periods"
-                    v-model:selected="period.frequency"
-                    @change="sanitizeData(period)"
-                />
-
-            </div>
-
-            <div class="heading">
-                <label class="mt-6">
-                    Interval
-                </label>
-            </div>
-
-            <div class="instructions">
-                <span>Provide an interval</span>
-            </div>
-
-            <div class="mb-0 items-center w-full bg-gray-300">
-                <div class="flex flex-nowrap px-3 py-1 min-h-12">
-                    <cycle-field
-                        v-if="period.frequency"
+                    <select-field
                         :settings="options"
-                        :frequency="period.frequency"
-                        utilities=""
-                        v-model:cycle.number="period.cycle"
+                        :options="periods"
+                        v-model:selected="period.frequency"
+                        @change="sanitizeData(period)"
                     />
 
-                    <div
-                        class="flex flex-nowrap items-center mb-0"
-                        v-if="period.frequency && period.frequency === 'P1W'"
-                    >
-                        <span>on</span>
-                        <days-field
+                </div>
+            </div>
+
+            <div class="field">
+
+                <div class="heading">
+                    <label>
+                        Interval
+                    </label>
+                </div>
+
+                <div class="instructions">
+                    <span>Provide an interval</span>
+                </div>
+
+                <div class="mb-0 items-center w-full bg-gray-300 rounded-md">
+                    <div class="flex flex-nowrap px-3 py-1 min-h-12">
+                        <cycle-field
+                            v-if="period.frequency"
                             :settings="options"
                             :frequency="period.frequency"
-                            v-model:days="period.days"
+                            utilities=""
+                            v-model:cycle.number="period.cycle"
                         />
-                    </div>
 
-                    <div
-                        class="flex flex-nowrap items-center mb-0"
-                        v-if="period.frequency && period.frequency === 'P1M'"
-                    >
-                        <span>on the</span>
-                        <time-string-field
-                            :settings="options"
-                            :ordinal="period.timestring.ordinal"
-                            :day="period.timestring.day"
-                            v-model:ordinal="period.timestring.ordinal"
-                            v-model:day="period.timestring.day"
-                        />
+                        <div
+                            class="flex flex-nowrap items-center mb-0"
+                            v-if="period.frequency && period.frequency === 'P1W'"
+                        >
+                            <span>on</span>
+                            <days-field
+                                :settings="options"
+                                :frequency="period.frequency"
+                                v-model:days="period.days"
+                            />
+                        </div>
+
+                        <div
+                            class="flex flex-nowrap items-center mb-0"
+                            v-if="period.frequency && period.frequency === 'P1M'"
+                        >
+                            <span>on the</span>
+                            <time-string-field
+                                :settings="options"
+                                :ordinal="period.timestring.ordinal"
+                                :day="period.timestring.day"
+                                v-model:ordinal="period.timestring.ordinal"
+                                v-model:day="period.timestring.day"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
