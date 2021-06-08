@@ -35,8 +35,8 @@
 
 
             {{ forms.dateField({
-                label: 'Loop from',
-                instructions: 'Enter a startdate from when the loop should start',
+                label: 'Start date',
+                instructions: 'Enter a date when the loop should start',
                 name: name ~ '[loopStartDate]',
                 required: true,
                 value: value.loopStartDate ?? now
@@ -44,8 +44,8 @@
         </div>
         <div class="w-1/2 px-8">
             {{ forms.dateField({
-                label: 'Loop until',
-                instructions: 'Enter an end date when the loop should end',
+                label: 'End date',
+                instructions: 'Enter a date when the loop should end',
                 name: name ~ '[loopEndDate]',
                 value: value.loopEndDate ?? null
             }) }}
@@ -57,16 +57,16 @@
         <div class="flex flex-nowrap items-start -mx-8 mt-6">
             <div class="w-1/2 px-8">
                 {{ forms.timeField({
-                    label: 'Start hour',
-                    instructions: 'Provide a start hour if the recurring date has one',
+                    label: 'Start time',
+                    instructions: 'Enter a start time',
                     name: name ~ '[loopStartTime]',
                     value: value.loopStartTime ?? null
                 }) }}
             </div>
             <div class="w-1/2 px-8">
                 {{ forms.timeField({
-                    label: 'End hour',
-                    instructions: 'Provide an end hour if the recurring date has one.',
+                    label: 'End time',
+                    instructions: 'Enter an end time',
                     name: name ~ '[loopEndTime]',
                     value: value.loopEndTime ?? null
                 }) }}
@@ -79,10 +79,10 @@
 
     {% set loopPeriodOptions = {
         label: 'Loop Period',
+        instructions: "Select a frequency and provide an interval for the loop",
         id: name ~ '[loopPeriod]',
         name: '[' ~ name ~ ']' ~ '[loopPeriod]',
         required: true,
-        instructions: "Define a recurring loop for this date",
         value: value.loopPeriod ?? null,
     } %}
 
@@ -97,7 +97,7 @@
             <label>Reminder</label>
         </div>
         <div class="instructions">
-            <span>Define a recurring loop reminder for this date</span>
+            <span>Set a reminder for the loop, an alert will be sent for every generated date.</span>
         </div>
 
         <div class="flex flex-nowrap">

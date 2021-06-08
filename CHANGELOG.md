@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.0-rc.4 - 2021-06-08
+
+### Added
+- Added the LoopPeriod GQL Object
+- Added the Timestring GQL Object
+
+### Changed
+- Updated the field labels + instructions for more clarity
+- Changed the styling for the loop period field to make it clear it's grouped
+- Updated the README
+
 ## 1.0.0-rc.3 - 2021-06-05
 
 ### Fixed

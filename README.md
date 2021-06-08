@@ -14,11 +14,15 @@ To install the plugin, follow these instructions.
 
 1. Open your terminal and go to your Craft project:
 
-        `cd/path/to/project`
+```
+    cd/path/to/project
+```
 
 2. Tell Composer to load the plugin:
 
-        `composer require percipiolondon/craft-timeloop`
+```
+    composer require percipiolondon/craft-timeloop
+```
 
 3. In the Control Panel, go to Settings → Plugins and click the “Install” button.
 
@@ -130,21 +134,43 @@ Get the ordinal of a monthly set loop (e.g. first, second, ..., last)
 If you want to use the plugin through GraphQL, we've added a GraphQL Type to provide the field data.
 
 You can get the DateTime Types from the data directly for 
-* `loopStartDate`
-* `loopStartTime`
-* `loopEndDate`
-* `loopEndTime` 
-* `loopPeriod`
+* `loopStartDate` will return the start date
+* `loopStartTime` will return the start time, defaults to `00:00:00` when no start time has been entered or `showTimes` is set to false.
+* `loopEndDate` will return the end date
+* `loopEndTime` will return the end time, defaults to `23:59:59` when no end time has been entered or `showTimes` is set to false.
 * `loopReminder`
+
+#### Loop Period
+
+You can get the `loopPeriod` object as follows:
+
+```
+    loopPeriod {
+        frequency
+        cycle
+        days
+        timestring {
+          ordinal
+          day
+        }
+    }
+```
+
+* `frequency` will return the selected frequency ( P1D / P1W / P1M / P1Y )
+* `cycle` will return the entered cycle value
+* `days` will return an Array that contains the selected days of the week
+* `timestring` will return an object that contains the `ordinal` (e.g. last) and `day` (e.g. saturday)
+
+#### The Dates
 
 To get an array of formatted dates, use `dates`.
 
-#### Dates arguments:
+##### Dates arguments:
 
 * limit (Integer): add a limit of dates you want to return, default to `100`.
 * futureDates (Boolean): if you want to show future dates only, default to `true`.
 
-#### Dates directives:
+##### Dates directives:
 
 `formatDateTime(timezone: "Europe/London" format: "d/m/Y")`
 
