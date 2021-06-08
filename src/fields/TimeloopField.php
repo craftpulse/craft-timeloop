@@ -266,26 +266,57 @@ class TimeloopField extends Field implements PreviewableFieldInterface
     {
         $typeName = $this->handle;
 
+        $timestringType = GqlEntityRegistry::getEntity('timestring') ?: GqlEntityRegistry::createEntity('timestring', new ObjectType([
+            'name' => 'timestring',
+            'fields' => [
+                'ordinal' => [
+                    'name' => 'ordinal',
+                    'type' => Type::string(),
+                    'description' => 'The timestring ordinal',
+                ],
+                'day' => [
+                    'name' => 'day',
+                    'type' => Type::string(),
+                    'description' => 'The timestring day',
+                ],
+
+            ]
+        ]));
+
+        $periodType = GqlEntityRegistry::getEntity('loopPeriod') ?: GqlEntityRegistry::createEntity('loopPeriod', new ObjectType([
+            'name' => 'loopPeriod',
+            'fields' => [
+                'frequency' => [
+                    'name' => 'frequency',
+                    'type' => Type::string(),
+                    'description' => 'The period frequency',
+                ],
+                'cycle' => [
+                    'name' => 'cycle',
+                    'type' => Type::int(),
+                    'description' => 'The period cycle',
+                ],
+                'days' => [
+                    'name' => 'days',
+                    'type' => Type::ListOf(Type::string()),
+                    'description' => 'Selected days of the week for the weekly frequency.',
+                ],
+                'timestring' => [
+                    'name' => 'timestring',
+                    'type' => $timestringType,
+                    'description' => 'The selected timestring for the monthly frequency.'
+                ]
+            ]
+        ]));
+
         $timeloopType = GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new ObjectType([
             'name' => $typeName,
             'fields' => [
-                //'loopPeriod' => [
-                //    'name' => 'loopPeriod',
-                //    'type' => Type::ListOf(DateTime::getType()),
-                //    'description' => 'The loop period (daily / weekly / monthly / yearly)',
-                //    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
-                //        $fieldName = $resolveInfo->fieldName;
-                //        $value = new PeriodModel($source[$fieldName]);
-                //        $period = [
-                //            'frequency' => $value->frequency,
-                //            'cycle' => $value->cycle,
-                //            'days' => $value->days,
-                //            'timestring' => $value->timestring,
-                //        ];
-                //
-                //        return $period;
-                //   }
-                //],
+                'loopPeriod' => [
+                    'name' => 'loopPeriod',
+                    'type' => $periodType,
+                    'description' => 'The loop period (daily / weekly / monthly / yearly)',
+                ],
                 'loopReminder' => [
                     'name' => 'loopReminder',
                     'type' => Type::string(),
