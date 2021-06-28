@@ -19,6 +19,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 
 use craft\gql\GqlEntityRegistry;
 use craft\gql\TypeLoader;
@@ -49,7 +50,7 @@ use yii\db\Schema;
  * @package   Timeloop
  * @since     0.1.0
  */
-class TimeloopField extends Field implements PreviewableFieldInterface
+class TimeloopField extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Public Properties
     // =========================================================================
@@ -74,12 +75,10 @@ class TimeloopField extends Field implements PreviewableFieldInterface
     /**
      * @return array
      */
-    public function rules()
+    protected function defineRules(): array
     {
-        $rules = parent::rules();
-        $rules = array_merge($rules, [
-            ['showTime', 'boolean'],
-        ]);
+        $rules = parent::defineRules();
+        $rules[] = [['showTime'], 'boolean'];
 
         return $rules;
     }
@@ -93,7 +92,16 @@ class TimeloopField extends Field implements PreviewableFieldInterface
      */
     public function getContentColumnType(): string
     {
-        return \yii\db\Schema::TYPE_TEXT;
+        return Schema::TYPE_TEXT;
+    }
+
+    /**
+     * @inheritdoc
+     * @since 1.2.1
+     */
+    public function useFieldset(): bool
+    {
+        return true;
     }
 
     /**
@@ -392,7 +400,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                         $dates = Timeloop::$plugin->timeloop->getLoop($source, $arguments['limit'] ?? 0, $arguments['futureDates'] ?? true);
 
                         if ( $dates ) {
-                            
+
                             foreach ($dates as &$date) {
                                 $date = Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($date));
                             }
@@ -427,6 +435,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
 
         return $timeloopType;
     }
+
 }
 
 

@@ -71,7 +71,7 @@ class TimeloopModel extends Model
             ['loopPeriod', 'array'],
             ['loopStartTime', 'datetime'],
             ['loopEndTime', 'datetime'],
-            ['loopReminderValue', 'number'],
+            ['loopReminderValue', 'integer'],
         ];
     }
 
