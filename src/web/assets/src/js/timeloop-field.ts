@@ -9,8 +9,8 @@ const main = async () => {
 
     timeloopFields.forEach( (timeloopField) => {
         
-        let field = timeloopField.id.replace('fields-', '').replace('_timeloop', '')
-        
+        let field = timeloopField.id.replace('-', '')
+
         timeloopFieldsToMount[field] = {
             'id': '#' + timeloopField.id,
             'app': createApp({ ...Timeloop })
