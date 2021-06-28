@@ -122,6 +122,7 @@ class TimeloopService extends Component
      */
     private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, Int $limit = 0, Bool $futureDates = true)
     {
+        //\Craft::dd($this->_calculateInterval($period)[0]->interval);
         $interval = $this->_calculateInterval($period)[0]->interval;
         $frequency = $this->_calculateInterval($period)[0]->frequency;
 

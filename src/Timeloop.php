@@ -43,7 +43,6 @@ use yii\base\Event;
  * @property  Settings $settings
  * @method    Settings getSettings()
  */
-
 class Timeloop extends Plugin
 {
     // Static Properties
@@ -135,7 +134,7 @@ class Timeloop extends Plugin
         );
 
         // Register variable
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
+        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function (Event $event) {
             /** @var CraftVariable $variable */
             $variable = $event->sender;
             $variable->set('timeloop', [
