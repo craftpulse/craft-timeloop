@@ -392,6 +392,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                         $dates = Timeloop::$plugin->timeloop->getLoop($source, $arguments['limit'] ?? 0, $arguments['futureDates'] ?? true);
 
                         if ( $dates ) {
+                            
                             foreach ($dates as &$date) {
                                 $date = Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($date));
                             }

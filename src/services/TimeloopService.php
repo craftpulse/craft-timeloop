@@ -55,6 +55,7 @@ class TimeloopService extends Component
         //  get start date from data object
 
         if (!$data->loopStartDate) {
+
             return null;
         }
 
@@ -176,6 +177,8 @@ class TimeloopService extends Component
 
             $counter++;
         }
+
+        //\Craft::dd($arrDates);
 
         return $arrDates;
     }
