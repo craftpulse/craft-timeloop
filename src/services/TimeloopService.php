@@ -53,7 +53,10 @@ class TimeloopService extends Component
     public function getLoop(TimeloopModel $data, Int $limit = 0, bool $futureDates = true)
     {
         //  get start date from data object
-        //  $startUnix = strtotime($data['loopStartDate']['date']);
+
+        if (!$data->loopStartDate) {
+            return null;
+        }
 
         // check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
         $next = new DateTime();
@@ -90,7 +93,7 @@ class TimeloopService extends Component
         $loopReminderPeriod = $data->loopReminderPeriod ?? 'days';
         $loopReminder = $loopReminderValue. ' ' .$loopReminderPeriod;
 
-        if(count($date) > 0 && $data->loopReminderPeriod)
+        if($date && count($date) > 0 && $data->loopReminderPeriod)
         {
             $remindDate = $date[0];
             $remindDate->modify('-'.$loopReminder);
@@ -122,7 +125,6 @@ class TimeloopService extends Component
      */
     private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, Int $limit = 0, Bool $futureDates = true)
     {
-        //\Craft::dd($this->_calculateInterval($period)[0]->interval);
         $interval = $this->_calculateInterval($period)[0]->interval;
         $frequency = $this->_calculateInterval($period)[0]->frequency;
 

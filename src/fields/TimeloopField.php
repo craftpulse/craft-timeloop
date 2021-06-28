@@ -329,7 +329,8 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $fieldName = $resolveInfo->fieldName;
                         $value = DateTimeHelper::toDateTime($source[$fieldName]);
-                        return Gql::applyDirectives($source, $resolveInfo, $value);
+                        $return = Gql::applyDirectives($source, $resolveInfo, $value);
+                        return $return ? $return : null;
                     }
                 ],
                 'loopStartTime' => [
@@ -339,7 +340,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $fieldName = $resolveInfo->fieldName;
                         $value = DateTimeHelper::toDateTime($source[$fieldName]);
-                        return  $value ? $value->format('H:i') : false;
+                        return  $value ? $value->format('H:i') : null;
                     }
                 ],
                 'loopEndDate' => [
@@ -349,7 +350,8 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $fieldName = $resolveInfo->fieldName;
                         $value = DateTimeHelper::toDateTime($source[$fieldName]);
-                        return Gql::applyDirectives($source, $resolveInfo, $value);
+                        $return = Gql::applyDirectives($source, $resolveInfo, $value);
+                        return $return ? $return : null;
                     }
                 ],
                 'loopEndTime' => [
@@ -359,7 +361,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $fieldName = $resolveInfo->fieldName;
                         $value = DateTimeHelper::toDateTime($source[$fieldName]);
-                        return  $value ? $value->format('H:i') : false;
+                        return  $value ? $value->format('H:i') : null;
                     }
                 ],
                 'getReminder' => [
@@ -368,7 +370,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $reminder = Timeloop::$plugin->timeloop->getReminder($source);
 
-                        return false == $reminder ? $reminder : Gql::applyDirectives($source, $resolveInfo, $reminder);
+                        return false == $reminder ? null : Gql::applyDirectives($source, $resolveInfo, $reminder);
                     }
                 ],
                 'getDates' => [
@@ -389,11 +391,15 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $dates = Timeloop::$plugin->timeloop->getLoop($source, $arguments['limit'] ?? 0, $arguments['futureDates'] ?? true);
 
-                        foreach ($dates as &$date) {
-                            $date = Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($date));
+                        if ( $dates ) {
+                            foreach ($dates as &$date) {
+                                $date = Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($date));
+                            }
+    
+                            return $dates;
                         }
 
-                        return $dates;
+                        return null;
                     }
                 ],
                 'getUpcoming' => [
@@ -402,11 +408,13 @@ class TimeloopField extends Field implements PreviewableFieldInterface
                     'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $upcoming = Timeloop::$plugin->timeloop->getLoop($source, 1);
 
-                        if(count($upcoming) > 0){
-                            return  Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($upcoming[0]));
+                        if( $upcoming ) {
+                            if(count($upcoming) > 0){
+                                return  Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($upcoming[0]));
+                            }
                         }
 
-                        return false;
+                        return null;
                     }
                 ],
             ]
