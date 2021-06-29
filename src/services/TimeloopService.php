@@ -150,7 +150,7 @@ class TimeloopService extends Component
                 $loopDates = $this->_parseDate($frequency, $dateToParse, $counter, $period, $timestring);
 
                 if ( gettype($loopDates) === 'array' ) {
-                    foreach ( $loopDates as &$loopDate) {
+                    foreach ( $loopDates as &$loopDate ) {
                         $arrDates[] = $loopDate;
                     }
                 } else {
@@ -177,8 +177,6 @@ class TimeloopService extends Component
 
             $counter++;
         }
-
-        //\Craft::dd($arrDates);
 
         return $arrDates;
     }

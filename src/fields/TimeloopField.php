@@ -30,6 +30,8 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Gql;
 use craft\helpers\Json;
 
+use craft\i18n\Locale;
+
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
@@ -218,13 +220,19 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      */
     public function getTableAttributeHtml($value, ElementInterface $element): string
     {
-        if($value) {
-            $upcoming = Timeloop::$plugin->timeloop->getLoop($value, 1)[0];
-            $upcoming = false == $upcoming ? 'No upcoming dates' : ($this->getSettings()['showTime'] ? $upcoming->format('d-m-y g:ia') : $upcoming->format('d-m-y'));
-            return '<div>Next up: ' . $upcoming . '</div>';
+
+        if(!$value->loopStartDate) {
+            return '';
         }
 
-        return '-';
+        $upcoming = Timeloop::$plugin->timeloop->getLoop($value, 1);
+
+        if ( count($upcoming) === 1 ) {
+            return '<span> Next up: ' . Craft::$app->getFormatter()->asDate($upcoming[0], Locale::LENGTH_SHORT) . '</span>';
+        } else {
+            return '<span> Next up: None</span>';
+        }
+
     }
 
     /**
@@ -260,6 +268,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                 'name' => $this->handle,
                 'value' => $value,
                 'field' => $this,
+                'rules' => $this->required,
                 'id' => $id,
                 'namespacedId' => $namespacedId,
                 'settings' => $this->getSettings(),
