@@ -71,8 +71,30 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         return Craft::t('timeloop', 'Timeloop');
     }
 
+    /**
+     * @var bool Whether to show input sources for volumes the user doesn’t have permission to view.
+     * @since 3.4.0
+     */
+     public $timeloopRequired = true;
+
     // Public Methods
     // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+     public function __construct(array $config = [])
+     { 
+        parent::__construct($config);
+     }
+
+     /**
+     * @inheritdoc
+     */
+     public function init()
+     { 
+        parent::init();
+     }
 
     /**
      * @return array
@@ -121,6 +143,8 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
 
         if (isset($value['loopStartDate']) ) {
             $value['loopStartDate'] = DateTimeHelper::toDateTime($value['loopStartDate']);
+        } else {
+            $value['loopStartDate'] = '';
         }
 
         if (isset($value['loopEndDate']) ) {
@@ -164,6 +188,10 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             }
 
             $value['loopStartDate'] = Db::prepareDateForDb($value['loopStartDate']->setTime($hours ?? 0, $minutes ?? 0));
+        } else {
+
+            $value['loopStartDate'] = '';
+
         }
 
         if (isset($value['loopEndDate']) && $value['loopEndDate'] instanceof \DateTime) {
@@ -268,13 +296,27 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                 'name' => $this->handle,
                 'value' => $value,
                 'field' => $this,
-                'rules' => $this->required,
+                'required' => $this->required,
                 'id' => $id,
                 'namespacedId' => $namespacedId,
                 'settings' => $this->getSettings(),
             ]
         );
     }
+
+    /**
+     * @inheritdoc
+     */
+     public function isValueEmpty($value, ElementInterface $element): bool
+     {
+
+        if ( !$value->loopStartDate ) {
+            return parent::isValueEmpty('', $element);
+        }
+
+        return false;
+
+     }
 
     /**
      * @return array
