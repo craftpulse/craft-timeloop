@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+
+## 1.0.0-rc.5 - 2021-06-29
+
+### Changed
+- When no data is entered, graphQL queries will return `null` on the fields rather than `false`
+
+### Fixed
+- Fixed the issue where the Vue app wouldn't render if there were multiple timeloop fields in a single entry
+
 ## 1.0.0-rc.4 - 2021-06-08
 
 ### Added
