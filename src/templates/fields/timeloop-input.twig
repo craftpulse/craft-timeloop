@@ -32,23 +32,25 @@
 
         <div class="w-1/2 px-8">
 
-
-
-            {{ forms.dateField({
+            {{- forms.dateField({
                 label: 'Start date',
                 instructions: 'Enter a date when the loop should start',
                 name: name ~ '[loopStartDate]',
-                required: true,
-                value: value.loopStartDate ?? now
-            }) }}
+                value: value.loopStartDate ?? now,
+                required: false,
+            }) -}}
+
         </div>
         <div class="w-1/2 px-8">
-            {{ forms.dateField({
+
+            {{- forms.dateField({
                 label: 'End date',
                 instructions: 'Enter a date when the loop should end',
                 name: name ~ '[loopEndDate]',
-                value: value.loopEndDate ?? null
-            }) }}
+                value: value.loopEndDate ?? null,
+                required: false,
+            }) -}}
+
         </div>
     </div>
 
@@ -56,20 +58,22 @@
 
         <div class="flex flex-nowrap items-start -mx-8 mt-6">
             <div class="w-1/2 px-8">
-                {{ forms.timeField({
+                {{- forms.timeField({
                     label: 'Start time',
                     instructions: 'Enter a start time',
                     name: name ~ '[loopStartTime]',
-                    value: value.loopStartTime ?? null
-                }) }}
+                    value: value.loopStartTime ?? null,
+                    required: false,
+                }) -}}
             </div>
             <div class="w-1/2 px-8">
-                {{ forms.timeField({
+                {{- forms.timeField({
                     label: 'End time',
                     instructions: 'Enter an end time',
                     name: name ~ '[loopEndTime]',
-                    value: value.loopEndTime ?? null
-                }) }}
+                    value: value.loopEndTime ?? null,
+                    required: false,
+                }) -}}
             </div>
         </div>
 
@@ -80,13 +84,13 @@
     {% set loopPeriodOptions = {
         label: 'Loop Period',
         instructions: "Select a frequency and provide an interval for the loop",
-        id: name ~ '[loopPeriod]',
         name: '[' ~ name ~ ']' ~ '[loopPeriod]',
-        required: true,
         value: value.loopPeriod ?? null,
+        id: name ~ '[loopPeriod]',
+        required: false,
     } %}
 
-    <div id="timeloop" class="mt-6">
+    <div id="{{- name -}}_timeloop" class="mt-6">
         <loop-period :options="{{- loopPeriodOptions | json_encode -}}"></loop-period>
     </div>
 
@@ -101,17 +105,21 @@
         </div>
 
         <div class="flex flex-nowrap">
-            {{ forms.text({
+
+            {{- forms.text({
+                name: name ~ "[loopReminderValue]",
+                value: value.loopReminderValue ?? "",
+                id: name ~ "[loopReminderValue]",
                 type: 'number',
                 class: 'w-16',
                 size: 10,
-                value: value.loopReminderValue ?? "",
-                id: name ~ "[loopReminderValue]",
-                name: name ~ "[loopReminderValue]",
-            }) }}
-            {{ forms.select({
+                required: false,
+            }) -}}
+
+            {{- forms.select({
                 id: name ~ "[loopReminderPeriod]",
                 name: name ~ "[loopReminderPeriod]",
+                value: value.loopReminderPeriod ?? null,
                 options: [
                     {label: 'None'|t('timeloop'), value: null},
                     {label: 'Day(s)'|t('timeloop'), value: 'days'},
@@ -119,8 +127,8 @@
                     {label: 'Month(s)'|t('timeloop'), value: 'months'},
                     {label: 'Year(s)'|t('timeloop'), value: 'years'},
                 ],
-                value: value.loopReminderPeriod ?? null,
-            }) }}
+                required: false,
+            }) -}}
 
         </div>
     </div>
