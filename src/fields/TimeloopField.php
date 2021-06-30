@@ -143,8 +143,6 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
 
         if (isset($value['loopStartDate']) ) {
             $value['loopStartDate'] = DateTimeHelper::toDateTime($value['loopStartDate']);
-        } else {
-            $value['loopStartDate'] = '';
         }
 
         if (isset($value['loopEndDate']) ) {
@@ -188,10 +186,6 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             }
 
             $value['loopStartDate'] = Db::prepareDateForDb($value['loopStartDate']->setTime($hours ?? 0, $minutes ?? 0));
-        } else {
-
-            $value['loopStartDate'] = '';
-
         }
 
         if (isset($value['loopEndDate']) && $value['loopEndDate'] instanceof \DateTime) {
@@ -306,9 +300,9 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
 
     /**
      * @inheritdoc
-     */
-     public function isValueEmpty($value, ElementInterface $element): bool
-     {
+    */
+    public function isValueEmpty($value, ElementInterface $element): bool
+    {
 
         if ( !$value->loopStartDate ) {
             return parent::isValueEmpty('', $element);
@@ -316,7 +310,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
 
         return false;
 
-     }
+    }
 
     /**
      * @return array
