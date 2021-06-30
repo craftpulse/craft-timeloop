@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ### Fixed
 - Fixed the issue where the Vue app wouldn't render if there were multiple timeloop fields in a single entry
+- Fixed the issue if the field was set to required, the entry would still save
 
 ## 1.0.0-rc.4 - 2021-06-08
 
