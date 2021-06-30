@@ -71,7 +71,7 @@ class TimeloopModel extends Model
             ['loopPeriod', 'array'],
             ['loopStartTime', 'datetime'],
             ['loopEndTime', 'datetime'],
-            ['loopReminderValue', 'number'],
+            ['loopReminderValue', 'integer'],
         ];
     }
 
@@ -81,16 +81,6 @@ class TimeloopModel extends Model
                 $this->upcomingDates = Timeloop::$plugin->timeloop->getLoop($this, 2, true);
             }
 
-    }
-
-    /**
-     * Use the handle as the string representation.
-     *
-     * @return string
-     */
-    public function __toString(): string
-    {
-        return 'magical to string function for entry.timeloop';
     }
 
     public function getPeriod()
