@@ -201,9 +201,7 @@ query{
 
 Potential features for the future:
 
-* Mutations for GraphQL
 * Reminder Support
-* Provide additional GraphQL types for LoopPeriod and TimeString models
 * Make the fieldtype translatable
 * Provide language translations
 * Add the possibility to blocklist dates
