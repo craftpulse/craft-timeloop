@@ -13,7 +13,8 @@ namespace percipiolondon\timeloop\fields;
 use percipiolondon\timeloop\Timeloop;
 use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
 use percipiolondon\timeloop\models\TimeloopModel;
-use percipiolondon\timeloop\models\PeriodModel;
+use percipiolondon\timeloop\gql\types\input\TimeloopInputType;
+/**use percipiolondon\timeloop\models\PeriodModel;*/
 
 use Craft;
 use craft\base\ElementInterface;
@@ -75,7 +76,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * @var bool Whether to show input sources for volumes the user doesn’t have permission to view.
      * @since 3.4.0
      */
-     public $timeloopRequired = true;
+    public $timeloopRequired = true;
 
     // Public Methods
     // =========================================================================
@@ -83,18 +84,18 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     /**
      * @inheritdoc
      */
-     public function __construct(array $config = [])
-     { 
+    public function __construct(array $config = [])
+    {
         parent::__construct($config);
-     }
+    }
 
-     /**
+    /**
      * @inheritdoc
      */
-     public function init()
-     { 
+    public function init()
+    {
         parent::init();
-     }
+    }
 
     /**
      * @return array
@@ -449,7 +450,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                             foreach ($dates as &$date) {
                                 $date = Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($date));
                             }
-    
+
                             return $dates;
                         }
 
@@ -479,6 +480,11 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         });
 
         return $timeloopType;
+    }
+
+    public function getContentGqlMutationArgumentType()
+    {
+        return TimeloopInputType::getType($this);
     }
 
 }
