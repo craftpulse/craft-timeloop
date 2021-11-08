@@ -53,9 +53,7 @@ class TimeloopService extends Component
     public function getLoop(TimeloopModel $data, Int $limit = 0, bool $futureDates = true)
     {
         //  get start date from data object
-
         if (!$data->loopStartDate) {
-
             return null;
         }
 
@@ -145,11 +143,11 @@ class TimeloopService extends Component
 
             $dateToParse = $frequency === 'monthly' ? $start : $date;
 
-            if ($date > $today && $futureDates) {
+            if ($date > $today->modify('- 1 day') && $futureDates) {
 
                 $loopDates = $this->_parseDate($frequency, $dateToParse, $counter, $period, $timestring);
 
-                if ( gettype($loopDates) === 'array' ) {
+                if (is_array($loopDates)) {
                     foreach ( $loopDates as &$loopDate ) {
                         $arrDates[] = $loopDate;
                     }
@@ -161,7 +159,7 @@ class TimeloopService extends Component
 
                 $loopDates = $this->_parseDate($frequency, $dateToParse, $counter, $period, $timestring);
 
-                if ( gettype($loopDates) === 'array' ) {
+                if (is_array($loopDates)) {
                     foreach ( $loopDates as &$loopDate) {
                         $arrDates[] = $loopDate;
                     }
@@ -173,7 +171,7 @@ class TimeloopService extends Component
 
             if ($limit > 0 && count($arrDates) >= $limit) {
                 break;
-            };
+            }
 
             $counter++;
         }
@@ -309,9 +307,11 @@ class TimeloopService extends Component
                 $hours = $date->format('H');
                 $minutes = $date->format('i');
 
+
                 if (count($period->days) > 0) {
                     foreach ($period->days as $day) {
                         $weekDay = clone($date)->modify(strtolower($day) . ' this week')->setTime($hours, $minutes);
+
                         $weekDates[] = DateTimeHelper::toDateTime($weekDay);
                     }
 
