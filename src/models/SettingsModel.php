@@ -10,9 +10,6 @@
 
 namespace percipiolondon\timeloop\models;
 
-use percipiolondon\timeloop\Timeloop;
-
-use Craft;
 use craft\base\Model;
 
 /**

@@ -2,21 +2,15 @@
 
 namespace percipiolondon\timeloop\gql\types\generators;
 
-use Craft;
-
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
-
-use craft\gql\base\GeneratorInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeManager;
 use craft\gql\TypeLoader;
+use craft\gql\base\GeneratorInterface;
 use craft\gql\types\DateTime;
-use craft\helpers\Gql;
-
 use craft\helpers\DateTimeHelper;
-
+use craft\helpers\Gql;
 use percipiolondon\timeloop\Timeloop;
 
 class TimeloopGenerator implements GeneratorInterface
@@ -207,7 +201,6 @@ class TimeloopGenerator implements GeneratorInterface
      */
     public static function getName($context = null): string
     {
-        /** @var OptimizedImages $context */
         return $context->handle;
     }
 }

@@ -10,29 +10,20 @@
 
 namespace percipiolondon\timeloop\fields;
 
-use percipiolondon\timeloop\Timeloop;
-use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
-use percipiolondon\timeloop\models\TimeloopModel;
-use percipiolondon\timeloop\gql\types\input\TimeloopInputType;
-use percipiolondon\timeloop\gql\types\generators\TimeloopGenerator;
-
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
 use craft\base\PreviewableFieldInterface;
 use craft\base\SortableFieldInterface;
-
-use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeLoader;
-use craft\gql\types\DateTime;
-
-use craft\helpers\Db;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use craft\helpers\Json;
-
 use craft\i18n\Locale;
-
-use yii\base\BaseObject;
+use percipiolondon\timeloop\Timeloop;
+use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
+use percipiolondon\timeloop\gql\types\generators\TimeloopGenerator;
+use percipiolondon\timeloop\gql\types\input\TimeloopInputType;
+use percipiolondon\timeloop\models\TimeloopModel;
 use yii\db\Schema;
 
 /**
@@ -47,6 +38,11 @@ use yii\db\Schema;
  * @author    percipiolondon
  * @package   Timeloop
  * @since     0.1.0
+ *
+ * @property-read mixed $contentGqlMutationArgumentType
+ * @property-read string $contentColumnType
+ * @property-read null|string $settingsHtml
+ * @property-read array $contentGqlType
  */
 class TimeloopField extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
@@ -82,14 +78,6 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     public function __construct(array $config = [])
     {
         parent::__construct($config);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function init()
-    {
-        parent::init();
     }
 
     /**
@@ -157,10 +145,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             $value['loopPeriod'] = Json::decodeIfJson($value['loopPeriod']);
         }
 
-        $model = new TimeloopModel($value);
-
-        return $model;
-
+        return new TimeloopModel($value);
     }
 
     /**

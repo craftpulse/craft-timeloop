@@ -340,7 +340,7 @@ class TimeloopService extends Component
 
         }
 
-        return gettype($loopDate) === 'array' ? $loopDate : DateTimeHelper::toDateTime($loopDate) ?? null;
+        return is_array($loopDate) ? $loopDate : DateTimeHelper::toDateTime($loopDate) ?? null;
 
     }
 }
