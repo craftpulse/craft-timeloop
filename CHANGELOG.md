@@ -12,10 +12,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Changed
 - Gave the reminders an update
 - Provided extra info with the functions and code clean-ups
+- Created a detailed future date check
 
 ### Fixed
 - Fixed the bug if tomorrow is next recurring date, the future dates ignored this one and showed next weeks date
-
+- Fixed showing only one upcoming date
 
 ## 1.0.0-rc.6 - 2021-07-13
 

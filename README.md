@@ -82,16 +82,16 @@ This generated set of dates takes all the field values into consideration (frequ
 
 #### Upcoming Dates (returned as DateTime Objects)
 
-Getting the first upcoming date:
+Getting the first upcoming date. If not applied, it will return false
 
 ```
-    {{ entry.timeloop.upcoming | date('Y-m-d\\TH:i:sP') }}
+    {{ entry.timeloop.upcoming ? entry.timeloop.upcoming | date('Y-m-d\\TH:i:sP') : 'no upcoming date' }}
 ```
 
-Getting the upcoming date after the first:
+Getting the upcoming date after the first. If not applied, it will return false
 
 ```
-    {{ entry.timeloop.nextUpcoming | date('Y-m-d\\TH:i:sP') }}
+    {{ entry.timeloop.nextUpcoming ? entry.timeloop.nextUpcoming | date('Y-m-d\\TH:i:sP') : 'no next upcoming date' }}
 ```
 
 ### Period Model
