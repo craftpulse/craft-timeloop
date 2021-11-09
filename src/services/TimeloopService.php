@@ -6,15 +6,13 @@ use percipiolondon\timeloop\models\TimeloopModel;
 use percipiolondon\timeloop\models\TimeStringModel;
 use percipiolondon\timeloop\models\PeriodModel;
 
-use Craft;
 use craft\base\Component;
 
 use craft\helpers\DateTimeHelper;
-use craft\helpers\Gql;
-use craft\helpers\Json;
 
 use DateInterval;
 use DateTime;
+use DateTimeInterface;
 use DatePeriod;
 
 
@@ -121,6 +119,7 @@ class TimeloopService extends Component
      * @param int $limit positive
      * @param Bool $futureDates
      *
+     * @throws \Exception
      */
     private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, Int $limit = 0, Bool $futureDates = true)
     {
@@ -128,6 +127,7 @@ class TimeloopService extends Component
         $frequency = $this->_calculateInterval($period)[0]->frequency;
 
         $today = new DateTime();
+        $today->modify('-1 month');
 
         $dateInterval = new DateInterval($interval);
         $arrDates = [];
@@ -143,7 +143,7 @@ class TimeloopService extends Component
 
             $dateToParse = $frequency === 'monthly' ? $start : $date;
 
-            if ($date > $today->modify('- 1 day') && $futureDates) {
+            if ($this->_isFutureDate($date, $frequency) && $futureDates) {
 
                 $loopDates = $this->_parseDate($frequency, $dateToParse, $counter, $period, $timestring);
 
@@ -274,6 +274,37 @@ class TimeloopService extends Component
         }
 
         return $result;
+    }
+
+    /**
+     *
+     * Check if the dates are the next upcoming and no previous date
+     *
+     * @param DateTimeInterface $date
+     * @param String $frequency
+     * @return bool
+     * @throws \Exception
+     */
+    private function _isFutureDate(DateTimeInterface $date, String $frequency): bool
+    {
+        $firstDay = date("Y-m-d", strtotime('today'));
+
+        switch($frequency) {
+
+            case 'weekly':
+
+                $firstDay = date("Y-m-d", strtotime('sunday last week'));
+                break;
+
+            case 'monthly':
+
+                $firstDay = date("Y-m-d", strtotime('last day of previous month'));
+                break;
+
+        }
+
+
+        return $date > new DateTime($firstDay);
     }
 
     /**
