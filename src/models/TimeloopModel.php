@@ -160,7 +160,7 @@ class TimeloopModel extends Model
      */
     public function getUpcoming()
     {
-        if ( count($this->upcomingDates) > 1 ) {
+        if ( count($this->upcomingDates) > 0 ) {
             return $this->upcomingDates[0];
         }
 
