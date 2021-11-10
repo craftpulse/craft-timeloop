@@ -6,15 +6,13 @@ use percipiolondon\timeloop\models\TimeloopModel;
 use percipiolondon\timeloop\models\TimeStringModel;
 use percipiolondon\timeloop\models\PeriodModel;
 
-use Craft;
 use craft\base\Component;
 
 use craft\helpers\DateTimeHelper;
-use craft\helpers\Gql;
-use craft\helpers\Json;
 
 use DateInterval;
 use DateTime;
+use DateTimeInterface;
 use DatePeriod;
 
 
@@ -53,9 +51,7 @@ class TimeloopService extends Component
     public function getLoop(TimeloopModel $data, Int $limit = 0, bool $futureDates = true)
     {
         //  get start date from data object
-
         if (!$data->loopStartDate) {
-
             return null;
         }
 
@@ -123,6 +119,7 @@ class TimeloopService extends Component
      * @param int $limit positive
      * @param Bool $futureDates
      *
+     * @throws \Exception
      */
     private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, Int $limit = 0, Bool $futureDates = true)
     {
@@ -130,6 +127,7 @@ class TimeloopService extends Component
         $frequency = $this->_calculateInterval($period)[0]->frequency;
 
         $today = new DateTime();
+        $today->modify('-1 month');
 
         $dateInterval = new DateInterval($interval);
         $arrDates = [];
@@ -145,11 +143,11 @@ class TimeloopService extends Component
 
             $dateToParse = $frequency === 'monthly' ? $start : $date;
 
-            if ($date > $today && $futureDates) {
+            if ($this->_isFutureDate($date, $frequency) && $futureDates) {
 
                 $loopDates = $this->_parseDate($frequency, $dateToParse, $counter, $period, $timestring);
 
-                if ( gettype($loopDates) === 'array' ) {
+                if (is_array($loopDates)) {
                     foreach ( $loopDates as &$loopDate ) {
                         $arrDates[] = $loopDate;
                     }
@@ -161,7 +159,7 @@ class TimeloopService extends Component
 
                 $loopDates = $this->_parseDate($frequency, $dateToParse, $counter, $period, $timestring);
 
-                if ( gettype($loopDates) === 'array' ) {
+                if (is_array($loopDates)) {
                     foreach ( $loopDates as &$loopDate) {
                         $arrDates[] = $loopDate;
                     }
@@ -173,7 +171,7 @@ class TimeloopService extends Component
 
             if ($limit > 0 && count($arrDates) >= $limit) {
                 break;
-            };
+            }
 
             $counter++;
         }
@@ -279,6 +277,37 @@ class TimeloopService extends Component
     }
 
     /**
+     *
+     * Check if the dates are the next upcoming and no previous date
+     *
+     * @param DateTimeInterface $date
+     * @param String $frequency
+     * @return bool
+     * @throws \Exception
+     */
+    private function _isFutureDate(DateTimeInterface $date, String $frequency): bool
+    {
+        $firstDay = date("Y-m-d", strtotime('today'));
+
+        switch($frequency) {
+
+            case 'weekly':
+
+                $firstDay = date("Y-m-d", strtotime('sunday last week'));
+                break;
+
+            case 'monthly':
+
+                $firstDay = date("Y-m-d", strtotime('last day of previous month'));
+                break;
+
+        }
+
+
+        return $date > new DateTime($firstDay);
+    }
+
+    /**
      * Returns the $date to add to the result could be DateTime or Array
      *
      * correctly calculates end of months when we shift to a shorter or longer month
@@ -309,9 +338,11 @@ class TimeloopService extends Component
                 $hours = $date->format('H');
                 $minutes = $date->format('i');
 
+
                 if (count($period->days) > 0) {
                     foreach ($period->days as $day) {
                         $weekDay = clone($date)->modify(strtolower($day) . ' this week')->setTime($hours, $minutes);
+
                         $weekDates[] = DateTimeHelper::toDateTime($weekDay);
                     }
 
@@ -340,7 +371,7 @@ class TimeloopService extends Component
 
         }
 
-        return gettype($loopDate) === 'array' ? $loopDate : DateTimeHelper::toDateTime($loopDate) ?? null;
+        return is_array($loopDate) ? $loopDate : DateTimeHelper::toDateTime($loopDate) ?? null;
 
     }
 }

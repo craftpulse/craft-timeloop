@@ -10,34 +10,20 @@
 
 namespace percipiolondon\timeloop\fields;
 
-use percipiolondon\timeloop\Timeloop;
-use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
-use percipiolondon\timeloop\models\TimeloopModel;
-use percipiolondon\timeloop\gql\types\input\TimeloopInputType;
-/**use percipiolondon\timeloop\models\PeriodModel;*/
-
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
 use craft\base\PreviewableFieldInterface;
 use craft\base\SortableFieldInterface;
-
-use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeLoader;
-use craft\gql\types\DateTime;
-
-use craft\helpers\Db;
 use craft\helpers\DateTimeHelper;
-use craft\helpers\Gql;
+use craft\helpers\Db;
 use craft\helpers\Json;
-
 use craft\i18n\Locale;
-
-use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Type\Definition\ResolveInfo;
-use GraphQL\Type\Definition\Type;
-
-use yii\base\BaseObject;
+use percipiolondon\timeloop\Timeloop;
+use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
+use percipiolondon\timeloop\gql\types\generators\TimeloopGenerator;
+use percipiolondon\timeloop\gql\types\input\TimeloopInputType;
+use percipiolondon\timeloop\models\TimeloopModel;
 use yii\db\Schema;
 
 /**
@@ -52,6 +38,11 @@ use yii\db\Schema;
  * @author    percipiolondon
  * @package   Timeloop
  * @since     0.1.0
+ *
+ * @property-read mixed $contentGqlMutationArgumentType
+ * @property-read string $contentColumnType
+ * @property-read null|string $settingsHtml
+ * @property-read array $contentGqlType
  */
 class TimeloopField extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
@@ -87,14 +78,6 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     public function __construct(array $config = [])
     {
         parent::__construct($config);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function init()
-    {
-        parent::init();
     }
 
     /**
@@ -162,10 +145,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             $value['loopPeriod'] = Json::decodeIfJson($value['loopPeriod']);
         }
 
-        $model = new TimeloopModel($value);
-
-        return $model;
-
+        return new TimeloopModel($value);
     }
 
     /**
@@ -318,168 +298,13 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      */
     public function getContentGqlType()
     {
-        $typeName = $this->handle;
+        $typeArray = TimeloopGenerator::generateTypes($this);
 
-        $timestringType = GqlEntityRegistry::getEntity('timestring') ?: GqlEntityRegistry::createEntity('timestring', new ObjectType([
-            'name' => 'timestring',
-            'fields' => [
-                'ordinal' => [
-                    'name' => 'ordinal',
-                    'type' => Type::string(),
-                    'description' => 'The timestring ordinal',
-                ],
-                'day' => [
-                    'name' => 'day',
-                    'type' => Type::string(),
-                    'description' => 'The timestring day',
-                ],
-
-            ]
-        ]));
-
-        $periodType = GqlEntityRegistry::getEntity('loopPeriod') ?: GqlEntityRegistry::createEntity('loopPeriod', new ObjectType([
-            'name' => 'loopPeriod',
-            'fields' => [
-                'frequency' => [
-                    'name' => 'frequency',
-                    'type' => Type::string(),
-                    'description' => 'The period frequency',
-                ],
-                'cycle' => [
-                    'name' => 'cycle',
-                    'type' => Type::int(),
-                    'description' => 'The period cycle',
-                ],
-                'days' => [
-                    'name' => 'days',
-                    'type' => Type::ListOf(Type::string()),
-                    'description' => 'Selected days of the week for the weekly frequency.',
-                ],
-                'timestring' => [
-                    'name' => 'timestring',
-                    'type' => $timestringType,
-                    'description' => 'The selected timestring for the monthly frequency.'
-                ]
-            ]
-        ]));
-
-        $timeloopType = GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new ObjectType([
-            'name' => $typeName,
-            'fields' => [
-                'loopPeriod' => [
-                    'name' => 'loopPeriod',
-                    'type' => $periodType,
-                    'description' => 'The loop period (daily / weekly / monthly / yearly)',
-                ],
-                'loopReminder' => [
-                    'name' => 'loopReminder',
-                    'type' => Type::string(),
-                    'description' => 'The loop reminder period'
-                ],
-                'loopStartDate' => [
-                    'name' => 'loopStartDate',
-                    'type' => DateTime::getType(),
-                    'description' => 'The start date of the loop',
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
-                        $fieldName = $resolveInfo->fieldName;
-                        $value = DateTimeHelper::toDateTime($source[$fieldName]);
-                        $return = Gql::applyDirectives($source, $resolveInfo, $value);
-                        return $return ? $return : null;
-                    }
-                ],
-                'loopStartTime' => [
-                    'name' => 'loopStartTime',
-                    'type' => DateTime::getType(),
-                    'description' => 'The start hour of the loop',
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
-                        $fieldName = $resolveInfo->fieldName;
-                        $value = DateTimeHelper::toDateTime($source[$fieldName]);
-                        return  $value ? $value->format('H:i') : null;
-                    }
-                ],
-                'loopEndDate' => [
-                    'name' => 'loopEndDate',
-                    'type' => DateTime::getType(),
-                    'description' => 'The end date of the loop',
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
-                        $fieldName = $resolveInfo->fieldName;
-                        $value = DateTimeHelper::toDateTime($source[$fieldName]);
-                        $return = Gql::applyDirectives($source, $resolveInfo, $value);
-                        return $return ? $return : null;
-                    }
-                ],
-                'loopEndTime' => [
-                    'name' => 'loopEndTime',
-                    'type' => DateTime::getType(),
-                    'description' => 'The end hour of the loop',
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
-                        $fieldName = $resolveInfo->fieldName;
-                        $value = DateTimeHelper::toDateTime($source[$fieldName]);
-                        return  $value ? $value->format('H:i') : null;
-                    }
-                ],
-                'getReminder' => [
-                    'name' => 'getReminder',
-                    'type' => DateTime::getType(),
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
-                        $reminder = Timeloop::$plugin->timeloop->getReminder($source);
-
-                        return false == $reminder ? null : Gql::applyDirectives($source, $resolveInfo, $reminder);
-                    }
-                ],
-                'getDates' => [
-                    'name' =>'getDates',
-                    'type' => Type::listOf(DateTime::getType()),
-                    'args' => [
-                        'limit' => [
-                            'type' => Type::int(),
-                            'name' => "limit",
-                            'description' => "Limit how many dates you want in return. By default it returns 100 dates"
-                        ],
-                        'futureDates' => [
-                            'type' => Type::boolean(),
-                            'name' => "futureDates",
-                            'description' => "Set to false if you want to dates from the start date. By default it returns only future dates"
-                        ]
-                    ],
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
-                        $dates = Timeloop::$plugin->timeloop->getLoop($source, $arguments['limit'] ?? 0, $arguments['futureDates'] ?? true);
-
-                        if ( $dates ) {
-
-                            foreach ($dates as &$date) {
-                                $date = Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($date));
-                            }
-
-                            return $dates;
-                        }
-
-                        return null;
-                    }
-                ],
-                'getUpcoming' => [
-                    'name' => 'getUpcoming',
-                    'type' => DateTime::getType(),
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
-                        $upcoming = Timeloop::$plugin->timeloop->getLoop($source, 1);
-
-                        if( $upcoming ) {
-                            if(count($upcoming) > 0){
-                                return  Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($upcoming[0]));
-                            }
-                        }
-
-                        return null;
-                    }
-                ],
-            ]
-        ]));
-
-        TypeLoader::registerType($typeName, static function() use ($timeloopType) {
-            return $timeloopType;
-        });
-
-        return $timeloopType;
+        return [
+            'name' => $this->handle,
+            'description' => 'Timeloop field',
+            'type' => array_shift($typeArray),
+        ];
     }
 
     public function getContentGqlMutationArgumentType()

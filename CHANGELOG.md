@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.0.0-rc.7 - 2021-11-08
+
+### Added
+- Separate GQL interface
+
+### Changed
+- Gave the reminders an update
+- Provided extra info with the functions and code clean-ups
+- Created a detailed future date check
+
+### Fixed
+- Fixed the bug if tomorrow is next recurring date, the future dates ignored this one and showed next weeks date
+- Fixed showing only one upcoming date
 
 ## 1.0.0-rc.6 - 2021-07-13
 

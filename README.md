@@ -40,6 +40,8 @@ The following configuration options that are available for the field:
 
 ## Using Timeloop
 
+In our examples below, we use a single called Homepage with a Timeloop field called timeloop.
+
 ### The Timeloop Model
 
 #### Getting the entered dates (returned as DateTime objects)
@@ -80,16 +82,16 @@ This generated set of dates takes all the field values into consideration (frequ
 
 #### Upcoming Dates (returned as DateTime Objects)
 
-Getting the first upcoming date:
+Getting the first upcoming date. If not applied, it will return false
 
 ```
-    {{ entry.timeloop.upcoming | date('Y-m-d\\TH:i:sP') }}
+    {{ entry.timeloop.upcoming ? entry.timeloop.upcoming | date('Y-m-d\\TH:i:sP') : 'no upcoming date' }}
 ```
 
-Getting the next upcoming date:
+Getting the upcoming date after the first. If not applied, it will return false
 
 ```
-    {{ entry.timeloop.nextUpcoming | date('Y-m-d\\TH:i:sP') }}
+    {{ entry.timeloop.nextUpcoming ? entry.timeloop.nextUpcoming | date('Y-m-d\\TH:i:sP') : 'no next upcoming date' }}
 ```
 
 ### Period Model
@@ -127,7 +129,13 @@ Get the ordinal of a monthly set loop (e.g. first, second, ..., last)
     {{ entry.timeloop.timestring.ordinal ?? 'not set' }}
 ```
 
-### Reminder Model (WIP - not ready for production)
+### Reminder Model
+
+Get the reminder date and time before the recurring date occurs
+
+```
+    {{ entry.timeloop.reminder | date('Y-m-d\\TH:i:sP') }}
+```
 
 ### GraphQL
 
@@ -183,18 +191,23 @@ query{
       dateCreated,
       title,
       timeloop {
-        loopReminder,
-        loopStartDate,
-        loopStartTime,
-        loopEndDate,
-        loopEndTime,
-        loopPeriod,
-        dates(limit: 5) @formatDateTime(format: "d/m/Y" )
+        loopReminder
+        loopStartDate
+        loopStartTime
+        loopEndDate
+        loopEndTime
+        loopPeriod {
+          frequency
+          cycle
+          days
+        }
+        getDates(limit: 10, futureDates: false)
+        getReminder
+        getUpcoming
       }
     }
   }
 }
-
 ```
 
 ## Timeloop Roadmap
