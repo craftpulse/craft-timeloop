@@ -31,6 +31,8 @@ To install the plugin, follow these instructions.
 The Timeloop plugin provides recurring dates based on a starting date and a regular loop period.
 
 **Example**: Set a payment date for employees on the first of each month.
+**Example**: Display the upcoming dance class from a dance school, that repeats every Tuesday and Thursday.
+**Example**: Display the next school board meeting, which takes places every third Friday of the month.
 
 ## Configuring the Timeloop field.
 
@@ -146,7 +148,7 @@ You can get the DateTime Types from the data directly for
 * `loopStartTime` will return the start time, defaults to `00:00:00` when no start time has been entered or `showTimes` is set to false.
 * `loopEndDate` will return the end date
 * `loopEndTime` will return the end time, defaults to `23:59:59` when no end time has been entered or `showTimes` is set to false.
-* `loopReminder`
+* `loopReminder` will return the reminder for the first upcoming date, if any.
 
 #### Loop Period
 
@@ -187,7 +189,7 @@ To get an array of formatted dates, use `dates`.
 query{
   entries(section: "homepage"){
     id,
-    ...on homepage_homepage_Entry{
+    ...on homepage_homepage_Entry {
       dateCreated,
       title,
       timeloop {
@@ -204,6 +206,7 @@ query{
         getDates(limit: 10, futureDates: false)
         getReminder
         getUpcoming
+        getNextUpcoming
       }
     }
   }
@@ -212,13 +215,13 @@ query{
 
 ## Timeloop Roadmap
 
-Potential features for the future:
+Features for the future:
 
-* Reminder Support
-* Make the fieldtype translatable
+* Add controllers to be used for a cronjob or other automated tasks
+* Make the field translatable
 * Provide language translations
-* Add the possibility to blocklist dates
-* Add holiday settings
+* Add the possibility to blocklist dates ( e.g. do not repeat the dates during July/August )
+* Add holiday settings ( Bank Holidays to take into consideration when displaying upcoming dates )
 * Localise holidays based on the CraftCMS timezone settings
 
 And many more!

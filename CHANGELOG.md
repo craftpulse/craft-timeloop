@@ -4,19 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 1.0.0-rc.7 - 2021-11-08
+## 1.0.0 - 2021-11-08
 
 ### Added
-- Separate GQL interface
+- Created a seperate GQL interface
+- Added the posibility of creating more granular reminders
+- Added a more detailed future date check
 
 ### Changed
-- Gave the reminders an update
-- Provided extra info with the functions and code clean-ups
-- Created a detailed future date check
+- Cleaned up code comments
+- Code cleanups
 
 ### Fixed
-- Fixed the bug if tomorrow is next recurring date, the future dates ignored this one and showed next weeks date
-- Fixed showing only one upcoming date
+- Fixed a bug when the next recurring date is in the current week, month or year this would be skipped.
+- Fixed an issue where the upcoming date and next upcoming date would show the same value
 
 ## 1.0.0-rc.6 - 2021-07-13
 
