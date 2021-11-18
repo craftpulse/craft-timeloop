@@ -1,6 +1,6 @@
 # Timeloop plugin for Craft CMS 3.x
 
-This plugin created repeating dates without complex inputs
+This plugin creates repeating dates without complex inputs
 
 ![timeloop-banner-light (1)](https://user-images.githubusercontent.com/20947573/117322933-bcbca200-ae8e-11eb-834f-1a2aeba472b6.png)
 
@@ -10,7 +10,7 @@ This plugin requires Craft CMS 3.3.0 or later.
 
 ## Installation
 
-To install the plugin, follow these instructions.
+To install the plugin, follow these instructions:
 
 1. Open your terminal and go to your Craft project:
 
@@ -31,14 +31,14 @@ To install the plugin, follow these instructions.
 The Timeloop plugin provides recurring dates based on a starting date and a regular loop period.
 
 **Example**: Set a payment date for employees on the first of each month.
-**Example**: Display the upcoming dance class from a dance school, that repeats every Tuesday and Thursday.
-**Example**: Display the next school board meeting, which takes places every third Friday of the month.
+**Example**: Display the upcoming dance class from a dance school that repeats every Tuesday and Thursday.
+**Example**: Display the next school board meeting, which takes place every third Friday of the month.
 
 ## Configuring the Timeloop field.
 
-The following configuration options that are available for the field:
+The following configuration options are available for the field:
 
-- **ShowTimes**: When selected, this will give the ability to choose a starting time and end time for the recurring dates.
+- **ShowTimes**: When selected, this will allow a start time and end time for the recurring dates to be chosen. 
 
 ## Using Timeloop
 
