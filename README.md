@@ -14,13 +14,13 @@ To install the plugin, follow these instructions:
 
 1. Open your terminal and go to your Craft project:
 
-```
+```twig
     cd/path/to/project
 ```
 
 2. Tell Composer to load the plugin:
 
-```
+```twig
     composer require percipiolondon/craft-timeloop
 ```
 
@@ -48,31 +48,31 @@ The following configuration options are available for the field:
 
 Get the start date from the loop (this includes the time set in `loopStartTime`):
 
-```
+```twig
     {{ entry.timeloop.loopStartDate | date('Y-m-d\\TH:i:sP') }}
 ```
 
 Get the end date from the loop (this includes the time set in `loopEndHour`):
 
-```
+```twig
     {{ entry.timeloop.loopEndDate | date('Y-m-d\\TH:i:sP') }}
 ```
 
 Get the start time from the loop:
 
-```
+```twig
     {{ entry.timeloop.loopStartTime | date('H:i:s') }}
 ```
 
 Get the end time from the loop:
 
-```
+```twig
     {{ entry.timeloop.loopEndTime | date('H:i:s') }}
 ```
 
 Get an 'array' of dates between the chosen start and end date (DateTime objects):
 
-```
+```twig
     {% for date in entry.timeloop.dates %}
         {{ date | date('Y-m-d\\TH:i:sP') }}
     {% endfor %}
@@ -83,64 +83,64 @@ This generated set of dates takes all the field values into consideration (frequ
 
 #### Upcoming Dates (returned as DateTime Objects)
 
-Get the first upcoming date. If not applied, it will return `false`:
+Get the first upcoming date. If there is no `upcoming` date the returned value will be `false`:
 
-```
+```twig
     {{ entry.timeloop.upcoming ? entry.timeloop.upcoming | date('Y-m-d\\TH:i:sP') : 'no upcoming date' }}
 ```
 
-Get the date that is  upcoming date after the first. If not applied, it will return `false`:
+Get the date that is following the first upcoming date. If there is no `nextUpcoming` date the returned value will be `false`:
 
-```
+```twig
     {{ entry.timeloop.nextUpcoming ? entry.timeloop.nextUpcoming | date('Y-m-d\\TH:i:sP') : 'no next upcoming date' }}
 ```
 
 ### Period Model
 
-Getting the frequency (DateTimePeriod String):
+Get the frequency of the period (e.g. P2D, P1W, P4M, ...) (DateTimePeriod String):
 
-```
+```twig
     {{ entry.timeloop.period.frequency }}
 ```
 
-Getting the cycle (Integer):
+Get the set cycle for the frequency (e.g. 1, 4, 8) (Integer):
 
-```
+```twig
     {{ entry.timeloop.period.cycle }}
 ```
 
-Displaying the selected days (Array):
+Display the selected days if the frequency is set to weekly (Array):
 
-```
+```twig
     {% for day in entry.timeloop.period.days %}
         {{ day }}
     {% endfor %}
 ```
 
-This will parse the names of the selected days when weekly has been chosen as frequency.
+The above will parse the names of the selected days when weekly has been chosen as frequency.
 
 ### Timestring Model
 
 Get the ordinal of a monthly set loop (e.g. first, second, ..., last)
 
-**warning:** If the frequency is not set to monthly, the returned value will be `null`.
+**warning:** If the chosen frequency is not monthly, the returned value will be `null`.
 **warning:** If the frequency is set to monthly and no timestring selection has been made, the returned value will be `none` as `String`.
 
-```
+```twig
     {{ entry.timeloop.timestring.ordinal ?? 'not set' }}
 ```
 
 ### Reminder Model
 
-Get the reminder date and time before the recurring date occurs
+Get a reminder before the recurring date occurs (DateTime object)
 
-```
+```twig
     {{ entry.timeloop.reminder | date('Y-m-d\\TH:i:sP') }}
 ```
 
 ### GraphQL
 
-If you want to use the plugin through GraphQL, we've added a GraphQL Type to provide the field data.
+If you want to use the plugin through GraphQL, we've added a custom GraphQL Type to provide the field data.
 
 You can get the DateTime Types from the data directly for 
 * `loopStartDate` will return the start date
@@ -151,9 +151,9 @@ You can get the DateTime Types from the data directly for
 
 #### Loop Period
 
-You can get the `loopPeriod` object as follows:
+You can get the `loopPeriod` object in the query as follows:
 
-```
+```graphql
     loopPeriod {
         frequency
         cycle
@@ -165,10 +165,10 @@ You can get the `loopPeriod` object as follows:
     }
 ```
 
-* `frequency` will return the selected frequency ( P1D / P1W / P1M / P1Y )
+* `frequency` will return the chosen frequency ( P1D / P1W / P1M / P1Y )
 * `cycle` will return the entered cycle value
-* `days` will return an Array that contains the selected days of the week
-* `timestring` will return an object that contains the `ordinal` (e.g. last) and `day` (e.g. saturday)
+* `days` will return an array that contains the selected days of the week as string
+* `timestring` will return an object that contains the `ordinal` (e.g. last) and `day` (e.g. saturday) values
 
 #### The Dates
 
@@ -176,13 +176,12 @@ To get an array of formatted dates, use `dates`.
 
 ##### Dates arguments:
 
-* limit (Integer): add a limit of dates you want to return, default to `100`.
-* futureDates (Boolean): if you want to show future dates only, default to `true`.
+* limit (Integer): add a limit of dates you want to return, defaults to `100`.
+* futureDates (Boolean): if you want to show future dates only, defaults to `true`.
 
 ##### Dates directives:
 
 `formatDateTime(timezone: "Europe/London" format: "d/m/Y")`
-
 
 ```graphql
 query{
