@@ -44,33 +44,33 @@ The following configuration options are available for the field:
 
 ### The Timeloop Model
 
-#### Getting the entered dates (returned as DateTime objects)
+#### Fetching dates (returned as DateTime objects)
 
-Getting the start date for the loop (this includes the time set in `loopStartTime`):
+Get the start date from the loop (this includes the time set in `loopStartTime`):
 
 ```
     {{ entry.timeloop.loopStartDate | date('Y-m-d\\TH:i:sP') }}
 ```
 
-Getting the end date for the loop (this includes the time set in `loopEndHour`):
+Get the end date from the loop (this includes the time set in `loopEndHour`):
 
 ```
     {{ entry.timeloop.loopEndDate | date('Y-m-d\\TH:i:sP') }}
 ```
 
-Getting the start time for the loop:
+Get the start time from the loop:
 
 ```
     {{ entry.timeloop.loopStartTime | date('H:i:s') }}
 ```
 
-Getting the end time for the loop:
+Get the end time from the loop:
 
 ```
     {{ entry.timeloop.loopEndTime | date('H:i:s') }}
 ```
 
-Getting an array of dates between the selected start and end dates (Array with DateTime Objects):
+Get an 'array' of dates between the chosen start and end date (DateTime objects):
 
 ```
     {% for date in entry.timeloop.dates %}
@@ -78,18 +78,18 @@ Getting an array of dates between the selected start and end dates (Array with D
     {% endfor %}
 ```
 
-This generated set of dates takes all the field values into consideration (frequency, cycle and custom)
+This generated set of dates takes all the field values into consideration (frequency, cycle and custom settings)
 
 
 #### Upcoming Dates (returned as DateTime Objects)
 
-Getting the first upcoming date. If not applied, it will return false
+Get the first upcoming date. If not applied, it will return `false`:
 
 ```
     {{ entry.timeloop.upcoming ? entry.timeloop.upcoming | date('Y-m-d\\TH:i:sP') : 'no upcoming date' }}
 ```
 
-Getting the upcoming date after the first. If not applied, it will return false
+Get the date that is  upcoming date after the first. If not applied, it will return `false`:
 
 ```
     {{ entry.timeloop.nextUpcoming ? entry.timeloop.nextUpcoming | date('Y-m-d\\TH:i:sP') : 'no next upcoming date' }}
