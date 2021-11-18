@@ -2,7 +2,7 @@
 
 This plugin creates repeating dates without complex inputs
 
-![timeloop-banner-light (1)](https://user-images.githubusercontent.com/20947573/117322933-bcbca200-ae8e-11eb-834f-1a2aeba472b6.png)
+![timeloop-banner-light](https://user-images.githubusercontent.com/20947573/117322933-bcbca200-ae8e-11eb-834f-1a2aeba472b6.png)
 
 ## Requirements
 
@@ -52,7 +52,7 @@ Get the start date from the loop (this includes the time set in `loopStartTime`)
     {{ entry.timeloop.loopStartDate | date('Y-m-d\\TH:i:sP') }}
 ```
 
-Get the end date from the loop (this includes the time set in `loopEndHour`):
+Get the end date from the loop (this includes the time set in `loopEndTime`):
 
 ```twig
     {{ entry.timeloop.loopEndDate | date('Y-m-d\\TH:i:sP') }}
@@ -70,7 +70,7 @@ Get the end time from the loop:
     {{ entry.timeloop.loopEndTime | date('H:i:s') }}
 ```
 
-Get an 'array' of dates between the chosen start and end date (DateTime objects):
+Get an 'array' of dates between the chosen start and end date as (DateTime objects):
 
 ```twig
     {% for date in entry.timeloop.dates %}
@@ -79,7 +79,6 @@ Get an 'array' of dates between the chosen start and end date (DateTime objects)
 ```
 
 This generated set of dates takes all the field values into consideration (frequency, cycle and custom settings)
-
 
 #### Upcoming Dates (returned as DateTime Objects)
 
@@ -97,19 +96,19 @@ Get the date that is following the first upcoming date. If there is no `nextUpco
 
 ### Period Model
 
-Get the frequency of the period (e.g. P2D, P1W, P4M, ...) (DateTimePeriod String):
+Get the frequency of the period (e.g. P2D, P1W, P4M, ...) as (DateTimePeriod String):
 
 ```twig
     {{ entry.timeloop.period.frequency }}
 ```
 
-Get the set cycle for the frequency (e.g. 1, 4, 8) (Integer):
+Get the set cycle for the frequency (e.g. 1, 4, 8) as (Integer):
 
 ```twig
     {{ entry.timeloop.period.cycle }}
 ```
 
-Display the selected days if the frequency is set to weekly (Array):
+Display the selected days if the frequency is set to weekly as (Array):
 
 ```twig
     {% for day in entry.timeloop.period.days %}
@@ -124,7 +123,7 @@ The above will parse the names of the selected days when weekly has been chosen 
 Get the ordinal of a monthly set loop (e.g. first, second, ..., last)
 
 **warning:** If the chosen frequency is not monthly, the returned value will be `null`.
-**warning:** If the frequency is set to monthly and no timestring selection has been made, the returned value will be `none` as `String`.
+**warning:** If the frequency is set to monthly and no timestring selection has been made, the returned value will be `none` as (String).
 
 ```twig
     {{ entry.timeloop.timestring.ordinal ?? 'not set' }}
@@ -132,7 +131,7 @@ Get the ordinal of a monthly set loop (e.g. first, second, ..., last)
 
 ### Reminder Model
 
-Get a reminder before the recurring date occurs (DateTime object)
+Get a reminder before the recurring date occurs (DateTime)
 
 ```twig
     {{ entry.timeloop.reminder | date('Y-m-d\\TH:i:sP') }}
@@ -142,10 +141,10 @@ Get a reminder before the recurring date occurs (DateTime object)
 
 If you want to use the plugin through GraphQL, we've added a custom GraphQL Type to provide the field data.
 
-You can get the DateTime Types from the data directly for 
-* `loopStartDate` will return the start date
+You can get the DateTime Types from the data directly for:
+* `loopStartDate` will return the start date.
 * `loopStartTime` will return the start time, defaults to `00:00:00` when no start time has been entered or `showTimes` is set to false.
-* `loopEndDate` will return the end date
+* `loopEndDate` will return the end date.
 * `loopEndTime` will return the end time, defaults to `23:59:59` when no end time has been entered or `showTimes` is set to false.
 * `loopReminder` will return the reminder for the first upcoming date, if any.
 
@@ -165,10 +164,10 @@ You can get the `loopPeriod` object in the query as follows:
     }
 ```
 
-* `frequency` will return the chosen frequency ( P1D / P1W / P1M / P1Y )
-* `cycle` will return the entered cycle value
-* `days` will return an array that contains the selected days of the week as string
-* `timestring` will return an object that contains the `ordinal` (e.g. last) and `day` (e.g. saturday) values
+* `frequency` will return the chosen frequency (P1D / P1W / P1M / P1Y).
+* `cycle` will return the entered cycle value.
+* `days` will return an array that contains the selected days of the week as string.
+* `timestring` will return an object that contains the `ordinal` (e.g. last) and `day` (e.g. Saturday) values.
 
 #### The Dates
 
@@ -176,8 +175,8 @@ To get an array of formatted dates, use `dates`.
 
 ##### Dates arguments:
 
-* limit (Integer): add a limit of dates you want to return, defaults to `100`.
-* futureDates (Boolean): if you want to show future dates only, defaults to `true`.
+* `limit` (Integer): add a limit of dates you want to return, defaults to `100`.
+* `futureDates` (Boolean): if you want to show future dates only, defaults to `true`.
 
 ##### Dates directives:
 
@@ -215,12 +214,12 @@ query{
 
 Features for the future:
 
-* Add controllers to be used for a cronjob or other automated tasks
-* Make the field translatable
-* Provide language translations
-* Add the possibility to blocklist dates ( e.g. do not repeat the dates during July/August )
-* Add holiday settings ( Bank Holidays to take into consideration when displaying upcoming dates )
-* Localise holidays based on the CraftCMS timezone settings
+* Add controllers to be used for a cronjob or other automated tasks.
+* Make the field translatable.
+* Provide language translations.
+* Add the possibility to blocklist dates (e.g. do not repeat the dates during July/August).
+* Add holiday settings (Bank holidays to take into consideration when displaying upcoming dates).
+* Localise holidays based on the CraftCMS timezone settings.
 
 And many more!
 
