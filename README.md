@@ -123,7 +123,7 @@ This will parse the names of the selected days when weekly has been chosen as fr
 
 Get the ordinal of a monthly set loop (e.g. first, second, ..., last)
 
-**warning:** If the frequency is not set to monthly, the returned value will be `null`.<br>
+**warning:** If the frequency is not set to monthly, the returned value will be `null`.
 **warning:** If the frequency is set to monthly and no timestring selection has been made, the returned value will be `none` as `String`.
 
 ```
