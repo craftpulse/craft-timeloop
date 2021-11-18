@@ -42,6 +42,18 @@ The following configuration options are available for the field:
 
 ## Using Timeloop
 
+### Timeloop field
+
+Once timeloop is installed and the field attached to an entry type you'll be able to begin setting up recurring dates for your entries. Below are two examples: 
+
+1. Using timeloop to create a weekly event that repeats every Monday and Friday of each week.
+<img width="1310" alt="timeloop-week-screen" src="https://user-images.githubusercontent.com/1466061/142441246-50b8128b-8aaf-400d-b5b8-3682a9349fee.png">
+
+2. Using Timeloop to create an monthly event that repeats on the last Sunday of every month. 
+<img width="1308" alt="timeloop-month-screen" src="https://user-images.githubusercontent.com/1466061/142441251-b96fdfd0-261a-4a0e-b8ae-2c0d898969f9.png">
+
+Once configured, you'll be able to start fetching start, upcoming and end dates for your Timeloop.  
+
 ### The Timeloop Model
 
 #### Fetching dates (returned as DateTime objects)
@@ -217,7 +229,7 @@ Features for the future:
 * Add controllers to be used for a cronjob or other automated tasks.
 * Make the field translatable.
 * Provide language translations.
-* Add the possibility to blocklist dates (e.g. do not repeat the dates during July/August).
+* Add the possibility to blacklist dates (e.g. do not repeat the dates during July/August).
 * Add holiday settings (Bank holidays to take into consideration when displaying upcoming dates).
 * Localise holidays based on the CraftCMS timezone settings.
 
