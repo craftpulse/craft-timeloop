@@ -38,11 +38,9 @@ The Timeloop plugin provides recurring dates based on a starting date and a regu
 
 The following configuration options are available for the field:
 
-- **ShowTimes**: When selected, this will allow a start time and end time for the recurring dates to be chosen. 
+- **Show Times**: When selected, this will allow a start time and end time for the recurring dates to be chosen. 
 
 ## Using Timeloop
-
-In our examples below, we use a single called Homepage with a Timeloop field called timeloop.
 
 ### The Timeloop Model
 
@@ -187,9 +185,9 @@ To get an array of formatted dates, use `dates`.
 
 ```graphql
 query{
-  entries(section: "homepage"){
+  entries(section: "section"){
     id,
-    ...on homepage_homepage_Entry {
+    ...on section_section_Entry {
       dateCreated,
       title,
       timeloop {
