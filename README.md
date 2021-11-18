@@ -53,6 +53,7 @@ Getting the start date for the loop (this includes the time set in `loopStartTim
 ```
 
 Getting the end date for the loop (this includes the time set in `loopEndHour`):
+
 ```
     {{ entry.timeloop.loopEndDate | date('Y-m-d\\TH:i:sP') }}
 ```
