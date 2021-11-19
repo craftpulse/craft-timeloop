@@ -45,7 +45,7 @@
         "handle": "timeloop",
         "developer": "percipiolondon",
         "developerUrl": "https://percipio.london",
-        "documentationUrl": "https://github.com/percipiolondon/craft-timeloop/blob/v1/README.md",
+        "documentationUrl": "https://github.com/percipioglobal/craft-timeloop/blob/v1/README.md",
         "changelogUrl": "https://raw.githubusercontent.com/percipiolondon/craft-timeloop/v1/CHANGELOG.md",
         "class": "percipiolondon\\timeloop\\Timeloop"
     }
