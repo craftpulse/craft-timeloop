@@ -24,7 +24,7 @@ use craft\base\Model;
  *
  * @author    percipioglobal
  * @package   Timeloop
- * @since     0.1.0
+ * @since     1.0.0
  */
 class SettingsModel extends Model
 {

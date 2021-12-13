@@ -11,8 +11,10 @@
         "timeloop"
     ],
     "support": {
+        "email": "support@percipio.london",
         "docs": "https://github.com/percipiolondon/craft-timeloop/blob/v1/README.md",
-        "issues": "https://github.com/percipiolondon/craft-timeloop/issues"
+        "issues": "https://github.com/percipiolondon/craft-timeloop/issues",
+        "source": "https://github.com/percipiolondon/craft-timeloop"
     },
     "license": "proprietary",
     "authors": [
