@@ -1,14 +1,14 @@
 TAG?=16-alpine
-CONTAINER?=$(shell basename $(CURDIR))-buildchain
+CONTAINER?=$(shell basename $(dir $(CURDIR)))-buildchain
 DOCKERRUN=docker container run \
-	--name ${CONTAINER} \
-	--rm \
-	-t \
-	--network plugin-playground_default \
-	-p 8080:8080 \
-	-e CPPFLAGS="-DPNG_ARM_NEON_OPT=0" \
-	-v `pwd`:/app \
-	${CONTAINER}:${TAG}
+	    --name ${CONTAINER} \
+	    --rm \
+	    -t \
+        --network craft-plugin-playground_default \
+        -p 3001:3001 \
+		-e CPPFLAGS="-DPNG_ARM_NEON_OPT=0" \
+        -v `pwd`/../:/app \
+        ${CONTAINER}:${TAG}
 
 .PHONY: build dev docker install update update-clean npm
 
