@@ -49,12 +49,14 @@ class Timeloop extends Plugin
     // =========================================================================
 
     /**
-     * Static property that is an instance of this plugin class so that it can be accessed via
-     * Timeloop::$plugin
-     *
-     * @var Timeloop
+     * @var Timeloop|null
      */
-    public static $plugin;
+    public static ?Timeloop $plugin;
+
+    /**
+     * @var null|TimeloopVariable
+     */
+    public static ?TimeloopVariable $timeloopVariable = null;
 
     // Public Properties
     // =========================================================================
@@ -64,21 +66,21 @@ class Timeloop extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '1.0.0';
+    public string $schemaVersion = '1.0.0';
 
     /**
      * Set to `true` if the plugin should have a settings view in the control panel.
      *
      * @var bool
      */
-    public $hasCpSettings = false;
+    public bool $hasCpSettings = false;
 
     /**
      * Set to `true` if the plugin should have its own section (main nav item) in the control panel.
      *
      * @var bool
      */
-    public $hasCpSection = false;
+    public bool $hasCpSection = false;
 
     // Static Methods
     // =========================================================================
@@ -166,7 +168,7 @@ class Timeloop extends Plugin
      *
      * @return \craft\base\Model|null
      */
-    protected function createSettingsModel()
+    protected function createSettingsModel(): ?\craft\base\Model
     {
         return new SettingsModel();
     }

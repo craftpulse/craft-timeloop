@@ -63,7 +63,7 @@ class TimeloopModel extends Model
     // Public Methods
     // =========================================================================
 
-    public function rules()
+    public function rules(): array
     {
         return [
             ['loopStartDate', 'datetime'],
@@ -75,7 +75,7 @@ class TimeloopModel extends Model
         ];
     }
 
-    public function init() {
+    public function init(): void {
 
             if ( $this->loopStartDate && $this->loopEndDate ) {
                 $this->upcomingDates = Timeloop::$plugin->timeloop->getLoop($this, 2, true);

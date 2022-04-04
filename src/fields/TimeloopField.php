@@ -92,7 +92,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
     }
@@ -100,9 +100,9 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     /**
      * @return array
      */
-    protected function defineRules(): array
+    public function rules(): array
     {
-        $rules = parent::defineRules();
+        $rules = parent::rules();
         $rules[] = [['showTime'], 'boolean'];
 
         return $rules;
@@ -115,7 +115,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * appended as well.
      * @see \yii\db\QueryBuilder::getColumnType()
      */
-    public function getContentColumnType(): string
+    public function getContentColumnType()
     {
         return Schema::TYPE_TEXT;
     }
@@ -135,7 +135,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      *
      * @return mixed The prepared field value
      */
-    public function normalizeValue($value, ElementInterface $element = null)
+    public function normalizeValue($value, ?\craft\base\ElementInterface $element = null)
     {
 
         if (is_string($value) && !empty($value)) {
@@ -173,7 +173,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * @param ElementInterface|null $element The element the field is associated with, if there is one
      * @return mixed The serialized field value
      */
-    public function serializeValue($value, ElementInterface $element = null)
+    public function serializeValue($value, ?\craft\base\ElementInterface $element = null)
     {
 
         if (isset($value['loopStartDate']) && $value['loopStartDate'] instanceof \DateTime) {
@@ -224,7 +224,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     /**
      * @return string|null
      */
-    public function getSettingsHtml()
+    public function getSettingsHtml(): ?string
     {
 
         // Render the settings template
@@ -265,7 +265,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      *
      * @return string The input HTML.
      */
-    public function getInputHtml($value, ElementInterface $element = null): string
+    public function getInputHtml($value, ?\craft\base\ElementInterface $element = null): string
     {
         // Register our asset bundle
         Craft::$app->getView()->registerAssetBundle(TimeloopAsset::class);
