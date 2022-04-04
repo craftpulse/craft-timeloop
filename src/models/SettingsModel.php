@@ -10,10 +10,9 @@
 
 namespace percipiolondon\timeloop\models;
 
-use percipiolondon\timeloop\Timeloop;
-
 use Craft;
 use craft\base\Model;
+use percipiolondon\timeloop\Timeloop;
 
 /**
  * Timeloop Settings Model
@@ -54,7 +53,7 @@ class SettingsModel extends Model
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             ['showTime', 'boolean'],
