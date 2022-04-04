@@ -30,7 +30,7 @@ class TimeStringModel extends Model
     // Public Methods
     // =========================================================================
 
-    public function rules()
+    public function rules(): array
     {
         return [
             ['ordinal', 'string'],
