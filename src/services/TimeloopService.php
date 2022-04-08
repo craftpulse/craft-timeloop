@@ -3,7 +3,7 @@
 namespace percipiolondon\timeloop\services;
 
 use craft\base\Component;
-
+use craft\base\Model;
 use craft\helpers\DateTimeHelper;
 
 use DateInterval;
@@ -33,7 +33,7 @@ class TimeloopService extends Component
      * @param array $data
      *
      */
-    public function showPeriod(array $data)
+    public function showPeriod(array $data): ?Model
     {
         return new PeriodModel($data->period);
     }
@@ -46,7 +46,7 @@ class TimeloopService extends Component
      * @param integer $limit
      *
      */
-    public function getLoop(TimeloopModel $data, Int $limit = 0, bool $futureDates = true)
+    public function getLoop(TimeloopModel $data, Int $limit = 0, bool $futureDates = true): array
     {
         //  get start date from data object
 
@@ -82,7 +82,7 @@ class TimeloopService extends Component
      * @return mixed|null
      * @throws \yii\base\Exception
      */
-    public function getReminder(TimeloopModel $data)
+    public function getReminder(TimeloopModel $data): ?DateTime
     {
         $date = $this->getLoop($data, 1);
         $loopReminderValue = $data->loopReminderValue ?? 0;
@@ -118,7 +118,7 @@ class TimeloopService extends Component
      * @param Bool $futureDates
      *
      */
-    private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, Int $limit = 0, Bool $futureDates = true)
+    private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, Int $limit = 0, Bool $futureDates = true): array
     {
         $interval = $this->_calculateInterval($period)[0]->interval;
         $frequency = $this->_calculateInterval($period)[0]->frequency;
@@ -253,7 +253,7 @@ class TimeloopService extends Component
      * @param TimeStringModel $timestring
      *
      */
-    private function _parseDate(String $frequency, DateTime $date, Int $counter, PeriodModel $period, TimeStringModel $timestring)
+    private function _parseDate(String $frequency, DateTime $date, Int $counter, PeriodModel $period, TimeStringModel $timestring): DateTime|array
     {
         switch ($frequency) {
             case 'daily':
