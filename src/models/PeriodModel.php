@@ -38,13 +38,18 @@ class PeriodModel extends Model
     // Public Methods
     // =========================================================================
 
-    public function rules(): array
+    /**
+     * @inheritdoc
+     */
+    protected function defineRules(): array
     {
-        return [
-            ['frequency', 'string'],
-            ['days', 'array'],
-            ['cycle', 'number'],
-            ['timestring', 'array'],
-        ];
+        $rules = parent::defineRules();
+        $rules = array_merge($rules,
+            [['frequency'], 'string'],
+            [['days', 'timestring'], 'array'],
+            [['cycle'], 'number']
+        );
+
+        return $rules;
     }
 }

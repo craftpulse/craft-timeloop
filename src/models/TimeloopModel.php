@@ -62,16 +62,16 @@ class TimeloopModel extends Model
     /**
      * @inheritdoc
      */
-    public function rules(): array
+    protected function defineRules(): array
     {
-        return [
-            ['loopStartDate', 'datetime'],
-            ['loopEndDate', 'datetime'],
-            ['loopPeriod', 'array'],
-            ['loopStartTime', 'datetime'],
-            ['loopEndTime', 'datetime'],
-            ['loopReminderValue', 'integer'],
-        ];
+        $rules = parent::defineRules();
+        $rules = array_merge($rules,
+            [['loopStartDate', 'loopEndDate', 'loopStartTime', 'loopEndTime'], 'datetime'],
+            [['loopPeriod'], 'array'],
+            [['loopReminderValue'], 'integer']
+        );
+
+        return $rules;
     }
 
     public function init(): void

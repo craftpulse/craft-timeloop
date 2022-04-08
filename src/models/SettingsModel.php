@@ -37,9 +37,9 @@ class SettingsModel extends Model
     /**
      * Some field model attribute
      *
-     * @var string
+     * @var bool
      */
-    public $showTime = true;
+    public bool $showTime = true;
 
     // Public Methods
     // =========================================================================
@@ -47,10 +47,13 @@ class SettingsModel extends Model
     /**
      * @inheritdoc
      */
-    public function rules(): array
+    protected function defineRules(): array
     {
-        return [
-            ['showTime', 'boolean'],
-        ];
+        $rules = parent::defineRules();
+        $rules = array_merge($rules,
+            [['showTime'], 'boolean']
+        );
+
+        return $rules;
     }
 }

@@ -28,11 +28,16 @@ class TimeStringModel extends Model
     // Public Methods
     // =========================================================================
 
-    public function rules(): array
+    public function defineRules(): array
     {
-        return [
-            ['ordinal', 'string'],
-            ['day', 'array'],
-        ];
+        $rules = parent::defineRules();
+        $rules = array_merge($rules,
+            [['ordinal'], 'string'],
+            [['day', 'loopPeriod'], 'array'],
+            [['loopStartTime', 'loopEndTime'], 'datetime'],
+            [['loopReminderValue'], 'integer']
+        );
+
+        return $rules;
     }
 }
