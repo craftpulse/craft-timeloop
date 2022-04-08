@@ -111,9 +111,9 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * @param mixed                 $value   The raw field value
      * @param ElementInterface|null $element The element the field is associated with, if there is one
      *
-     * @return \TimeloopModel The prepared field value
+     * @return TimeloopModel The prepared field value
      */
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): TimeloopModel
     {
         if (is_string($value) && !empty($value)) {
             $value = Json::decodeIfJson($value);
@@ -149,11 +149,11 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      */
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
-        if (isset($value['loopStartDate']) && $value['loopStartDate'] instanceof \DateTime) {
+        if (isset($value['loopStartDate']) && $value['loopStartDate'] instanceof DateTime) {
             $hours = null;
             $minutes = null;
 
-            if (isset($value['loopStartTime']) && $value['loopStartTime'] instanceof \DateTime) {
+            if (isset($value['loopStartTime']) && $value['loopStartTime'] instanceof DateTime) {
                 $hours = $value['loopStartTime']->format('H');
                 $minutes = $value['loopStartTime']->format('i');
             }
@@ -161,11 +161,11 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             $value['loopStartDate'] = Db::prepareDateForDb($value['loopStartDate']->setTime($hours ?? 0, $minutes ?? 0));
         }
 
-        if (isset($value['loopEndDate']) && $value['loopEndDate'] instanceof \DateTime) {
+        if (isset($value['loopEndDate']) && $value['loopEndDate'] instanceof DateTime) {
             $hours = null;
             $minutes = null;
 
-            if (isset($value['loopEndTime']) && $value['loopEndTime'] instanceof \DateTime) {
+            if (isset($value['loopEndTime']) && $value['loopEndTime'] instanceof DateTime) {
                 $hours = $value['loopEndTime']->format('H');
                 $minutes = $value['loopEndTime']->format('i');
             }
@@ -173,11 +173,11 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             $value['loopEndDate'] = Db::prepareDateForDb($value['loopEndDate']->setTime($hours ?? 23, $minutes ?? 59));
         }
 
-        if (isset($value['loopStartTime']) && $value['loopStartTime'] instanceof \DateTime) {
+        if (isset($value['loopStartTime']) && $value['loopStartTime'] instanceof DateTime) {
             $value['loopStartTime'] = Db::prepareDateForDb($value['loopStartTime']);
         }
 
-        if (isset($value['loopEndTime']) && $value['loopEndTime'] instanceof \DateTime) {
+        if (isset($value['loopEndTime']) && $value['loopEndTime'] instanceof DateTime) {
             $value['loopEndTime'] = Db::prepareDateForDb($value['loopEndTime']);
         }
 

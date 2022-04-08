@@ -10,8 +10,6 @@
 
 namespace percipiolondon\timeloop\models;
 
-use Craft;
-
 use craft\base\Model;
 
 /**
@@ -37,18 +35,4 @@ class SettingsModel extends Model
      * @var bool
      */
     public bool $showTime = true;
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritdoc
-     */
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-        $rules[] = [['showTime'], 'boolean'];
-
-        return $rules;
-    }
 }

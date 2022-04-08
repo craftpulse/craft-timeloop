@@ -21,7 +21,7 @@ use craft\web\twig\variables\CraftVariable;
 use nystudio107\pluginvite\services\VitePluginService;
 use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
 use percipiolondon\timeloop\fields\TimeloopField;
-use percipiolondon\timeloop\models\SettingsModel;
+use percipiolondon\timeloop\models\SettingsModel as Settings;
 use percipiolondon\timeloop\services\TimeloopService;
 use percipiolondon\timeloop\variables\TimeloopVariable;
 
@@ -58,9 +58,9 @@ class Timeloop extends Plugin
     public static ?TimeloopVariable $timeloopVariable = null;
 
     /**
-     * @var null|SettingsModel
+     * @var null|Settings
      */
-    public static ?SettingsModel $settings = null;
+    public static ?Settings $settings = null;
 
     // Public Properties
     // =========================================================================
@@ -170,8 +170,8 @@ class Timeloop extends Plugin
     /**
      * @inheritdoc
      */
-    protected function createSettingsModel(): ?Model
+    protected function createSettingsModel(): Settings
     {
-        return new SettingsModel();
+        return new Settings();
     }
 }

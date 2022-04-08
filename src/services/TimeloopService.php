@@ -10,7 +10,6 @@ use DateInterval;
 use DatePeriod;
 use DateTime;
 
-use JetBrains\PhpStorm\Pure;
 use percipiolondon\timeloop\models\PeriodModel;
 use percipiolondon\timeloop\models\TimeloopModel;
 use percipiolondon\timeloop\models\TimeStringModel;
