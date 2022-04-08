@@ -41,8 +41,6 @@ use yii\base\Event;
  * @package   Timeloop
  * @since     1.0.0
  *
- * @property  Settings $settings
- * @method    Settings getSettings()
  */
 class Timeloop extends Plugin
 {
@@ -58,6 +56,11 @@ class Timeloop extends Plugin
      * @var null|TimeloopVariable
      */
     public static ?TimeloopVariable $timeloopVariable = null;
+
+    /**
+     * @var null|SettingsModel
+     */
+    public static ?SettingsModel $settings = null;
 
     // Public Properties
     // =========================================================================
