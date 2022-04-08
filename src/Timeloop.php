@@ -10,19 +10,20 @@
 
 namespace percipiolondon\timeloop;
 
-use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
-use percipiolondon\timeloop\models\SettingsModel;
-use percipiolondon\timeloop\fields\TimeloopField;
-use percipiolondon\timeloop\variables\TimeloopVariable;
-use percipiolondon\timeloop\services\TimeloopService;
+use Craft;
+use craft\base\Model;
+use craft\base\Plugin;
+use craft\events\RegisterComponentTypesEvent;
+use craft\services\Fields;
+
+use craft\web\twig\variables\CraftVariable;
 
 use nystudio107\pluginvite\services\VitePluginService;
-
-use Craft;
-use craft\base\Plugin;
-use craft\services\Fields;
-use craft\events\RegisterComponentTypesEvent;
-use craft\web\twig\variables\CraftVariable;
+use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
+use percipiolondon\timeloop\fields\TimeloopField;
+use percipiolondon\timeloop\models\SettingsModel;
+use percipiolondon\timeloop\services\TimeloopService;
+use percipiolondon\timeloop\variables\TimeloopVariable;
 
 use yii\base\Event;
 
@@ -101,7 +102,7 @@ class Timeloop extends Plugin
                 'errorEntry' => '/src/js/timeloop.ts',
                 'devServerInternal' => 'http://craft-timeloop-buildchain:3001',
                 'checkDevServer' => true,
-            ]
+            ],
         ];
 
         parent::__construct($id, $parent, $config);
@@ -130,13 +131,13 @@ class Timeloop extends Plugin
         Event::on(
             Fields::class,
             Fields::EVENT_REGISTER_FIELD_TYPES,
-            function (RegisterComponentTypesEvent $event) {
+            function(RegisterComponentTypesEvent $event) {
                 $event->types[] = TimeloopField::class;
             }
         );
 
         // Register variable
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function (Event $event) {
+        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
             /** @var CraftVariable $variable */
             $variable = $event->sender;
             $variable->set('timeloop', [
@@ -164,13 +165,10 @@ class Timeloop extends Plugin
     // =========================================================================
 
     /**
-     * Creates and returns the model used to store the plugin’s settings.
-     *
-     * @return \craft\base\Model|null
+     * @inheritdoc
      */
-    protected function createSettingsModel(): ?\craft\base\Model
+    protected function createSettingsModel(): ?Model
     {
         return new SettingsModel();
     }
-
 }

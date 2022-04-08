@@ -11,11 +11,9 @@
 namespace percipiolondon\timeloop\gql\types\input;
 
 use craft\gql\GqlEntityRegistry;
-use craft\gql\QueryArgument;
 use craft\gql\types\DateTime;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\Type;
-use GraphQL\Type\Definition\ObjectType;
 
 use percipiolondon\timeloop\fields\TimeloopField;
 
@@ -50,7 +48,7 @@ class TimeloopInputType extends InputObjectType
                     'description' => 'The time string day as a string e.g. Monday',
                 ],
 
-            ]
+            ],
         ]));
 
         $loopPeriodInputType = GqlEntityRegistry::getEntity($periodTypeName) ?: GqlEntityRegistry::createEntity($periodTypeName, new InputObjectType([
@@ -74,8 +72,8 @@ class TimeloopInputType extends InputObjectType
                 'timestring' => [
                     'name' => 'timestring',
                     'type' => $timeStringInputType,
-                ]
-            ]
+                ],
+            ],
         ]));
 
         $inputType = GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new InputObjectType([
@@ -100,8 +98,8 @@ class TimeloopInputType extends InputObjectType
                 'loopPeriod' => [
                     'name' => 'loopPeriod',
                     'type' => $loopPeriodInputType,
-                ]
-            ]
+                ],
+            ],
         ]));
 
         return $inputType;

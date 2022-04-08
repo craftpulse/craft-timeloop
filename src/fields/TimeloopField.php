@@ -10,34 +10,33 @@
 
 namespace percipiolondon\timeloop\fields;
 
-use percipiolondon\timeloop\Timeloop;
-use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
-use percipiolondon\timeloop\models\TimeloopModel;
-use percipiolondon\timeloop\gql\types\input\TimeloopInputType;
-/**use percipiolondon\timeloop\models\PeriodModel;*/
-
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
 use craft\base\PreviewableFieldInterface;
-use craft\base\SortableFieldInterface;
+/**use percipiolondon\timeloop\models\PeriodModel;*/
 
+use craft\base\SortableFieldInterface;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\TypeLoader;
 use craft\gql\types\DateTime;
+use craft\helpers\DateTimeHelper;
 
 use craft\helpers\Db;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Gql;
 use craft\helpers\Json;
 
 use craft\i18n\Locale;
-
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 
-use yii\base\BaseObject;
+use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
+
+use percipiolondon\timeloop\gql\types\input\TimeloopInputType;
+use percipiolondon\timeloop\models\TimeloopModel;
+use percipiolondon\timeloop\Timeloop;
+
 use yii\db\Schema;
 
 /**
@@ -57,7 +56,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
 {
     // Public Properties
     // =========================================================================
-    public $showTime = 0;
+    public int $showTime = 0;
 
     // Static Methods
     // =========================================================================
@@ -76,7 +75,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * @var bool Whether to show input sources for volumes the user doesn’t have permission to view.
      * @since 3.4.0
      */
-    public $timeloopRequired = true;
+    public bool $timeloopRequired = true;
 
     // Public Methods
     // =========================================================================
@@ -100,22 +99,18 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     /**
      * @return array
      */
-    public function rules(): array
+    public function defineRules(): array
     {
-        $rules = parent::rules();
+        $rules = parent::defineRules();
         $rules[] = [['showTime'], 'boolean'];
 
         return $rules;
     }
 
     /**
-     * @return string The column type. [[\yii\db\QueryBuilder::getColumnType()]] will be called
-     * to convert the give column type to the physical one. For example, `string` will be converted
-     * as `varchar(255)` and `string(100)` becomes `varchar(100)`. `not null` will automatically be
-     * appended as well.
-     * @see \yii\db\QueryBuilder::getColumnType()
+     * @inheritdoc
      */
-    public function getContentColumnType()
+    public function getContentColumnType(): array|string
     {
         return Schema::TYPE_TEXT;
     }
@@ -135,26 +130,25 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      *
      * @return mixed The prepared field value
      */
-    public function normalizeValue($value, ?\craft\base\ElementInterface $element = null)
+    public function normalizeValue($value, ?\craft\base\ElementInterface $element = null): mixed
     {
-
         if (is_string($value) && !empty($value)) {
             $value = Json::decode($value);
         }
 
-        if (isset($value['loopStartDate']) ) {
+        if (isset($value['loopStartDate'])) {
             $value['loopStartDate'] = DateTimeHelper::toDateTime($value['loopStartDate']);
         }
 
-        if (isset($value['loopEndDate']) ) {
+        if (isset($value['loopEndDate'])) {
             $value['loopEndDate'] = DateTimeHelper::toDateTime($value['loopEndDate']);
         }
 
-        if (isset($value['loopStartTime']) ) {
+        if (isset($value['loopStartTime'])) {
             $value['loopStartTime'] = DateTimeHelper::toDateTime($value['loopStartTime']);
         }
 
-        if (isset($value['loopEndTime']) ) {
+        if (isset($value['loopEndTime'])) {
             $value['loopEndTime'] = DateTimeHelper::toDateTime($value['loopEndTime']);
         }
 
@@ -165,7 +159,6 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         $model = new TimeloopModel($value);
 
         return $model;
-
     }
 
     /**
@@ -173,11 +166,9 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * @param ElementInterface|null $element The element the field is associated with, if there is one
      * @return mixed The serialized field value
      */
-    public function serializeValue($value, ?\craft\base\ElementInterface $element = null)
+    public function serializeValue($value, ?\craft\base\ElementInterface $element = null): mixed
     {
-
         if (isset($value['loopStartDate']) && $value['loopStartDate'] instanceof \DateTime) {
-
             $hours = null;
             $minutes = null;
 
@@ -190,7 +181,6 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         }
 
         if (isset($value['loopEndDate']) && $value['loopEndDate'] instanceof \DateTime) {
-
             $hours = null;
             $minutes = null;
 
@@ -210,11 +200,11 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             $value['loopEndTime'] = Db::prepareDateForDb($value['loopEndTime']);
         }
 
-        if( isset($value['loopReminderPeriod']) && '' === $value['loopReminderPeriod']) {
+        if (isset($value['loopReminderPeriod']) && '' === $value['loopReminderPeriod']) {
             $value['loopReminderValue'] = 0;
         }
 
-        if( is_string($value) && !empty($value['loopPeriod'])) {
+        if (is_string($value) && !empty($value['loopPeriod'])) {
             $value['loopPeriod'] = Json::encode($value['loopPeriod']);
         }
 
@@ -231,7 +221,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         return Craft::$app->getView()->renderTemplate(
             'timeloop/fields/timeloop-settings',
             [
-                'settings' => $this->getSettings()
+                'settings' => $this->getSettings(),
             ]
         );
     }
@@ -243,19 +233,17 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      */
     public function getTableAttributeHtml($value, ElementInterface $element): string
     {
-
-        if(!$value->loopStartDate) {
+        if (!$value->loopStartDate) {
             return '';
         }
 
         $upcoming = Timeloop::$plugin->timeloop->getLoop($value, 1);
 
-        if ( count($upcoming) === 1 ) {
+        if (count($upcoming) === 1) {
             return '<span> Next up: ' . Craft::$app->getFormatter()->asDate($upcoming[0], Locale::LENGTH_SHORT) . '</span>';
         } else {
             return '<span> Next up: None</span>';
         }
-
     }
 
     /**
@@ -304,19 +292,17 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     */
     public function isValueEmpty($value, ElementInterface $element): bool
     {
-
-        if ( !$value->loopStartDate ) {
+        if (!$value->loopStartDate) {
             return parent::isValueEmpty('', $element);
         }
 
         return false;
-
     }
 
     /**
      * @return array
      */
-    public function getContentGqlType()
+    public function getContentGqlType(): Type|array
     {
         $typeName = $this->handle;
 
@@ -334,7 +320,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                     'description' => 'The timestring day',
                 ],
 
-            ]
+            ],
         ]));
 
         $periodType = GqlEntityRegistry::getEntity('loopPeriod') ?: GqlEntityRegistry::createEntity('loopPeriod', new ObjectType([
@@ -358,9 +344,9 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                 'timestring' => [
                     'name' => 'timestring',
                     'type' => $timestringType,
-                    'description' => 'The selected timestring for the monthly frequency.'
-                ]
-            ]
+                    'description' => 'The selected timestring for the monthly frequency.',
+                ],
+            ],
         ]));
 
         $timeloopType = GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new ObjectType([
@@ -374,79 +360,78 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                 'loopReminder' => [
                     'name' => 'loopReminder',
                     'type' => Type::string(),
-                    'description' => 'The loop reminder period'
+                    'description' => 'The loop reminder period',
                 ],
                 'loopStartDate' => [
                     'name' => 'loopStartDate',
                     'type' => DateTime::getType(),
                     'description' => 'The start date of the loop',
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                    'resolve' => function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $fieldName = $resolveInfo->fieldName;
                         $value = DateTimeHelper::toDateTime($source[$fieldName]);
                         $return = Gql::applyDirectives($source, $resolveInfo, $value);
                         return $return ? $return : null;
-                    }
+                    },
                 ],
                 'loopStartTime' => [
                     'name' => 'loopStartTime',
                     'type' => DateTime::getType(),
                     'description' => 'The start hour of the loop',
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                    'resolve' => function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $fieldName = $resolveInfo->fieldName;
                         $value = DateTimeHelper::toDateTime($source[$fieldName]);
                         return  $value ? $value->format('H:i') : null;
-                    }
+                    },
                 ],
                 'loopEndDate' => [
                     'name' => 'loopEndDate',
                     'type' => DateTime::getType(),
                     'description' => 'The end date of the loop',
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                    'resolve' => function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $fieldName = $resolveInfo->fieldName;
                         $value = DateTimeHelper::toDateTime($source[$fieldName]);
                         $return = Gql::applyDirectives($source, $resolveInfo, $value);
                         return $return ? $return : null;
-                    }
+                    },
                 ],
                 'loopEndTime' => [
                     'name' => 'loopEndTime',
                     'type' => DateTime::getType(),
                     'description' => 'The end hour of the loop',
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                    'resolve' => function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $fieldName = $resolveInfo->fieldName;
                         $value = DateTimeHelper::toDateTime($source[$fieldName]);
                         return  $value ? $value->format('H:i') : null;
-                    }
+                    },
                 ],
                 'getReminder' => [
                     'name' => 'getReminder',
                     'type' => DateTime::getType(),
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                    'resolve' => function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $reminder = Timeloop::$plugin->timeloop->getReminder($source);
 
                         return false == $reminder ? null : Gql::applyDirectives($source, $resolveInfo, $reminder);
-                    }
+                    },
                 ],
                 'getDates' => [
-                    'name' =>'getDates',
+                    'name' => 'getDates',
                     'type' => Type::listOf(DateTime::getType()),
                     'args' => [
                         'limit' => [
                             'type' => Type::int(),
                             'name' => "limit",
-                            'description' => "Limit how many dates you want in return. By default it returns 100 dates"
+                            'description' => "Limit how many dates you want in return. By default it returns 100 dates",
                         ],
                         'futureDates' => [
                             'type' => Type::boolean(),
                             'name' => "futureDates",
-                            'description' => "Set to false if you want to dates from the start date. By default it returns only future dates"
-                        ]
+                            'description' => "Set to false if you want to dates from the start date. By default it returns only future dates",
+                        ],
                     ],
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                    'resolve' => function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $dates = Timeloop::$plugin->timeloop->getLoop($source, $arguments['limit'] ?? 0, $arguments['futureDates'] ?? true);
 
-                        if ( $dates ) {
-
+                        if ($dates) {
                             foreach ($dates as &$date) {
                                 $date = Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($date));
                             }
@@ -455,24 +440,24 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                         }
 
                         return null;
-                    }
+                    },
                 ],
                 'getUpcoming' => [
                     'name' => 'getUpcoming',
                     'type' => DateTime::getType(),
-                    'resolve' => function ($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                    'resolve' => function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         $upcoming = Timeloop::$plugin->timeloop->getLoop($source, 1);
 
-                        if( $upcoming ) {
-                            if(count($upcoming) > 0){
+                        if ($upcoming) {
+                            if (count($upcoming) > 0) {
                                 return  Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($upcoming[0]));
                             }
                         }
 
                         return null;
-                    }
+                    },
                 ],
-            ]
+            ],
         ]));
 
         TypeLoader::registerType($typeName, static function() use ($timeloopType) {
@@ -482,11 +467,8 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         return $timeloopType;
     }
 
-    public function getContentGqlMutationArgumentType()
+    public function getContentGqlMutationArgumentType(): Type|array
     {
         return TimeloopInputType::getType($this);
     }
-
 }
-
-

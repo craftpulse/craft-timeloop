@@ -2,13 +2,12 @@
 
 namespace percipiolondon\timeloop\variables;
 
-use Craft;
 use craft\helpers\Json;
-
-use percipiolondon\timeloop\Timeloop;
 
 use nystudio107\pluginvite\variables\ViteVariableInterface;
 use nystudio107\pluginvite\variables\ViteVariableTrait;
+
+use percipiolondon\timeloop\Timeloop;
 
 /**
  * @author    percipiolondon
@@ -18,7 +17,6 @@ use nystudio107\pluginvite\variables\ViteVariableTrait;
 
 class TimeloopVariable implements ViteVariableInterface
 {
-
     use ViteVariableTrait;
 
 
@@ -39,7 +37,7 @@ class TimeloopVariable implements ViteVariableInterface
     {
         $upcoming = Timeloop::$plugin->timeloop->getLoop($data, 1);
 
-        if(count($upcoming) > 0) {
+        if (count($upcoming) > 0) {
             return $upcoming[0];
         } else {
             return false;

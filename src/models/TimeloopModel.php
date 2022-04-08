@@ -2,13 +2,10 @@
 
 namespace percipiolondon\timeloop\models;
 
-use percipiolondon\timeloop\Timeloop;
-use percipiolondon\timeloop\models\PeriodModel;
-
-use Craft;
 use craft\base\Model;
+
 use craft\helpers\DateTimeHelper;
-use craft\helpers\Json;
+use percipiolondon\timeloop\Timeloop;
 
 /**
  * @author    percipiolondon
@@ -18,7 +15,6 @@ use craft\helpers\Json;
 
 class TimeloopModel extends Model
 {
-
     // Public Properties
     // =========================================================================
 
@@ -63,6 +59,9 @@ class TimeloopModel extends Model
     // Public Methods
     // =========================================================================
 
+    /**
+     * @inheritdoc
+     */
     public function rules(): array
     {
         return [
@@ -75,23 +74,18 @@ class TimeloopModel extends Model
         ];
     }
 
-    public function init(): void {
-
-            if ( $this->loopStartDate && $this->loopEndDate ) {
-                $this->upcomingDates = Timeloop::$plugin->timeloop->getLoop($this, 2, true);
-            }
-
+    public function init(): void
+    {
+        if ($this->loopStartDate && $this->loopEndDate) {
+            $this->upcomingDates = Timeloop::$plugin->timeloop->getLoop($this, 2, true);
+        }
     }
 
     public function getPeriod()
     {
-
         if ($this->loopPeriod !== null) {
-            $period = new PeriodModel($this->loopPeriod);
-
-            return $period;
+            return new PeriodModel($this->loopPeriod);
         }
-
     }
 
     public function getTimeString()
@@ -127,7 +121,7 @@ class TimeloopModel extends Model
 
     public function getUpcoming()
     {
-        if ( count($this->upcomingDates) > 1 ) {
+        if (count($this->upcomingDates) > 1) {
             return $this->upcomingDates[0];
         } else {
             return false;
@@ -136,11 +130,10 @@ class TimeloopModel extends Model
 
     public function getNextUpcoming()
     {
-        if ( count($this->upcomingDates) > 1 ) {
+        if (count($this->upcomingDates) > 1) {
             return $this->upcomingDates[1];
         } else {
             return false;
         }
     }
-
 }

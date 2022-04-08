@@ -2,7 +2,6 @@
 
 namespace percipiolondon\timeloop\models;
 
-use Craft;
 use craft\base\Model;
 
 /**
@@ -13,7 +12,6 @@ use craft\base\Model;
 
 class TimeStringModel extends Model
 {
-
     // Public Properties
     // =========================================================================
 
@@ -37,5 +35,4 @@ class TimeStringModel extends Model
             ['day', 'array'],
         ];
     }
-
 }
