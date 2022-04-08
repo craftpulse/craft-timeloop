@@ -212,7 +212,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * @param ElementInterface $element
      * @return string
      */
-    public function getTableAttributeHtml($value, ElementInterface $element): string
+    public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
     {
         if (!$value->loopStartDate) {
             return '';
@@ -234,7 +234,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      *
      * @return string The input HTML.
      */
-    public function getInputHtml($value, ?\craft\base\ElementInterface $element = null): string
+    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         // Register our asset bundle
         Craft::$app->getView()->registerAssetBundle(TimeloopAsset::class);
@@ -271,7 +271,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     /**
      * @inheritdoc
     */
-    public function isValueEmpty($value, ElementInterface $element): bool
+    public function isValueEmpty(mixed $value, ElementInterface $element): bool
     {
         if (!$value->loopStartDate) {
             return parent::isValueEmpty('', $element);
