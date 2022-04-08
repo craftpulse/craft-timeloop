@@ -13,7 +13,6 @@ namespace percipiolondon\timeloop\models;
 use Craft;
 
 use craft\base\Model;
-use percipiolondon\timeloop\Timeloop;
 
 /**
  * Timeloop Settings Model
