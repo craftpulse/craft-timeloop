@@ -47,7 +47,7 @@ class TimeloopService extends Component
      * @param integer $limit
      *
      */
-    public function getLoop(TimeloopModel $data, Int $limit = 0, bool $futureDates = true): null|array
+    public function getLoop(TimeloopModel $data, int $limit = 0, bool $futureDates = true): null|array
     {
         //  get start date from data object
 
@@ -110,7 +110,7 @@ class TimeloopService extends Component
      * @param PeriodModel $period
      * @param TimeStringModel $timestring
      * @param int $limit positive
-     * @param Bool $futureDates
+     * @param bool $futureDates
      * @throws \Exception
      */
     private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, int $limit = 0, bool $futureDates = true): array

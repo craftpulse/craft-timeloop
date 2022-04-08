@@ -95,7 +95,7 @@ class Timeloop extends Plugin
     public function __construct($id, $parent = null, array $config = [])
     {
         $config['components'] = [
-            'timeloop' => Timeloop::class,
+            'timeloop' => __CLASS__,
             'vite' => [
                 'class' => VitePluginService::class,
                 'assetClass' => TimeloopAsset::class,
