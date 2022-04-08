@@ -3,8 +3,8 @@
 namespace percipiolondon\timeloop\models;
 
 use craft\base\Model;
-
 use craft\helpers\DateTimeHelper;
+use DateTime;
 use percipiolondon\timeloop\Timeloop;
 
 /**
@@ -44,9 +44,9 @@ class TimeloopModel extends Model
     public string $loopReminderPeriod;
 
     /**
-     * @var number
+     * @var int
      */
-    public number $loopReminderValue;
+    public int $loopReminderValue;
 
     /**
      * @var array
