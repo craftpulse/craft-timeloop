@@ -2,7 +2,6 @@
 
 namespace percipiolondon\timeloop\models;
 
-use Craft;
 use craft\base\Model;
 
 /**

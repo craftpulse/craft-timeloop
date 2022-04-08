@@ -32,7 +32,7 @@ modules:
       migrations: []
       plugins:
         timeloop:
-          class: '\percipioglobal\timeloop\Timeloop'
+          class: '\percipiolondon\timeloop\Timeloop'
           handle: timeloop
       cleanup: true
       transaction: true

@@ -10,9 +10,6 @@
 
 namespace percipiolondon\timeloop\models;
 
-use percipiolondon\timeloop\Timeloop;
-
-use Craft;
 use craft\base\Model;
 
 /**
@@ -27,7 +24,7 @@ use craft\base\Model;
  *
  * @author    percipioglobal
  * @package   Timeloop
- * @since     0.1.0
+ * @since     1.0.0
  */
 class SettingsModel extends Model
 {
