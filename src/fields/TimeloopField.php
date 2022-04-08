@@ -80,22 +80,6 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     // =========================================================================
 
     /**
-     * @inheritdoc
-     */
-    public function __construct(array $config = [])
-    {
-        parent::__construct($config);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function init(): void
-    {
-        parent::init();
-    }
-
-    /**
      * @return array
      */
     public function defineRules(): array
