@@ -14,16 +14,13 @@ use Craft;
 use craft\base\Plugin;
 use craft\events\RegisterComponentTypesEvent;
 use craft\services\Fields;
-
 use craft\web\twig\variables\CraftVariable;
-
 use nystudio107\pluginvite\services\VitePluginService;
 use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
 use percipiolondon\timeloop\fields\TimeloopField;
 use percipiolondon\timeloop\models\SettingsModel as Settings;
 use percipiolondon\timeloop\services\TimeloopService;
 use percipiolondon\timeloop\variables\TimeloopVariable;
-
 use yii\base\Event;
 
 /**
@@ -133,20 +130,24 @@ class Timeloop extends Plugin
         Event::on(
             Fields::class,
             Fields::EVENT_REGISTER_FIELD_TYPES,
-            function(RegisterComponentTypesEvent $event) {
+            function(RegisterComponentTypesEvent $event): void {
                 $event->types[] = TimeloopField::class;
             }
         );
 
         // Register variable
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
-            /** @var CraftVariable $variable */
-            $variable = $event->sender;
-            $variable->set('timeloop', [
-                'class' => TimeloopVariable::class,
-                'viteService' => $this->vite,
-            ]);
-        });
+        Event::on(
+            CraftVariable::class,
+            CraftVariable::EVENT_INIT,
+            function(Event $event): void {
+                /** @var CraftVariable $variable */
+                $variable = $event->sender;
+                $variable->set('timeloop', [
+                    'class' => TimeloopVariable::class,
+                    'viteService' => $this->vite,
+                ]);
+            }
+        );
 
         // Register services as components
         $this->setComponents([
