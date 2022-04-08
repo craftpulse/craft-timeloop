@@ -31,12 +31,10 @@ class TimeStringModel extends Model
     public function defineRules(): array
     {
         $rules = parent::defineRules();
-        $rules = array_merge($rules,
-            [['ordinal'], 'string'],
-            [['day', 'loopPeriod'], 'array'],
-            [['loopStartTime', 'loopEndTime'], 'datetime'],
-            [['loopReminderValue'], 'integer']
-        );
+        $rules[] = [['ordinal'], 'string'];
+        $rules[] = [['day', 'loopPeriod'], 'array'];
+        $rules[] = [['loopStartTime', 'loopEndTime'], 'datetime'];
+        $rules[] = [['loopReminderValue'], 'integer'];
 
         return $rules;
     }

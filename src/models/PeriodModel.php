@@ -44,11 +44,9 @@ class PeriodModel extends Model
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
-        $rules = array_merge($rules,
-            [['frequency'], 'string'],
-            [['days', 'timestring'], 'array'],
-            [['cycle'], 'number']
-        );
+        $rules[] = [['frequency'], 'string'];
+        $rules[] = [['days', 'timestring'], 'array'];
+        $rules[] = [['cycle'], 'number'];
 
         return $rules;
     }
