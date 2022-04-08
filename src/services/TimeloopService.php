@@ -10,6 +10,7 @@ use DateInterval;
 use DatePeriod;
 use DateTime;
 
+use JetBrains\PhpStorm\Pure;
 use percipiolondon\timeloop\models\PeriodModel;
 use percipiolondon\timeloop\models\TimeloopModel;
 use percipiolondon\timeloop\models\TimeStringModel;
@@ -46,7 +47,7 @@ class TimeloopService extends Component
      * @param integer $limit
      *
      */
-    public function getLoop(TimeloopModel $data, Int $limit = 0, bool $futureDates = true): array
+    public function getLoop(TimeloopModel $data, Int $limit = 0, bool $futureDates = true): null|array
     {
         //  get start date from data object
 
@@ -68,11 +69,6 @@ class TimeloopService extends Component
         // if no limit is set, use the default so we don't end up with high number arrays
         $limit = $limit === 0 ? self::MAX_ARRAY_ENTRIES : $limit;
 
-        // check if repeater exist, throw exception is no value is added
-        if (!$period) {
-            throw new \yii\base\Exception("There's no correct repeater value set. Use P1D / P1W / P1M / P1Y.");
-        }
-
         // return the array with dates
         return $this->_fetchDates($data->loopStartDate, $end, $period, $timestring, $limit, $futureDates);
     }
@@ -80,7 +76,6 @@ class TimeloopService extends Component
     /**
      * @param TimeloopModel $data
      * @return mixed|null
-     * @throws \yii\base\Exception
      */
     public function getReminder(TimeloopModel $data): ?DateTime
     {
@@ -116,9 +111,9 @@ class TimeloopService extends Component
      * @param TimeStringModel $timestring
      * @param int $limit positive
      * @param Bool $futureDates
-     *
+     * @throws \Exception
      */
-    private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, Int $limit = 0, Bool $futureDates = true): array
+    private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, int $limit = 0, bool $futureDates = true): array
     {
         $interval = $this->_calculateInterval($period)[0]->interval;
         $frequency = $this->_calculateInterval($period)[0]->frequency;
@@ -142,7 +137,7 @@ class TimeloopService extends Component
             if ($date > $today && $futureDates) {
                 $loopDates = $this->_parseDate($frequency, $dateToParse, $counter, $period, $timestring);
 
-                if (gettype($loopDates) === 'array') {
+                if (is_array($loopDates)) {
                     foreach ($loopDates as &$loopDate) {
                         $arrDates[] = $loopDate;
                     }
@@ -219,7 +214,7 @@ class TimeloopService extends Component
      *
      */
 
-    private function _monthCorrection(DateTime $date, Int $months, Int $cycle): DateTime
+    private function _monthCorrection(DateTime $date, int $months, int $cycle): DateTime
     {
         $frequency = $months * $cycle;
 
@@ -253,7 +248,7 @@ class TimeloopService extends Component
      * @param TimeStringModel $timestring
      *
      */
-    private function _parseDate(String $frequency, DateTime $date, Int $counter, PeriodModel $period, TimeStringModel $timestring): DateTime|array
+    private function _parseDate(string $frequency, DateTime $date, int $counter, PeriodModel $period, TimeStringModel $timestring): DateTime|array|null
     {
         switch ($frequency) {
             case 'daily':
@@ -289,6 +284,6 @@ class TimeloopService extends Component
                 break;
         }
 
-        return gettype($loopDate) === 'array' ? $loopDate : DateTimeHelper::toDateTime($loopDate) ?? null;
+        return gettype($loopDate) === 'array' ? $loopDate : DateTimeHelper::toDateTime($loopDate);
     }
 }
