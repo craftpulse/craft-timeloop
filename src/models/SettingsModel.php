@@ -50,9 +50,7 @@ class SettingsModel extends Model
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
-        $rules = array_merge($rules,
-            [['showTime'], 'boolean']
-        );
+        $rules[] = [['showTime'], 'boolean'];
 
         return $rules;
     }

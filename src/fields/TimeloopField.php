@@ -14,7 +14,6 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\Field;
 use craft\base\PreviewableFieldInterface;
-/**use percipiolondon\timeloop\models\PeriodModel;*/
 
 use craft\base\SortableFieldInterface;
 use craft\gql\GqlEntityRegistry;
@@ -128,9 +127,9 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * @param mixed                 $value   The raw field value
      * @param ElementInterface|null $element The element the field is associated with, if there is one
      *
-     * @return mixed The prepared field value
+     * @return \TimeloopModel The prepared field value
      */
-    public function normalizeValue($value, ?\craft\base\ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if (is_string($value) && !empty($value)) {
             $value = Json::decode($value);
@@ -166,7 +165,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * @param ElementInterface|null $element The element the field is associated with, if there is one
      * @return mixed The serialized field value
      */
-    public function serializeValue($value, ?\craft\base\ElementInterface $element = null): mixed
+    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if (isset($value['loopStartDate']) && $value['loopStartDate'] instanceof \DateTime) {
             $hours = null;
