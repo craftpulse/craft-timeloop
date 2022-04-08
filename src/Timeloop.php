@@ -11,7 +11,6 @@
 namespace percipiolondon\timeloop;
 
 use Craft;
-use craft\base\Model;
 use craft\base\Plugin;
 use craft\events\RegisterComponentTypesEvent;
 use craft\services\Fields;

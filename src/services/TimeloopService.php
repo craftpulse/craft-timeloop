@@ -45,8 +45,9 @@ class TimeloopService extends Component
      * @param bool $futureDates
      * @param integer $limit
      *
+     * @throws \Exception
      */
-    public function getLoop(TimeloopModel $data, int $limit = 0, bool $futureDates = true): null|array
+    public function getLoop(TimeloopModel $data, int $limit = 0, bool $futureDates = true): ?array
     {
         //  get start date from data object
 
@@ -56,7 +57,7 @@ class TimeloopService extends Component
 
         // check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
         $next = new DateTime();
-        $end = $data->loopEndDate instanceof \DateTime ?
+        $end = $data->loopEndDate instanceof DateTime ?
             $data->loopEndDate :
             $next->modify('+20 years');
 

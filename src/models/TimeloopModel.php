@@ -83,7 +83,7 @@ class TimeloopModel extends Model
         }
     }
 
-    public function getPeriod(): mixed
+    public function getPeriod(): ?PeriodModel
     {
         if ($this->loopPeriod !== null) {
             return new PeriodModel($this->loopPeriod);
@@ -91,7 +91,7 @@ class TimeloopModel extends Model
         return null;
     }
 
-    public function getTimeString(): mixed
+    public function getTimeString(): ?TimeStringModel
     {
         if ($this->loopPeriod['timestring'] !== null) {
             return new TimeStringModel($this->loopPeriod['timestring']);
@@ -99,16 +99,16 @@ class TimeloopModel extends Model
         return null;
     }
 
-    public function getLoopStartTime(): string|bool
+    public function getLoopStartTime(): ?string
     {
         $value = DateTimeHelper::toDateTime($this->loopStartTime);
-        return  $value ? $value->format('H:i') : false;
+        return $value?->format('H:i');
     }
 
-    public function getLoopEndTime(): string|bool
+    public function getLoopEndTime(): ?string
     {
         $value = DateTimeHelper::toDateTime($this->loopEndTime);
-        return  $value ? $value->format('H:i') : false;
+        return $value?->format('H:i');
     }
 
     public function getReminder(): ?DateTime
@@ -116,26 +116,26 @@ class TimeloopModel extends Model
         return Timeloop::$plugin->timeloop->getReminder($this);
     }
 
-    public function getDates(int $limit = 0, bool $futureDates = true): array
+    public function getDates(int $limit = 0, bool $futureDates = true): ?array
     {
         return Timeloop::$plugin->timeloop->getLoop($this, $limit, $futureDates);
     }
 
-    public function getUpcoming(): bool|string
+    public function getUpcoming(): ?string
     {
         if (count($this->upcomingDates) > 1) {
             return $this->upcomingDates[0];
         }
 
-        return false;
+        return null;
     }
 
-    public function getNextUpcoming(): bool|string
+    public function getNextUpcoming(): ?string
     {
         if (count($this->upcomingDates) > 1) {
             return $this->upcomingDates[1];
         }
 
-        return false;
+        return null;
     }
 }
