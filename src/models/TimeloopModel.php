@@ -21,39 +21,39 @@ class TimeloopModel extends Model
     /**
      * @var DateTime
      */
-    public $loopStartDate;
+    public DateTime $loopStartDate;
 
     /**
      * @var DateTime
      */
-    public $loopEndDate;
+    public DateTime $loopEndDate;
 
     /**
      * @var DateTime
      */
-    public $loopStartTime;
+    public DateTime $loopStartTime;
 
     /**
      * @var DateTime
      */
-    public $loopEndTime;
+    public DateTime $loopEndTime;
 
     /**
      * @var string
      */
-    public $loopReminderPeriod;
+    public string $loopReminderPeriod;
 
     /**
      * @var number
      */
-    public $loopReminderValue;
+    public number $loopReminderValue;
 
     /**
      * @var array
      */
-    public $loopPeriod;
+    public array $loopPeriod;
 
-    private $upcomingDates;
+    private array $upcomingDates;
 
 
     // Public Methods

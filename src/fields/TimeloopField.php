@@ -155,9 +155,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             $value['loopPeriod'] = Json::decodeIfJson($value['loopPeriod']);
         }
 
-        $model = new TimeloopModel($value);
-
-        return $model;
+        return new TimeloopModel($value);
     }
 
     /**

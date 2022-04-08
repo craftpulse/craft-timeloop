@@ -18,22 +18,22 @@ class PeriodModel extends Model
     /**
      * @var string
      */
-    public $frequency;
+    public string $frequency;
 
     /**
      * @var integer
      */
-    public $cycle;
+    public int $cycle;
 
     /**
      * @var array
      */
-    public $days;
+    public array $days;
 
     /**
      * @var array
      */
-    public $timestring;
+    public array $timestring;
 
     // Public Methods
     // =========================================================================

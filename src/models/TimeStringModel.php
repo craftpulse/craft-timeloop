@@ -18,12 +18,12 @@ class TimeStringModel extends Model
     /**
      * @var string
      */
-    public $ordinal;
+    public string $ordinal;
 
     /**
      * @var string
      */
-    public $day;
+    public string $day;
 
     // Public Methods
     // =========================================================================
