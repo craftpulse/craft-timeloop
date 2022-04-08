@@ -111,7 +111,7 @@ class TimeloopModel extends Model
         return  $value ? $value->format('H:i') : false;
     }
 
-    public function getReminder(): null|DateTime
+    public function getReminder(): ?DateTime
     {
         return Timeloop::$plugin->timeloop->getReminder($this);
     }
@@ -125,17 +125,17 @@ class TimeloopModel extends Model
     {
         if (count($this->upcomingDates) > 1) {
             return $this->upcomingDates[0];
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     public function getNextUpcoming(): bool|string
     {
         if (count($this->upcomingDates) > 1) {
             return $this->upcomingDates[1];
-        } else {
-            return false;
         }
+
+        return false;
     }
 }
