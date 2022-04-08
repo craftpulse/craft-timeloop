@@ -27,7 +27,7 @@ use percipiolondon\timeloop\Timeloop;
  *
  * @author    percipioglobal
  * @package   Timeloop
- * @since     0.1.0
+ * @since     1.0.0
  */
 class SettingsModel extends Model
 {
@@ -35,8 +35,6 @@ class SettingsModel extends Model
     // =========================================================================
 
     /**
-     * Some field model attribute
-     *
      * @var bool
      */
     public bool $showTime = true;

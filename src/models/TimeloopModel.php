@@ -53,6 +53,9 @@ class TimeloopModel extends Model
      */
     public array $loopPeriod;
 
+    /**
+     * @var array
+     */
     private array $upcomingDates;
 
 
@@ -80,45 +83,45 @@ class TimeloopModel extends Model
         }
     }
 
-    public function getPeriod()
+    public function getPeriod(): mixed
     {
         if ($this->loopPeriod !== null) {
             return new PeriodModel($this->loopPeriod);
         }
+        return null;
     }
 
-    public function getTimeString()
+    public function getTimeString(): mixed
     {
         if ($this->loopPeriod['timestring'] !== null) {
-            $timestring = new TimeStringModel($this->loopPeriod['timestring']);
-
-            return $timestring;
+            return new TimeStringModel($this->loopPeriod['timestring']);
         }
+        return null;
     }
 
-    public function getLoopStartTime()
+    public function getLoopStartTime(): string|bool
     {
         $value = DateTimeHelper::toDateTime($this->loopStartTime);
         return  $value ? $value->format('H:i') : false;
     }
 
-    public function getLoopEndTime()
+    public function getLoopEndTime(): string|bool
     {
         $value = DateTimeHelper::toDateTime($this->loopEndTime);
         return  $value ? $value->format('H:i') : false;
     }
 
-    public function getReminder()
+    public function getReminder(): null|DateTime
     {
         return Timeloop::$plugin->timeloop->getReminder($this);
     }
 
-    public function getDates(int $limit = 0, bool $futureDates = true)
+    public function getDates(int $limit = 0, bool $futureDates = true): array
     {
         return Timeloop::$plugin->timeloop->getLoop($this, $limit, $futureDates);
     }
 
-    public function getUpcoming()
+    public function getUpcoming(): bool|string
     {
         if (count($this->upcomingDates) > 1) {
             return $this->upcomingDates[0];
@@ -127,7 +130,7 @@ class TimeloopModel extends Model
         }
     }
 
-    public function getNextUpcoming()
+    public function getNextUpcoming(): bool|string
     {
         if (count($this->upcomingDates) > 1) {
             return $this->upcomingDates[1];

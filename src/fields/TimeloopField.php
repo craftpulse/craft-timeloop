@@ -132,7 +132,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if (is_string($value) && !empty($value)) {
-            $value = Json::decode($value);
+            $value = Json::decodeIfJson($value);
         }
 
         if (isset($value['loopStartDate'])) {
