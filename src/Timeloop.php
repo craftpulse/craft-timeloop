@@ -37,6 +37,9 @@ use yii\base\Event;
  * @package   Timeloop
  * @since     1.0.0
  *
+ * @property VitePluginService  $vite
+ * @property TimeloopService $timeloop
+ *
  */
 class Timeloop extends Plugin
 {

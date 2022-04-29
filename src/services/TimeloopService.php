@@ -30,12 +30,12 @@ class TimeloopService extends Component
     /**
      * Returns the $limit upcoming dates from the timeloop start date
      *
-     * @param array $data
+     * @param TimeloopModel $data
      *
      */
-    public function showPeriod(array $data): ?Model
+    public function showPeriod(TimeloopModel $data): ?Model
     {
-        return new PeriodModel($data->period);
+        return $data->getPeriod();
     }
 
     /**
@@ -51,20 +51,18 @@ class TimeloopService extends Component
     {
         //  get start date from data object
 
-        if (!$data->loopStartDate) {
+        if (!isset($data->loopStartDate)) {
             return null;
         }
 
         // check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
         $next = new DateTime();
-        $end = $data->loopEndDate instanceof DateTime ?
-            $data->loopEndDate :
-            $next->modify('+20 years');
+        $end = isset($data->loopEndDate) ? $data->loopEndDate : $next->modify('+20 years');
 
         // get ISO 8601 from the repeater in data object
         // Parse our period object to fetch dates
-        $period = new PeriodModel($data->period);
-        $timestring = new TimeStringModel($period->timestring);
+        $period = $data->getPeriod();
+        $timestring = !is_null($period) ? new TimeStringModel($period->timestring) : null;
 
         // if no limit is set, use the default so we don't end up with high number arrays
         $limit = $limit === 0 ? self::MAX_ARRAY_ENTRIES : $limit;
@@ -75,7 +73,7 @@ class TimeloopService extends Component
 
     /**
      * @param TimeloopModel $data
-     * @return mixed|null
+     * @return DateTime|null
      */
     public function getReminder(TimeloopModel $data): ?DateTime
     {
@@ -84,7 +82,7 @@ class TimeloopService extends Component
         $loopReminderPeriod = $data->loopReminderPeriod ?? 'days';
         $loopReminder = $loopReminderValue . ' ' . $loopReminderPeriod;
 
-        if ($date && count($date) > 0 && $data->loopReminderPeriod) {
+        if ($date && $date !== [] && $data->loopReminderPeriod) {
             $remindDate = $date[0];
             $remindDate->modify('-' . $loopReminder);
             return $remindDate;
@@ -189,10 +187,10 @@ class TimeloopService extends Component
                 'interval' => 'P' . $period->cycle . 'M',
                 'frequency' => 'monthly',
             ],
-            'P1Y' => (object)[
+            default => (object)[
                 'interval' => 'P' . $period->cycle . 'Y',
                 'frequency' => 'yearly',
-            ],
+            ]
         };
 
         return $frequency;
@@ -248,7 +246,7 @@ class TimeloopService extends Component
      * @param TimeStringModel $timestring
      *
      */
-    private function _parseDate(string $frequency, DateTime $date, int $counter, PeriodModel $period, TimeStringModel $timestring): DateTime|array|null
+    private function _parseDate(string $frequency, DateTime $date, int $counter, PeriodModel $period, TimeStringModel $timestring): DateTime|array
     {
         switch ($frequency) {
             case 'daily':
@@ -258,8 +256,8 @@ class TimeloopService extends Component
                 break;
             case 'weekly':
                 $weekDates = [];
-                $hours = $date->format('H');
-                $minutes = $date->format('i');
+                $hours = (int)$date->format('H');
+                $minutes = (int)$date->format('i');
 
                 if (count($period->days) > 0) {
                     foreach ($period->days as $day) {
