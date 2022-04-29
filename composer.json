@@ -27,7 +27,8 @@
         "nystudio107/craft-plugin-vite": "^4.0.0-beta.1"
     },
     "require-dev": {
-        "codeception/codeception": "^3.0",
+        "craftcms/phpstan": "dev-main",
+        "codeception/codeception": "^4.1.29",
         "vlucas/phpdotenv": "^3.0"
     },
     "repositories": [
@@ -40,6 +41,9 @@
         "psr-4": {
             "percipiolondon\\timeloop\\": "src/"
         }
+    },
+    "scripts": {
+        "phpstan": "phpstan --memory-limit=1G"
     },
     "extra": {
         "name": "Timeloop",
