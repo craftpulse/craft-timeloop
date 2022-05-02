@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 4.0.0-beta.2 - 2022-05-02
+
+### Updated
+- Updated the normalizeValue of the field to provide the correct data for Craft 4
+
+## 4.0.0-beta.1 - 2022-04-05
+
+### Changed
+- Updated codebase for PHP 8 and make Craft 4 ready
+- Added typings to the functions and properties
+
+## 1.0.1 - 2021-11-21
+
+### Fixed
+- Fixed documentation url type. Thanks @brandonkelly
+
+## 1.0.0 - 2021-11-08
+
+### Added
+- Created a seperate GQL interface
+- Added the posibility of creating more granular reminders
+- Added a more detailed future date check
+
+### Changed
+- Cleaned up code comments
+- Code cleanups
+
+### Fixed
+- Fixed a bug when the next recurring date is in the current week, month or year this would be skipped.
+- Fixed an issue where the upcoming date and next upcoming date would show the same value
 
 ## 1.0.0-rc.6 - 2021-07-13
 
