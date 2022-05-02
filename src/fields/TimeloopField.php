@@ -21,7 +21,6 @@ use craft\gql\TypeLoader;
 use craft\gql\types\DateTime;
 use craft\helpers\DateTimeHelper;
 
-use craft\helpers\Db;
 use craft\helpers\Gql;
 use craft\helpers\Json;
 
@@ -111,10 +110,23 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * @param mixed $value   The raw field value
      * @param ElementInterface|null $element The element the field is associated with, if there is one
      *
-     * @return array|null The prepared field value
+     * @return mixed The prepared field value
      */
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): ?array
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
+        if ($value instanceof TimeloopModel) {
+            return $value;
+        }
+
+        // Check to see if this is already an array, which happens in some cases (Vizy)
+        if (is_array($value)) {
+            $value = Json::encode($value);
+        }
+
+        if (is_null($value)) {
+            return [];
+        }
+
         if (is_string($value) && !empty($value)) {
             $value = Json::decodeIfJson($value);
         }
@@ -139,11 +151,45 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             $value['loopPeriod'] = Json::decodeIfJson($value['loopPeriod']);
         }
 
-        $timeloopModel = new TimeloopModel($value);
+//        Craft::dd($value);
 
-        Craft::dd($timeloopModel->toArray());
+        return new TimeloopModel($value);
 
-        return $value ? $timeloopModel->toArray() : null;
+//        if (is_string($value) && !empty($value)) {
+//            $value = Json::decodeIfJson($value);
+//        }
+//
+//        if (isset($value['loopStartDate'])) {
+//            $value['loopStartDate'] = DateTimeHelper::toDateTime($value['loopStartDate']);
+//        }
+//
+//        if (isset($value['loopEndDate'])) {
+//            $value['loopEndDate'] = DateTimeHelper::toDateTime($value['loopEndDate']);
+//        }
+//
+//        if (isset($value['loopStartTime'])) {
+//            $value['loopStartTime'] = DateTimeHelper::toDateTime($value['loopStartTime']);
+//        }
+//
+//        if (isset($value['loopEndTime'])) {
+//            $value['loopEndTime'] = DateTimeHelper::toDateTime($value['loopEndTime']);
+//        }
+//
+//        if (isset($value['loopPeriod'])) {
+//            $value['loopPeriod'] = Json::decodeIfJson($value['loopPeriod']);
+//        }
+//
+//        if(!is_null($value)) {
+//            $timeloopModel = new TimeloopModel($value);
+//            $timeloopArray = $timeloopModel->toArray();
+//        }
+//
+////        $timeloopArray['dates'] = $timeloopModel->getDates();
+////        $timeloopArray['upcoming'] = $timeloopModel->getUpcoming();
+////        $timeloopArray['nextUpcoming'] = $timeloopModel->getNextUpcoming();
+////        $timeloopArray['period'] = $timeloopModel->getPeriod();
+//
+//        return !is_null($value) ? $timeloopArray : null;
     }
 
     /**
@@ -153,47 +199,42 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      */
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
-        if (isset($value['loopStartDate']) && $value['loopStartDate'] instanceof DateTime) {
+        if (isset($value['loopStartDate']) && DateTimeHelper::toDateTime($value['loopStartDate']) instanceof \DateTime) {
             $hours = null;
             $minutes = null;
 
-            if (isset($value['loopStartTime']) && $value['loopStartTime'] instanceof DateTime) {
+            if (isset($value['loopStartTime']) && $value['loopStartTime'] instanceof \DateTime) {
                 $time = DateTimeHelper::toDateTime($value['loopStartTime'], true);
                 $hours = $time->format('H');
                 $minutes = $time->format('i');
             }
 
             $loopStartDate = DateTimeHelper::toDateTime($value['loopStartDate'], true);
-            $value['loopStartDate'] = Db::prepareDateForDb($loopStartDate->setTime($hours ?? 0, $minutes ?? 0));
+            $value['loopStartDate'] = $loopStartDate->setTime($hours ?? 0, $minutes ?? 0);
         }
 
-        if (isset($value['loopEndDate']) && $value['loopEndDate'] instanceof DateTime) {
+        if (isset($value['loopEndDate']) && DateTimeHelper::toDateTime($value['loopEndDate']) instanceof \DateTime) {
             $hours = null;
             $minutes = null;
 
-            if (isset($value['loopEndTime']) && $value['loopEndTime'] instanceof DateTime) {
+            if (isset($value['loopEndTime']) && $value['loopEndTime'] instanceof \DateTime) {
                 $time = DateTimeHelper::toDateTime($value['loopStartTime'], true);
                 $hours = $time->format('H');
                 $minutes = $time->format('i');
             }
 
             $loopEndDate = DateTimeHelper::toDateTime($value['loopEndDate'], true);
-            $value['loopEndDate'] = Db::prepareDateForDb($loopEndDate->setTime($hours ?? 23, $minutes ?? 59));
-        }
-
-        if (isset($value['loopStartTime']) && $value['loopStartTime'] instanceof DateTime) {
-            $value['loopStartTime'] = Db::prepareDateForDb($value['loopStartTime']);
-        }
-
-        if (isset($value['loopEndTime']) && $value['loopEndTime'] instanceof DateTime) {
-            $value['loopEndTime'] = Db::prepareDateForDb($value['loopEndTime']);
+            $value['loopEndDate'] = $loopEndDate->setTime($hours ?? 23, $minutes ?? 59);
+        } else {
+            //reset value to null (not a boolean)
+            $value['loopEndDate'] = null;
         }
 
         if (isset($value['loopReminderPeriod']) && '' === $value['loopReminderPeriod']) {
             $value['loopReminderValue'] = 0;
         }
 
-        if (is_string($value['loopPeriod']) && $value['loopPeriod'] !== '') {
+        if (isset($value['loopPeriod']) && is_string($value['loopPeriod']) && $value['loopPeriod'] !== '') {
             $value['loopPeriod'] = Json::encode($value['loopPeriod']);
         }
 
@@ -260,7 +301,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         $jsonVars = Json::encode($jsonVars);
         Craft::$app->getView()->registerJs("$('#{$namespacedId}-field').TimeloopTimeloop(" . $jsonVars . ");");
 
-        Craft::dd($value);
+//        Craft::dd($value);
 
         // Render the input template
         return Craft::$app->getView()->renderTemplate(
