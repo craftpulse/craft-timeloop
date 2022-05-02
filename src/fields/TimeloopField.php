@@ -131,65 +131,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             $value = Json::decodeIfJson($value);
         }
 
-        if (isset($value['loopStartDate'])) {
-            $value['loopStartDate'] = DateTimeHelper::toDateTime($value['loopStartDate']);
-        }
-
-        if (isset($value['loopEndDate'])) {
-            $value['loopEndDate'] = DateTimeHelper::toDateTime($value['loopEndDate']);
-        }
-
-        if (isset($value['loopStartTime'])) {
-            $value['loopStartTime'] = DateTimeHelper::toDateTime($value['loopStartTime']);
-        }
-
-        if (isset($value['loopEndTime'])) {
-            $value['loopEndTime'] = DateTimeHelper::toDateTime($value['loopEndTime']);
-        }
-
-        if (isset($value['loopPeriod'])) {
-            $value['loopPeriod'] = Json::decodeIfJson($value['loopPeriod']);
-        }
-
-//        Craft::dd($value);
-
         return new TimeloopModel($value);
-
-//        if (is_string($value) && !empty($value)) {
-//            $value = Json::decodeIfJson($value);
-//        }
-//
-//        if (isset($value['loopStartDate'])) {
-//            $value['loopStartDate'] = DateTimeHelper::toDateTime($value['loopStartDate']);
-//        }
-//
-//        if (isset($value['loopEndDate'])) {
-//            $value['loopEndDate'] = DateTimeHelper::toDateTime($value['loopEndDate']);
-//        }
-//
-//        if (isset($value['loopStartTime'])) {
-//            $value['loopStartTime'] = DateTimeHelper::toDateTime($value['loopStartTime']);
-//        }
-//
-//        if (isset($value['loopEndTime'])) {
-//            $value['loopEndTime'] = DateTimeHelper::toDateTime($value['loopEndTime']);
-//        }
-//
-//        if (isset($value['loopPeriod'])) {
-//            $value['loopPeriod'] = Json::decodeIfJson($value['loopPeriod']);
-//        }
-//
-//        if(!is_null($value)) {
-//            $timeloopModel = new TimeloopModel($value);
-//            $timeloopArray = $timeloopModel->toArray();
-//        }
-//
-////        $timeloopArray['dates'] = $timeloopModel->getDates();
-////        $timeloopArray['upcoming'] = $timeloopModel->getUpcoming();
-////        $timeloopArray['nextUpcoming'] = $timeloopModel->getNextUpcoming();
-////        $timeloopArray['period'] = $timeloopModel->getPeriod();
-//
-//        return !is_null($value) ? $timeloopArray : null;
     }
 
     /**
