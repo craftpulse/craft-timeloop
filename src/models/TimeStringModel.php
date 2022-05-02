@@ -18,21 +18,24 @@ class TimeStringModel extends Model
     /**
      * @var string
      */
-    public $ordinal;
+    public string $ordinal;
 
     /**
      * @var string
      */
-    public $day;
+    public string $day;
 
     // Public Methods
     // =========================================================================
 
-    public function rules()
+    public function defineRules(): array
     {
-        return [
-            ['ordinal', 'string'],
-            ['day', 'array'],
-        ];
+        $rules = parent::defineRules();
+        $rules[] = [['ordinal'], 'string'];
+        $rules[] = [['day', 'loopPeriod'], 'array'];
+        $rules[] = [['loopStartTime', 'loopEndTime'], 'datetime'];
+        $rules[] = [['loopReminderValue'], 'integer'];
+
+        return $rules;
     }
 }

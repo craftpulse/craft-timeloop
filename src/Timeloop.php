@@ -18,7 +18,7 @@ use craft\web\twig\variables\CraftVariable;
 use nystudio107\pluginvite\services\VitePluginService;
 use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
 use percipiolondon\timeloop\fields\TimeloopField;
-use percipiolondon\timeloop\models\SettingsModel;
+use percipiolondon\timeloop\models\SettingsModel as Settings;
 use percipiolondon\timeloop\services\TimeloopService;
 use percipiolondon\timeloop\variables\TimeloopVariable;
 use yii\base\Event;
@@ -37,8 +37,9 @@ use yii\base\Event;
  * @package   Timeloop
  * @since     1.0.0
  *
- * @property  Settings $settings
- * @method    Settings getSettings()
+ * @property VitePluginService  $vite
+ * @property TimeloopService $timeloop
+ *
  */
 class Timeloop extends Plugin
 {
@@ -46,12 +47,19 @@ class Timeloop extends Plugin
     // =========================================================================
 
     /**
-     * Static property that is an instance of this plugin class so that it can be accessed via
-     * Timeloop::$plugin
-     *
-     * @var Timeloop
+     * @var Timeloop|null
      */
-    public static $plugin;
+    public static ?Timeloop $plugin;
+
+    /**
+     * @var null|TimeloopVariable
+     */
+    public static ?TimeloopVariable $timeloopVariable = null;
+
+    /**
+     * @var null|Settings
+     */
+    public static ?Settings $settings = null;
 
     // Public Properties
     // =========================================================================
@@ -61,21 +69,21 @@ class Timeloop extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '1.0.0';
+    public string $schemaVersion = '1.0.0';
 
     /**
      * Set to `true` if the plugin should have a settings view in the control panel.
      *
      * @var bool
      */
-    public $hasCpSettings = false;
+    public bool $hasCpSettings = false;
 
     /**
      * Set to `true` if the plugin should have its own section (main nav item) in the control panel.
      *
      * @var bool
      */
-    public $hasCpSection = false;
+    public bool $hasCpSection = false;
 
     // Static Methods
     // =========================================================================
@@ -86,7 +94,7 @@ class Timeloop extends Plugin
     public function __construct($id, $parent = null, array $config = [])
     {
         $config['components'] = [
-            'timeloop' => Timeloop::class,
+            'timeloop' => __CLASS__,
             'vite' => [
                 'class' => VitePluginService::class,
                 'assetClass' => TimeloopAsset::class,
@@ -116,7 +124,7 @@ class Timeloop extends Plugin
      * you do not need to load it in your init() method.
      *
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
         self::$plugin = $this;
@@ -125,20 +133,24 @@ class Timeloop extends Plugin
         Event::on(
             Fields::class,
             Fields::EVENT_REGISTER_FIELD_TYPES,
-            function(RegisterComponentTypesEvent $event) {
+            function(RegisterComponentTypesEvent $event): void {
                 $event->types[] = TimeloopField::class;
             }
         );
 
         // Register variable
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
-            /** @var CraftVariable $variable */
-            $variable = $event->sender;
-            $variable->set('timeloop', [
-                'class' => TimeloopVariable::class,
-                'viteService' => $this->vite,
-            ]);
-        });
+        Event::on(
+            CraftVariable::class,
+            CraftVariable::EVENT_INIT,
+            function(Event $event): void {
+                /** @var CraftVariable $variable */
+                $variable = $event->sender;
+                $variable->set('timeloop', [
+                    'class' => TimeloopVariable::class,
+                    'viteService' => $this->vite,
+                ]);
+            }
+        );
 
         // Register services as components
         $this->setComponents([
@@ -159,12 +171,10 @@ class Timeloop extends Plugin
     // =========================================================================
 
     /**
-     * Creates and returns the model used to store the plugin’s settings.
-     *
-     * @return \craft\base\Model|null
+     * @inheritdoc
      */
-    protected function createSettingsModel()
+    protected function createSettingsModel(): Settings
     {
-        return new SettingsModel();
+        return new Settings();
     }
 }

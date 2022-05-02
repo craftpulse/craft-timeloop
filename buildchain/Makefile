@@ -4,7 +4,7 @@ DOCKERRUN=docker container run \
 	    --name ${CONTAINER} \
 	    --rm \
 	    -t \
-        --network craft-plugin-playground_default \
+        --network rsn-reapp_default \
         -p 3001:3001 \
         -v `pwd`/../:/app \
         ${CONTAINER}:${TAG}

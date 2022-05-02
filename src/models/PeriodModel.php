@@ -18,33 +18,36 @@ class PeriodModel extends Model
     /**
      * @var string
      */
-    public $frequency;
+    public string $frequency;
 
     /**
      * @var integer
      */
-    public $cycle;
+    public int $cycle;
 
     /**
      * @var array
      */
-    public $days;
+    public array $days;
 
     /**
      * @var array
      */
-    public $timestring;
+    public array $timestring;
 
     // Public Methods
     // =========================================================================
 
-    public function rules()
+    /**
+     * @inheritdoc
+     */
+    protected function defineRules(): array
     {
-        return [
-            ['frequency', 'string'],
-            ['days', 'array'],
-            ['cycle', 'number'],
-            ['timestring', 'array'],
-        ];
+        $rules = parent::defineRules();
+        $rules[] = [['frequency'], 'string'];
+        $rules[] = [['days', 'timestring'], 'array'];
+        $rules[] = [['cycle'], 'number'];
+
+        return $rules;
     }
 }
