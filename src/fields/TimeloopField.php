@@ -54,6 +54,9 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
 {
     // Public Properties
     // =========================================================================
+    /**
+     * @var int
+     */
     public int $showTime = 0;
 
     // Static Methods
@@ -438,6 +441,9 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         return $timeloopType;
     }
 
+    /**
+     * @return Type|array
+     */
     public function getContentGqlMutationArgumentType(): Type|array
     {
         return TimeloopInputType::getType($this);
