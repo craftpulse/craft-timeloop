@@ -1,10 +1,10 @@
-TAG?=14-alpine
+TAG?=16-alpine
 CONTAINER?=$(shell basename $(dir $(CURDIR)))-buildchain
 DOCKERRUN=docker container run \
 	    --name ${CONTAINER} \
 	    --rm \
 	    -t \
-        --network rsn-reapp_default \
+        --network craft-plugin-playground_default \
         -p 3001:3001 \
         -v `pwd`/../:/app \
         ${CONTAINER}:${TAG}
