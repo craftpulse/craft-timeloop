@@ -246,8 +246,6 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         $jsonVars = Json::encode($jsonVars);
         Craft::$app->getView()->registerJs("$('#{$namespacedId}-field').TimeloopTimeloop(" . $jsonVars . ");");
 
-//        Craft::dd($value);
-
         // Render the input template
         return Craft::$app->getView()->renderTemplate(
             'timeloop/fields/timeloop-input',
@@ -276,7 +274,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     }
 
     /**
-     * @return array
+     * @return Type|array
      */
     public function getContentGqlType(): Type|array
     {
