@@ -26,7 +26,6 @@ class TimeloopInputType extends InputObjectType
     /**
      * Create the type for a timeloop field.
      */
-
     public static function getType(TimeloopField $context)
     {
         /** @var TimeloopField $context */

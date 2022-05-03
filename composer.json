@@ -2,7 +2,7 @@
     "name": "percipiolondon/craft-timeloop",
     "description": "This Craft plugin will generate an array of dates between a start and end date based on frequency.",
     "type": "craft-plugin",
-    "version": "4.0.0-beta.1",
+    "version": "4.0.0-RC1",
     "keywords": [
         "craft",
         "cms",
@@ -11,8 +11,8 @@
         "timeloop"
     ],
     "support": {
-        "docs": "https://github.com/percipiolondon/craft-timeloop/blob/v1/README.md",
-        "issues": "https://github.com/percipiolondon/craft-timeloop/issues"
+        "docs": "https://github.com/percipioglobal/craft-timeloop/blob/v4/README.md",
+        "issues": "https://github.com/percipioglobal/craft-timeloop/issues"
     },
     "license": "proprietary",
     "authors": [
@@ -27,7 +27,8 @@
         "nystudio107/craft-plugin-vite": "^4.0.0-beta.1"
     },
     "require-dev": {
-        "codeception/codeception": "^3.0",
+        "craftcms/phpstan": "dev-main",
+        "codeception/codeception": "^4.1.29",
         "vlucas/phpdotenv": "^3.0"
     },
     "repositories": [
@@ -41,12 +42,15 @@
             "percipiolondon\\timeloop\\": "src/"
         }
     },
+    "scripts": {
+        "phpstan": "phpstan --memory-limit=1G"
+    },
     "extra": {
         "name": "Timeloop",
         "handle": "timeloop",
         "developer": "percipiolondon",
         "developerUrl": "https://percipio.london",
-        "documentationUrl": "https://github.com/percipiolondon/craft-timeloop/blob/v1/README.md",
+        "documentationUrl": "https://github.com/percipioglobal/craft-timeloop/blob/v4/README.md",
         "changelogUrl": "https://raw.githubusercontent.com/percipiolondon/craft-timeloop/v1/CHANGELOG.md",
         "class": "percipiolondon\\timeloop\\Timeloop"
     }

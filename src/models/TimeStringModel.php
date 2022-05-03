@@ -28,6 +28,9 @@ class TimeStringModel extends Model
     // Public Methods
     // =========================================================================
 
+    /**
+     * @return array
+     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
