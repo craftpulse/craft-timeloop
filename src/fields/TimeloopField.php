@@ -234,17 +234,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
 
         // Get our id and namespace
         $id = Craft::$app->getView()->formatInputId($this->handle);
-        $namespacedId = Craft::$app->getView()->namespaceInputId($id);
-
-        // Variables to pass down to our field JavaScript to let it namespace properly
-        $jsonVars = [
-            'id' => $id,
-            'name' => $this->handle,
-            'namespace' => $namespacedId,
-            'prefix' => Craft::$app->getView()->namespaceInputId(''),
-        ];
-        $jsonVars = Json::encode($jsonVars);
-        Craft::$app->getView()->registerJs("$('#{$namespacedId}-field').TimeloopTimeloop(" . $jsonVars . ");");
+        $nameSpacedId = Craft::$app->getView()->namespaceInputId($id);
 
         // Render the input template
         return Craft::$app->getView()->renderTemplate(
@@ -255,7 +245,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                 'field' => $this,
                 'required' => $this->required,
                 'id' => $id,
-                'namespacedId' => $namespacedId,
+                'nameSpacedId' => $nameSpacedId,
                 'settings' => $this->getSettings(),
             ]
         );
