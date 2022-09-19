@@ -5,6 +5,7 @@ namespace percipiolondon\timeloop\models;
 use craft\base\Model;
 use craft\helpers\DateTimeHelper;
 use DateTime;
+use nystudio107\seomatic\models\jsonld\Date;
 use percipiolondon\timeloop\Timeloop;
 
 /**
@@ -24,7 +25,7 @@ class TimeloopModel extends Model
     public DateTime|null $loopStartDate = null;
 
     /**
-     * @var DateTime
+     * @var DateTime|null
      */
     public DateTime|null $loopEndDate = null;
 
@@ -129,6 +130,16 @@ class TimeloopModel extends Model
     }
 
     /**
+     * @return DateTime|null
+     * @throws \Exception
+     */
+    public function getLoopStart(): ?string
+    {
+        $value = DateTimeHelper::toDateTime($this->loopStartTime);
+        return $value === false ? null : $value;
+    }
+
+    /**
      * @return string|null
      * @throws \Exception
      */
@@ -136,6 +147,16 @@ class TimeloopModel extends Model
     {
         $value = DateTimeHelper::toDateTime($this->loopEndTime);
         return $value ? $value->format('H:i') : null;
+    }
+
+    /**
+     * @return DateTime|null
+     * @throws \Exception
+     */
+    public function getLoopEnd(): ?string
+    {
+        $value = DateTimeHelper::toDateTime($this->loopEndTime);
+        return $value === false ? null : $value;
     }
 
     /**

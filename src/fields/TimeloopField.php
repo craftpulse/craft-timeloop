@@ -247,6 +247,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                 'id' => $id,
                 'nameSpacedId' => $nameSpacedId,
                 'settings' => $this->getSettings(),
+                'prefix' => Craft::$app->getView()->namespaceInputId(''),
             ]
         );
     }
