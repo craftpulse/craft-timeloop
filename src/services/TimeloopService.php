@@ -6,6 +6,7 @@ use craft\base\Component;
 use craft\base\Model;
 use craft\helpers\DateTimeHelper;
 
+use craft\helpers\Db;
 use DateInterval;
 use DatePeriod;
 use DateTime;
@@ -122,7 +123,6 @@ class TimeloopService extends Component
         $arrDates = [];
 
         $datePeriod = new DatePeriod($start, $dateInterval, $end);
-
         $counter = 0;
 
         foreach ($datePeriod as $date) {
@@ -133,7 +133,7 @@ class TimeloopService extends Component
             $dateToParse = $frequency === 'monthly' ? $start : $date;
 
             if ($date > $today && $futureDates) {
-                $loopDates = $this->_parseDate($frequency, $dateToParse, $counter, $period, $timestring);
+                $loopDates = $this->_parseDate($frequency, $dateToParse, $end, $counter, $period, $timestring);
 
                 if (is_array($loopDates)) {
                     foreach ($loopDates as &$loopDate) {
@@ -143,7 +143,7 @@ class TimeloopService extends Component
                     $arrDates[] = $loopDates;
                 }
             } elseif (!$futureDates) {
-                $loopDates = $this->_parseDate($frequency, $dateToParse, $counter, $period, $timestring);
+                $loopDates = $this->_parseDate($frequency, $dateToParse, $end, $counter, $period, $timestring);
 
                 if (gettype($loopDates) === 'array') {
                     foreach ($loopDates as &$loopDate) {
@@ -246,7 +246,7 @@ class TimeloopService extends Component
      * @param TimeStringModel $timestring
      *
      */
-    private function _parseDate(string $frequency, DateTime $date, int $counter, PeriodModel $period, TimeStringModel $timestring): DateTime|array
+    private function _parseDate(string $frequency, DateTime $date, DateTime $end, int $counter, PeriodModel $period, TimeStringModel $timestring): DateTime|array
     {
         switch ($frequency) {
             case 'daily':
@@ -262,7 +262,10 @@ class TimeloopService extends Component
                 if (count($period->days) > 0) {
                     foreach ($period->days as $day) {
                         $weekDay = clone($date)->modify(strtolower($day) . ' this week')->setTime($hours, $minutes);
-                        $weekDates[] = DateTimeHelper::toDateTime($weekDay);
+
+                        if ($weekDay <= $end) {
+                            $weekDates[] = DateTimeHelper::toDateTime($weekDay);
+                        }
                     }
 
                     $loopDate = $weekDates;
@@ -272,13 +275,16 @@ class TimeloopService extends Component
                 break;
             case 'monthly':
                 $monthlyDate = $this->_monthCorrection($date, $counter, $period->cycle);
+                $hours = (int)$date->format('H');
+                $minutes = (int)$date->format('i');
 
                 if ($timestring->ordinal !== 'none' && $timestring->day !== 'none') {
                     // set to timestring variables else == $monthlyDate.
-                    $loopDate = $monthlyDate->modify($timestring->ordinal . ' ' . $timestring->day . ' of this month');
+                    $loopDate = $monthlyDate->modify($timestring->ordinal . ' ' . $timestring->day . ' of this month')->setTime($hours, $minutes);
                 } else {
                     $loopDate = $monthlyDate;
                 }
+
                 break;
         }
 
