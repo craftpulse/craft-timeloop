@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 4.0.2 - 2022-09-19
+
+### Fixed
+- Fixed issue [Dates omitted/appearing outside of date range #51](https://github.com/percipioglobal/craft-timeloop/issues/51)
+
 ## 4.0.1 - 2022-05-06
 
 ### Fixed

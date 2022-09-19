@@ -6,7 +6,6 @@ use craft\base\Component;
 use craft\base\Model;
 use craft\helpers\DateTimeHelper;
 
-use craft\helpers\Db;
 use DateInterval;
 use DatePeriod;
 use DateTime;
