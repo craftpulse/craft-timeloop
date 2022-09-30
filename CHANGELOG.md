@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## 4.0.3 - 2022-09-30
 
 ### Added
-- Added a feature to fetch entries between two dates from a specific section and get their recurring dates. Feature request issue #52
+- Added a twig extension to fetch entries from a section with their recurring dates between a start and end date. Feature request issue #52
 
 ## 4.0.2 - 2022-09-19
 
