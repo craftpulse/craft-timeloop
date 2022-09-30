@@ -47,10 +47,9 @@ class TimeloopService extends Component
      *
      * @throws \Exception
      */
-    public function getLoop(TimeloopModel $data, int $limit = 0, bool $futureDates = true): ?array
+    public function getLoop(TimeloopModel|array $data, int $limit = 0, bool $futureDates = true): ?array
     {
         //  get start date from data object
-
         if (!isset($data->loopStartDate)) {
             return null;
         }
@@ -69,6 +68,19 @@ class TimeloopService extends Component
 
         // return the array with dates
         return $this->_fetchDates($data->loopStartDate, $end, $period, $timestring, $limit, $futureDates);
+    }
+
+    public function getLoopBetweenDates(array $dates, DateTime $start, DateTime $end): array
+    {
+        $loopDates = [];
+
+        foreach ($dates as $date) {
+            if ($date > $start && $date < $end) {
+                $loopDates[] = $date;
+            }
+        }
+
+        return $loopDates;
     }
 
     /**
@@ -94,9 +106,6 @@ class TimeloopService extends Component
 
     // Private Methods
     // =========================================================================
-    /**
-     * @throws \Exception
-     */
 
     /**
      * Returns an array with all the dates between a start and end point
@@ -111,7 +120,7 @@ class TimeloopService extends Component
      * @param bool $futureDates
      * @throws \Exception
      */
-    private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, int $limit = 0, bool $futureDates = true): array
+    public function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, int $limit = 0, bool $futureDates = true): array
     {
         $interval = $this->_calculateInterval($period)[0]->interval;
         $frequency = $this->_calculateInterval($period)[0]->frequency;
