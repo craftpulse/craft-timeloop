@@ -257,7 +257,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     */
     public function isValueEmpty(mixed $value, ElementInterface $element): bool
     {
-        if ($value['loopStartDate'] === []) {
+        if (($value['loopStartDate'] ?? null) && $value['loopStartDate'] === []) {
             return parent::isValueEmpty('', $element);
         }
 
