@@ -205,7 +205,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * @param ElementInterface $element
      * @return string
      */
-    public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
+    public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
         if (!$value->loopStartDate) {
             return '';
