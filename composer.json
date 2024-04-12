@@ -53,5 +53,11 @@
         "documentationUrl": "https://github.com/percipioglobal/craft-timeloop/blob/v4/README.md",
         "changelogUrl": "https://raw.githubusercontent.com/percipiolondon/craft-timeloop/v1/CHANGELOG.md",
         "class": "percipiolondon\\timeloop\\Timeloop"
+    },
+    "config": {
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "yiisoft/yii2-composer": true
+        }
     }
 }
