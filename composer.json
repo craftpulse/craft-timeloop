@@ -2,7 +2,7 @@
     "name": "percipiolondon/craft-timeloop",
     "description": "This Craft plugin will generate an array of dates between a start and end date based on frequency.",
     "type": "craft-plugin",
-    "version": "4.0.1",
+    "version": "4.1.1",
     "keywords": [
         "craft",
         "cms",
@@ -53,5 +53,11 @@
         "documentationUrl": "https://github.com/percipioglobal/craft-timeloop/blob/v4/README.md",
         "changelogUrl": "https://raw.githubusercontent.com/percipiolondon/craft-timeloop/v1/CHANGELOG.md",
         "class": "percipiolondon\\timeloop\\Timeloop"
+    },
+    "config": {
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "yiisoft/yii2-composer": true
+        }
     }
 }
