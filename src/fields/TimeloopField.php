@@ -247,6 +247,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                 'id' => $id,
                 'nameSpacedId' => $nameSpacedId,
                 'settings' => $this->getSettings(),
+                'prefix' => Craft::$app->getView()->namespaceInputId(''),
             ]
         );
     }
@@ -256,7 +257,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     */
     public function isValueEmpty(mixed $value, ElementInterface $element): bool
     {
-        if ($value['loopStartDate'] === []) {
+        if (($value['loopStartDate'] ?? null) && $value['loopStartDate'] === []) {
             return parent::isValueEmpty('', $element);
         }
 

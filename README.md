@@ -92,6 +92,45 @@ Getting the next upcoming date:
     {{ entry.timeloop.nextUpcoming | date('Y-m-d\\TH:i:sP') }}
 ```
 
+
+#### Get entries between certain dates
+
+If you want to fetch entries from a certain section between two dates. You can fetch them by giving the ElementsQuery with the name of the timeloop field, start and end date. This will return you an array of recurring dates per entry between this period. If no dates are defined, you will get an empty array. In the returned array, you can find the entry id, entry title and the dates.
+
+```
+    {%- set recurringEntries = recurringDates(craft.entries.section('events'), 'timeloop', '2021-01-01', '2022-02-01')  %}
+    {% for recurringEntry in recurringEntries %}
+        <div>
+            <h2>{{ recurringEntry.entryTitle }}: {{ recurringEntry.entryId }}</h2>
+            {% for date in recurringEntry.dates %}
+                {{ date | date('d/m/y H:i') }}<br/>
+            {% endfor %}
+        </div>
+    {% endfor %}
+```
+
+Returns this array layout
+```
+0 => [
+    'entryId' => 1111
+    'entryTitle' => 'Event title'
+    'dates' => [
+        0 => DateTime#1
+        (
+            [date] => '2022-01-01 00:00:00.000000'
+            [timezone_type] => 3
+            [timezone] => 'Europe/London'
+        )
+        1 => DateTime#2
+        (
+            [date] => '2022-01-08 00:00:00.000000'
+            [timezone_type] => 3
+            [timezone] => 'Europe/London'
+        )
+    ]
+]
+```
+
 ### Period Model
 
 Getting the frequency (DateTimePeriod String):

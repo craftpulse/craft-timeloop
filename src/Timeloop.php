@@ -20,6 +20,7 @@ use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
 use percipiolondon\timeloop\fields\TimeloopField;
 use percipiolondon\timeloop\models\SettingsModel as Settings;
 use percipiolondon\timeloop\services\TimeloopService;
+use percipiolondon\timeloop\twigextensions\TimeloopTwigExtension;
 use percipiolondon\timeloop\variables\TimeloopVariable;
 use yii\base\Event;
 
@@ -156,6 +157,9 @@ class Timeloop extends Plugin
         $this->setComponents([
             'timeloop' => TimeloopService::class,
         ]);
+
+        // Add in our Twig extensions
+        Craft::$app->view->registerTwigExtension(new TimeloopTwigExtension());
 
         Craft::info(
             Craft::t(
