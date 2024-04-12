@@ -1,14 +1,14 @@
 <?php
 /**
- * Timeloop plugin for Craft CMS 3.x
+ * Timeloop plugin for Craft CMS 4.x
  *
  * This is a plugin to make repeating dates
  *
- * @link      https://percipio.london
- * @copyright Copyright (c) 2021 percipiolondon
+ * @link      https://craftpulse.com
+ * @copyright Copyright (c) 2024 craftpulse
  */
 
-namespace percipiolondon\timeloop\assetbundles\timeloop;
+namespace craftpulse\timeloop\assetbundles\timeloop;
 
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
@@ -16,7 +16,7 @@ use craft\web\assets\vue\VueAsset;
 
 /**
  *
- * @author    percipiolondon
+ * @author    craftpulse
  * @package   Timeloop
  * @since     1.0.0
  */
@@ -31,7 +31,7 @@ class TimeloopAsset extends AssetBundle
     public function init(): void
     {
         // define the path that your publishable resources live
-        $this->sourcePath = "@percipiolondon/timeloop/web/assets/dist";
+        $this->sourcePath = "@craftpulse/timeloop/web/assets/dist";
 
         // define the dependencies
         $this->depends = [

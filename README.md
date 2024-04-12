@@ -1,4 +1,4 @@
-# Timeloop plugin for Craft CMS 3.x
+# Timeloop plugin for Craft CMS 4.x
 
 This plugin created repeating dates without complex inputs
 
@@ -21,7 +21,7 @@ To install the plugin, follow these instructions.
 2. Tell Composer to load the plugin:
 
 ```
-    composer require percipiolondon/craft-timeloop
+    composer require craftpulse/craft-timeloop
 ```
 
 3. In the Control Panel, go to Settings → Plugins and click the “Install” button.
@@ -249,4 +249,4 @@ Potential features for the future:
 
 And many more!
 
-Brought to you by [Percipio.London](https://percipio.london)
+Brought to you by [CraftPulse](https://craftpulse.com)

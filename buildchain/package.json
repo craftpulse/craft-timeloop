@@ -2,9 +2,9 @@
     "name": "buildchain",
     "description": "A drop-in buildchain for using Vite in your Craft CMS plugins or modules",
     "author": {
-        "email": "support@percipio.london",
-        "name": "percipio.london",
-        "url": "https://percipio.london"
+        "email": "support@craftpulse.com",
+        "name": "craftpulse.com",
+        "url": "https://craftpulse.com"
     },
     "dependencies": {
         "vue": "^3.0.5",

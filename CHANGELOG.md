@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## 4.0.2 - 2022-09-19
 
 ### Fixed
-- Fixed issue [Dates omitted/appearing outside of date range #51](https://github.com/percipioglobal/craft-timeloop/issues/51)
+- Fixed issue [Dates omitted/appearing outside of date range #51](https://github.com/craftpulse/craft-timeloop/issues/51)
 
 ## 4.0.1 - 2022-05-06
 

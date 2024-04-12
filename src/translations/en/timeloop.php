@@ -1,11 +1,11 @@
 <?php
 /**
- * Timeloop plugin for Craft CMS 3.x
+ * Timeloop plugin for Craft CMS 4.x
  *
  * This is a plugin to make repeating dates
  *
- * @link      https://percipio.london
- * @copyright Copyright (c) 2021 percipiolondon
+ * @link      https://craftpulse.com
+ * @copyright Copyright (c) 2024 CraftPulse
  */
 
 /**
@@ -16,7 +16,7 @@
  *
  * http://www.yiiframework.com/doc-2.0/guide-tutorial-i18n.html
  *
- * @author    percipiolondon
+ * @author    craftpulse
  * @package   Timeloop
  * @since     0.1.0
  */

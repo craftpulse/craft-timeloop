@@ -1,17 +1,17 @@
 <?php
 
-namespace percipiolondon\timeloop\variables;
+namespace craftpulse\timeloop\variables;
 
 use craft\helpers\Json;
 
 use nystudio107\pluginvite\variables\ViteVariableInterface;
 use nystudio107\pluginvite\variables\ViteVariableTrait;
 
-use percipiolondon\timeloop\models\TimeloopModel;
-use percipiolondon\timeloop\Timeloop;
+use craftpulse\timeloop\models\TimeloopModel;
+use craftpulse\timeloop\Timeloop;
 
 /**
- * @author    percipiolondon
+ * @author    craftpulse
  * @package   Timeloop
  * @since     1.0.0
  */

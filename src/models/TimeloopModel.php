@@ -1,15 +1,15 @@
 <?php
 
-namespace percipiolondon\timeloop\models;
+namespace craftpulse\timeloop\models;
 
 use craft\base\Model;
 use craft\helpers\DateTimeHelper;
 use DateTime;
 use nystudio107\seomatic\models\jsonld\Date;
-use percipiolondon\timeloop\Timeloop;
+use craftpulse\timeloop\Timeloop;
 
 /**
- * @author    percipiolondon
+ * @author    craftpulse
  * @package   Timeloop
  * @since     1.0.0
  */

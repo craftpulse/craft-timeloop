@@ -1,11 +1,11 @@
 <?php
 
-namespace percipiolondon\timeloop\models;
+namespace craftpulse\timeloop\models;
 
 use craft\base\Model;
 
 /**
- * @author    percipiolondon
+ * @author    craftpulse
  * @package   Timeloop
  * @since     1.0.0
  */

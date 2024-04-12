@@ -1,6 +1,6 @@
 <?php
 
-namespace percipiolondon\timeloop\services;
+namespace craftpulse\timeloop\services;
 
 use craft\base\Component;
 use craft\base\Model;
@@ -10,12 +10,12 @@ use DateInterval;
 use DatePeriod;
 use DateTime;
 
-use percipiolondon\timeloop\models\PeriodModel;
-use percipiolondon\timeloop\models\TimeloopModel;
-use percipiolondon\timeloop\models\TimeStringModel;
+use craftpulse\timeloop\models\PeriodModel;
+use craftpulse\timeloop\models\TimeloopModel;
+use craftpulse\timeloop\models\TimeStringModel;
 
 /**
- * @author    percipiolondon
+ * @author    craftpulse
  * @package   Timeloop
  * @since     1.0.0
  */

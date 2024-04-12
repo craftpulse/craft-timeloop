@@ -1,21 +1,21 @@
 <?php
 /**
- * Timeloop plugin for Craft CMS 3.x
+ * Timeloop plugin for Craft CMS 4.x
  *
  * This is a plugin to make repeating dates
  *
- * @link      https://percipio.london
- * @copyright Copyright (c) 2021 percipiolondon
+ * @link      https://craftpulse.com
+ * @copyright Copyright (c) 2024 CraftPulse
  */
 
-namespace percipiolondon\timeloop\gql\types\input;
+namespace craftpulse\timeloop\gql\types\input;
 
 use craft\gql\GqlEntityRegistry;
 use craft\gql\types\DateTime;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\Type;
 
-use percipiolondon\timeloop\fields\TimeloopField;
+use craftpulse\timeloop\fields\TimeloopField;
 
 /**
  * Class Timeloop

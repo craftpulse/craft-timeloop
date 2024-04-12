@@ -1,8 +1,8 @@
 {
-    "name": "percipiolondon/craft-timeloop",
+    "name": "craftpulse/craft-timeloop",
     "description": "This Craft plugin will generate an array of dates between a start and end date based on frequency.",
     "type": "craft-plugin",
-    "version": "4.1.1",
+    "version": "4.2.0",
     "keywords": [
         "craft",
         "cms",
@@ -11,14 +11,14 @@
         "timeloop"
     ],
     "support": {
-        "docs": "https://github.com/percipioglobal/craft-timeloop/blob/v4/README.md",
-        "issues": "https://github.com/percipioglobal/craft-timeloop/issues"
+        "docs": "https://github.com/craftpulse/craft-timeloop/blob/v4/README.md",
+        "issues": "https://github.com/craftpulse/craft-timeloop/issues"
     },
     "license": "proprietary",
     "authors": [
         {
-            "name": "Percipio.London",
-            "homepage": "https://percipio.london"
+            "name": "CraftPulse",
+            "homepage": "https://craftpulse.com"
         }
     ],
     "require": {
@@ -29,7 +29,7 @@
     "require-dev": {
         "craftcms/phpstan": "dev-main",
         "codeception/codeception": "^4.1.29",
-        "vlucas/phpdotenv": "^3.0"
+        "vlucas/phpdotenv": "^5.4.0"
     },
     "repositories": [
         {
@@ -39,7 +39,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "percipiolondon\\timeloop\\": "src/"
+            "craftpulse\\timeloop\\": "src/"
         }
     },
     "scripts": {
@@ -48,11 +48,11 @@
     "extra": {
         "name": "Timeloop",
         "handle": "timeloop",
-        "developer": "percipiolondon",
-        "developerUrl": "https://percipio.london",
-        "documentationUrl": "https://github.com/percipioglobal/craft-timeloop/blob/v4/README.md",
-        "changelogUrl": "https://raw.githubusercontent.com/percipiolondon/craft-timeloop/v1/CHANGELOG.md",
-        "class": "percipiolondon\\timeloop\\Timeloop"
+        "developer": "craftpulse",
+        "developerUrl": "https://craftpulse.com",
+        "documentationUrl": "https://github.com/craftpulse/craft-timeloop/blob/v4/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/craftpulse/craft-timeloop/v1/CHANGELOG.md",
+        "class": "craftpulse\\timeloop\\Timeloop"
     },
     "config": {
         "allow-plugins": {

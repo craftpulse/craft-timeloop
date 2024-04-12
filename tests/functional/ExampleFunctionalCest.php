@@ -1,6 +1,6 @@
 <?php
 
-namespace percipioglobal\timelooptests\acceptance;
+namespace craftpulse\timelooptests\acceptance;
 
 use Craft;
 use FunctionalTester;

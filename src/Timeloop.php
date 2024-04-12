@@ -1,14 +1,14 @@
 <?php
 /**
- * Timeloop plugin for Craft CMS 3.x
+ * Timeloop plugin for Craft CMS 4.x
  *
  * This is a plugin to make repeating dates
  *
- * @link      https://percipio.london
- * @copyright Copyright (c) 2021 percipiolondon
+ * @link      https://craftpulse.com
+ * @copyright Copyright (c) 2024 CraftPulse
  */
 
-namespace percipiolondon\timeloop;
+namespace craftpulse\timeloop;
 
 use Craft;
 use craft\base\Plugin;
@@ -16,12 +16,12 @@ use craft\events\RegisterComponentTypesEvent;
 use craft\services\Fields;
 use craft\web\twig\variables\CraftVariable;
 use nystudio107\pluginvite\services\VitePluginService;
-use percipiolondon\timeloop\assetbundles\timeloop\TimeloopAsset;
-use percipiolondon\timeloop\fields\TimeloopField;
-use percipiolondon\timeloop\models\SettingsModel as Settings;
-use percipiolondon\timeloop\services\TimeloopService;
-use percipiolondon\timeloop\twigextensions\TimeloopTwigExtension;
-use percipiolondon\timeloop\variables\TimeloopVariable;
+use craftpulse\timeloop\assetbundles\timeloop\TimeloopAsset;
+use craftpulse\timeloop\fields\TimeloopField;
+use craftpulse\timeloop\models\SettingsModel as Settings;
+use craftpulse\timeloop\services\TimeloopService;
+use craftpulse\timeloop\twigextensions\TimeloopTwigExtension;
+use craftpulse\timeloop\variables\TimeloopVariable;
 use yii\base\Event;
 
 /**
@@ -34,7 +34,7 @@ use yii\base\Event;
  *
  * https://docs.craftcms.com/v3/extend/
  *
- * @author    percipiolondon
+ * @author    craftpulse
  * @package   Timeloop
  * @since     1.0.0
  *

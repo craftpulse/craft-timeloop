@@ -1,4 +1,4 @@
-Copyright (c) 2021 percipioglobal
+Copyright (c) 2024 craftpulse
 
 Permission is hereby granted to any person obtaining a copy of this software
 (the “Software”) to use, copy, modify, merge, publish and/or distribute copies

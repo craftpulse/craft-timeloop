@@ -1,25 +1,25 @@
 <?php
 /**
- * Timeloop plugin for Craft CMS 3.x
+ * Timeloop plugin for Craft CMS 4.x
  *
  * This is a plugin to make repeating dates
  *
- * @link      https://percipio.london
- * @copyright Copyright (c) 2021 percipioglobal
+ * @link      https://craftpulse.com
+ * @copyright Copyright (c) 2024 CraftPulse
  */
 
-namespace percipioglobal\timelooptests\unit;
+namespace craftpulse\timelooptests\unit;
 
 use Codeception\Test\Unit;
 use UnitTester;
 use Craft;
-use percipioglobal\timeloop\Timeloop;
+use craftpulse\timeloop\Timeloop;
 
 /**
  * ExampleUnitTest
  *
  *
- * @author    percipioglobal
+ * @author    craftpulse
  * @package   Timeloop
  * @since     0.1.0
  */

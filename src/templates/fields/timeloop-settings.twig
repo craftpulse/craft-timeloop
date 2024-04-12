@@ -1,13 +1,13 @@
 {# @var craft \craft\web\twig\variables\CraftVariable #}
 {#
 /**
- * Timeloop plugin for Craft CMS 3.x
+ * Timeloop plugin for Craft CMS 4.x
  *
  * Timeloop Settings.twig
  *
- * @author    percipiolondon
- * @copyright Copyright (c) 2021 percipiolondon
- * @link      https://percipio.london
+ * @author    craftpulse
+ * @copyright Copyright (c) 2024 CraftPulse
+ * @link      https://craftpulse.com
  * @package   Timeloop
  * @since     0.1.0
  */
@@ -15,7 +15,7 @@
 
 {% import "_includes/forms" as forms %}
 
-{% do view.registerAssetBundle("percipiolondon\\timeloop\\assetbundles\\timeloop\\TimeloopAsset") %}
+{% do view.registerAssetBundle("craftpulse\\timeloop\\assetbundles\\timeloop\\TimeloopAsset") %}
 
 {{ forms.lightSwitchField({
     label: 'Show Times',

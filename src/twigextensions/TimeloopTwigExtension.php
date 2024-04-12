@@ -1,12 +1,12 @@
 <?php
 
-namespace percipiolondon\timeloop\twigextensions;
+namespace craftpulse\timeloop\twigextensions;
 
 use DateTime;
 use Craft;
 use craft\elements\db\ElementQuery;
-use percipiolondon\timeloop\models\TimeloopModel;
-use percipiolondon\timeloop\Timeloop;
+use craftpulse\timeloop\models\TimeloopModel;
+use craftpulse\timeloop\Timeloop;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 use yii\web\NotFoundHttpException;
