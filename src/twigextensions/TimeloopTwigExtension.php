@@ -29,28 +29,26 @@ class TimeloopTwigExtension extends AbstractExtension
     {
         $dates = [];
 
-        if ($query) {
-            foreach ($query->all() as $entry) {
-                try {
-                    $timeloopModel = $entry->getFieldValue($field);
-                    $startDate = new DateTime($start);
-                    $endDate = new DateTime($end);
+        foreach ($query->all() as $entry) {
+            try {
+                $timeloopModel = $entry->getFieldValue($field);
+                $startDate = new DateTime($start);
+                $endDate = new DateTime($end);
 
-                    $loops = Timeloop::$plugin->timeloop->getLoop($timeloopModel, 0, false);
+                $loops = Timeloop::$plugin->timeloop->getLoop($timeloopModel, 0, false);
 
-                    if (!is_null($loops)) {
-                        $loops = Timeloop::$plugin->timeloop->getLoopBetweenDates($loops, $startDate, $endDate);
-                        $dates[] = [
-                            'entryId' => $entry->id,
-                            'entryTitle' => $entry->title,
-                            'dates' => $loops
-                        ];
-                    }
-
-                } catch (NotFoundHttpException $exception) {
-                    // field doesn't exist
-                    throw new NotFoundHttpException('The field does\'nt exist on the element query');
+                if (!is_null($loops)) {
+                    $loops = Timeloop::$plugin->timeloop->getLoopBetweenDates($loops, $startDate, $endDate);
+                    $dates[] = [
+                        'entryId' => $entry->id,
+                        'entryTitle' => $entry->title,
+                        'dates' => $loops
+                    ];
                 }
+
+            } catch (NotFoundHttpException $exception) {
+                // field doesn't exist
+                throw new NotFoundHttpException('The field does\'nt exist on the element query');
             }
         }
 

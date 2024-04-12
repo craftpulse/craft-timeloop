@@ -133,7 +133,7 @@ class TimeloopModel extends Model
      * @return DateTime|null
      * @throws \Exception
      */
-    public function getLoopStart(): ?string
+    public function getLoopStart(): ?DateTime
     {
         $value = DateTimeHelper::toDateTime($this->loopStartTime);
         return $value === false ? null : $value;
@@ -153,7 +153,7 @@ class TimeloopModel extends Model
      * @return DateTime|null
      * @throws \Exception
      */
-    public function getLoopEnd(): ?string
+    public function getLoopEnd(): ?DateTime
     {
         $value = DateTimeHelper::toDateTime($this->loopEndTime);
         return $value === false ? null : $value;
