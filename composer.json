@@ -2,7 +2,7 @@
     "name": "craftpulse/craft-timeloop",
     "description": "This Craft plugin will generate an array of dates between a start and end date based on frequency.",
     "type": "craft-plugin",
-    "version": "4.2.0",
+    "version": "5.0.0-beta.1",
     "keywords": [
         "craft",
         "cms",
@@ -11,7 +11,7 @@
         "timeloop"
     ],
     "support": {
-        "docs": "https://github.com/craftpulse/craft-timeloop/blob/v4/README.md",
+        "docs": "https://github.com/craftpulse/craft-timeloop/blob/v5/README.md",
         "issues": "https://github.com/craftpulse/craft-timeloop/issues"
     },
     "license": "proprietary",
@@ -23,8 +23,8 @@
     ],
     "require": {
         "php": "^8.0.2",
-        "craftcms/cms": "^4.0.0-beta.1",
-        "nystudio107/craft-plugin-vite": "^4.0.0-beta.1"
+        "craftcms/cms": "^5.0.0-beta.1",
+        "nystudio107/craft-plugin-vite": "^5.0.0-beta.1"
     },
     "require-dev": {
         "craftcms/phpstan": "dev-main",
@@ -50,8 +50,8 @@
         "handle": "timeloop",
         "developer": "craftpulse",
         "developerUrl": "https://craftpulse.com",
-        "documentationUrl": "https://github.com/craftpulse/craft-timeloop/blob/v4/README.md",
-        "changelogUrl": "https://raw.githubusercontent.com/craftpulse/craft-timeloop/v1/CHANGELOG.md",
+        "documentationUrl": "https://github.com/craftpulse/craft-timeloop/blob/v5/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/craftpulse/craft-timeloop/v5/CHANGELOG.md",
         "class": "craftpulse\\timeloop\\Timeloop"
     },
     "config": {
