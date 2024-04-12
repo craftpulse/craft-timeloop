@@ -1,6 +1,6 @@
 <?php
 /**
- * Timeloop plugin for Craft CMS 4.x
+ * Timeloop plugin for Craft CMS 5.x
  *
  * This is a plugin to make repeating dates
  *

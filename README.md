@@ -1,4 +1,4 @@
-# Timeloop plugin for Craft CMS 4.x
+# Timeloop plugin for Craft CMS 5.x
 
 This plugin created repeating dates without complex inputs
 
