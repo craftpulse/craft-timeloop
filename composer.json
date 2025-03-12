@@ -28,7 +28,6 @@
     },
     "require-dev": {
         "craftcms/phpstan": "dev-main",
-        "codeception/codeception": "^4.1.29",
         "vlucas/phpdotenv": "^5.4.0"
     },
     "repositories": [
