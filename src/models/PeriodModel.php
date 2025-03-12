@@ -1,4 +1,12 @@
 <?php
+/**
+ * Timeloop plugin for Craft CMS
+ *
+ * The timeloop plugin creates repeating dates without the need of complex inputs.
+ *
+ * @link      https://craft-pulse.com
+ * @copyright Copyright (c) 2025 CraftPulse
+ */
 
 namespace craftpulse\timeloop\models;
 
@@ -7,7 +15,6 @@ use craft\base\Model;
 /**
  * @author    craftpulse
  * @package   Timeloop
- * @since     1.0.0
  */
 
 class PeriodModel extends Model

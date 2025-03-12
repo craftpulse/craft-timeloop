@@ -1,11 +1,11 @@
 <?php
 /**
- * Timeloop plugin for Craft CMS 5.x
+ * Timeloop plugin for Craft CMS
  *
- * This is a plugin to make repeating dates
+ * The timeloop plugin creates repeating dates without the need of complex inputs.
  *
- * @link      https://craftpulse.com
- * @copyright Copyright (c) 2024 CraftPulse
+ * @link      https://craft-pulse.com
+ * @copyright Copyright (c) 2025 CraftPulse
  */
 
 namespace craftpulse\timeloop\fields;
@@ -48,7 +48,6 @@ use yii\db\Schema;
  *
  * @author    craftpulse
  * @package   Timeloop
- * @since     0.1.0
  */
 class TimeloopField extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
@@ -73,9 +72,13 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     }
 
     /**
-     * @var bool Whether to show input sources for volumes the user doesn’t have permission to view.
-     * @since 3.4.0
+     * @inheritdoc
      */
+    public static function icon(): string
+    {
+        return Craft::getAlias('@craftpulse/timeloop/icon-mask.svg');
+    }
+    
     public bool $timeloopRequired = true;
 
     // Public Methods

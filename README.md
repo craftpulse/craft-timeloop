@@ -1,28 +1,47 @@
 # Timeloop plugin for Craft CMS 5.x
 
-This plugin created repeating dates without complex inputs
+The timeloop plugin creates repeating dates without the need of complex inputs.
 
-![timeloop-banner-light (1)](https://user-images.githubusercontent.com/20947573/117322933-bcbca200-ae8e-11eb-834f-1a2aeba472b6.png)
+![Screenshot](./resources/img/timeloop-banner.jpg)
 
 ## Requirements
 
-This plugin requires Craft CMS 3.3.0 or later.
+This plugin requires Craft CMS 5.0.0 or later.
+
+# Teamleader Plugin for Craft CMS 5.x
+
+Seamlessly integrate **Teamleader Focus** with **Craft CMS** and **Formie forms** to manage contacts, companies, and deals efficiently.
 
 ## Installation
 
-To install the plugin, follow these instructions.
+### Standard Craft CMS Installation
 
-1. Open your terminal and go to your Craft project:
+1. Open your terminal and navigate to your Craft project:
+   ```sh
+   cd /path/to/project
+   ```
+2. Install the plugin via Composer:
+   ```sh
+   composer require craftpulse/craft-timeloop
+   ```
+3. Install the plugin:
+   ```sh
+   craft plugin/install timeloop
+   ```
+   Alternatively, activate it via **Settings → Plugins** in the Craft Control Panel.
 
-```
-    cd/path/to/project
-```
+### Installing on DDEV
 
-2. Tell Composer to load the plugin:
+1. Install the Teamleader plugin:
+   ```sh
+   ddev composer require craftpulse/craft-timeloop
+   ```
+2. Install the plugin in Craft CMS:
+   ```sh
+   ddev craft plugin/install timeloop
+   ```
 
-```
-    composer require craftpulse/craft-timeloop
-```
+---
 
 3. In the Control Panel, go to Settings → Plugins and click the “Install” button.
 
@@ -249,4 +268,4 @@ Potential features for the future:
 
 And many more!
 
-Brought to you by [CraftPulse](https://craftpulse.com)
+Brought to you by [CraftPulse](https://craft-pulse.com)
