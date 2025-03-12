@@ -2,15 +2,21 @@
     "name": "craftpulse/craft-timeloop",
     "description": "This Craft plugin will generate an array of dates between a start and end date based on frequency.",
     "type": "craft-plugin",
-    "version": "5.0.0-beta.2",
+    "version": "5.0.0-beta.3",
     "keywords": [
         "craft",
         "cms",
         "craftcms",
         "craft-plugin",
-        "timeloop"
+        "timeloop",
+        "recurring dates",
+        "repeating events",
+        "events",
+        "classes",
+        "courses",
     ],
-    "support": {
+    "support":{
+        "email": "support@craft-pulse.com",
         "docs": "https://github.com/craftpulse/craft-timeloop/blob/v5/README.md",
         "issues": "https://github.com/craftpulse/craft-timeloop/issues"
     },
@@ -18,7 +24,7 @@
     "authors": [
         {
             "name": "CraftPulse",
-            "homepage": "https://craftpulse.com"
+            "email": "support@craft-pulse.com"
         }
     ],
     "require": {
@@ -26,8 +32,10 @@
         "craftcms/cms": "^5.0.0",
         "nystudio107/craft-plugin-vite": "^5.0.0"
     },
-    "require-dev": {
+    "require-dev":{
+        "craftcms/ecs": "dev-main",
         "craftcms/phpstan": "dev-main",
+        "yiisoft/yii2-redis": "^2.0",
         "vlucas/phpdotenv": "^5.4.0"
     },
     "repositories": [
@@ -42,13 +50,15 @@
         }
     },
     "scripts": {
-        "phpstan": "phpstan --memory-limit=1G"
+        "phpstan": "phpstan --memory-limit=1G",
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --fix --ansi"
     },
     "extra": {
         "name": "Timeloop",
         "handle": "timeloop",
         "developer": "craftpulse",
-        "developerUrl": "https://craftpulse.com",
+        "developerUrl": "https://craft-pulse.com",
         "documentationUrl": "https://github.com/craftpulse/craft-timeloop/blob/v5/README.md",
         "changelogUrl": "https://raw.githubusercontent.com/craftpulse/craft-timeloop/v5/CHANGELOG.md",
         "class": "craftpulse\\timeloop\\Timeloop"
