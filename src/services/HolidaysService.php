@@ -241,6 +241,11 @@ class HolidaysService extends Component
             }
 
             if ($region !== null && $region !== '') {
+                // Regional subclasses switch on literal uppercase region codes
+                // ("DE-BY"); normalize so a lowercase-typed region doesn't
+                // silently resolve to zero regional holidays.
+                $region = strtoupper(trim($region));
+
                 // `Country::make()` is variadic (`new static(...func_get_args())`)
                 // in both majors; call_user_func() keeps the region argument out
                 // of static analysis against 1.x's zero-parameter signature.

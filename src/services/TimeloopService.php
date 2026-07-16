@@ -202,6 +202,7 @@ class TimeloopService extends Component
      * @return ?RecurrenceModel
      * @throws \Exception if the value's `dtstart` or `timezone` cannot be parsed while computing the
      * holiday year window (see [[_holidayYears()]]).
+     * @throws \InvalidArgumentException if the rule cannot be parsed (see {@see RecurrenceModel::isInfinite()}).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -372,10 +373,7 @@ class TimeloopService extends Component
             $plugin = Timeloop::getInstance();
 
             if ($plugin !== null && $plugin->has('holidays')) {
-                /** @var HolidaysService $service */
-                $service = $plugin->get('holidays');
-
-                return $this->_holidays = $service;
+                return $this->_holidays = $plugin->getHolidays();
             }
         } catch (\Throwable) {
             // No booted plugin (e.g. the standalone unit context); fall through.
@@ -398,6 +396,7 @@ class TimeloopService extends Component
      * @param TimeloopModel $data
      * @return int[] A two-element `[yearFrom, yearTo]` list.
      * @throws \Exception if the value's `dtstart` or `timezone` cannot be parsed into a date-time.
+     * @throws \InvalidArgumentException if the rule cannot be parsed (see {@see RecurrenceModel::isInfinite()}).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -407,6 +406,11 @@ class TimeloopService extends Component
         $timezone = new DateTimeZone($data->timezone);
         $yearFrom = (int)(new DateTimeImmutable((string)$data->dtstart, $timezone))->format('Y');
 
+        // isInfinite() builds the RSet once without the holiday exclusions;
+        // setExtraExclusions() in recurrenceFor() resets and rebuilds it. The
+        // double build is intentional — RSet construction is cheap (no
+        // expansion), and reordering to avoid it would inject exclusions
+        // before the year window is known.
         $recurrence = $data->getRecurrence();
         $finite = $recurrence !== null && !$recurrence->isInfinite() && $data->loopEndDate !== null;
 

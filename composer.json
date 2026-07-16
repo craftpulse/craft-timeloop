@@ -59,7 +59,8 @@
     "scripts": {
         "phpstan": "phpstan --memory-limit=1G",
         "check-cs": "ecs check --ansi",
-        "fix-cs": "ecs check --fix --ansi"
+        "fix-cs": "ecs check --fix --ansi",
+        "test": "pest"
     },
     "extra": {
         "name": "Timeloop",

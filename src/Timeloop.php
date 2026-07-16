@@ -19,6 +19,7 @@ use craftpulse\timeloop\assetbundles\timeloop\TimeloopAsset;
 use craftpulse\timeloop\fields\TimeloopField;
 use craftpulse\timeloop\models\SettingsModel as Settings;
 use craftpulse\timeloop\services\HolidaysService;
+use craftpulse\timeloop\services\ServicesTrait;
 use craftpulse\timeloop\services\TimeloopService;
 use craftpulse\timeloop\twigextensions\TimeloopTwigExtension;
 use craftpulse\timeloop\variables\TimeloopVariable;
@@ -37,6 +38,11 @@ use yii\base\Event;
  */
 class Timeloop extends Plugin
 {
+    // Traits
+    // =========================================================================
+
+    use ServicesTrait;
+
     // Static Properties
     // =========================================================================
 
