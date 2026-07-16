@@ -57,6 +57,18 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      */
     public int $showTime = 0;
 
+    /**
+     * @var ?string The default holiday country applied when a value enables holidays without picking one.
+     *
+     * Second link in the read-time country-resolution chain (value's explicit
+     * country, then this field default, then the site-locale-derived country,
+     * then disabled). It is stamped onto each value's
+     * {@see TimeloopModel::$holidayCountryDefault} in [[normalizeValue()]] and is
+     * never written into a value's stored JSON. The settings UI for it lands in
+     * Phase 4; only the property and its rule exist now.
+     */
+    public ?string $defaultHolidaysCountry = null;
+
     // Static Methods
     // =========================================================================
 
@@ -95,6 +107,8 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     {
         $rules = parent::defineRules();
         $rules[] = [['showTime'], 'boolean'];
+        $rules[] = [['defaultHolidaysCountry'], 'string'];
+        $rules[] = [['defaultHolidaysCountry'], 'default', 'value' => null];
 
         return $rules;
     }
@@ -126,8 +140,13 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         }
 
         $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+        $model = new TimeloopModel(ValueNormalizer::normalize($this->_coerceLegacyDates($value), $timezone));
 
-        return new TimeloopModel(ValueNormalizer::normalize($this->_coerceLegacyDates($value), $timezone));
+        // Stamp the field-level default country onto the value for the read-time
+        // holiday resolution chain. Runtime only: it is excluded from storage.
+        $model->holidayCountryDefault = $this->defaultHolidaysCountry;
+
+        return $model;
     }
 
     /**

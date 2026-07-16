@@ -18,6 +18,7 @@ use craft\web\twig\variables\CraftVariable;
 use craftpulse\timeloop\assetbundles\timeloop\TimeloopAsset;
 use craftpulse\timeloop\fields\TimeloopField;
 use craftpulse\timeloop\models\SettingsModel as Settings;
+use craftpulse\timeloop\services\HolidaysService;
 use craftpulse\timeloop\services\TimeloopService;
 use craftpulse\timeloop\twigextensions\TimeloopTwigExtension;
 use craftpulse\timeloop\variables\TimeloopVariable;
@@ -29,6 +30,7 @@ use yii\base\Event;
  *
  * @property VitePluginService $vite
  * @property TimeloopService $timeloop
+ * @property HolidaysService $holidays
  *
  * @author CraftPulse
  * @since 1.0.0
@@ -78,6 +80,7 @@ class Timeloop extends Plugin
         return [
             'components' => [
                 'timeloop' => TimeloopService::class,
+                'holidays' => HolidaysService::class,
                 'vite' => [
                     'class' => VitePluginService::class,
                     'assetClass' => TimeloopAsset::class,

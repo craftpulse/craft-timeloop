@@ -94,6 +94,18 @@ class TimeloopModel extends Model
     public array $reminder = ['value' => 0, 'period' => null];
 
     /**
+     * @var ?string The field's default holiday country, stamped at read time. Never persisted.
+     *
+     * Carries the owning field's `defaultHolidaysCountry` setting into the
+     * read-time holiday resolution (see
+     * {@see \craftpulse\timeloop\services\HolidaysService::resolveCountry()}).
+     * It is populated by {@see \craftpulse\timeloop\fields\TimeloopField::normalizeValue()}
+     * and deliberately excluded from [[toV2Array()]], so a field-level default
+     * never leaks into a value's stored JSON.
+     */
+    public ?string $holidayCountryDefault = null;
+
+    /**
      * @var ?DateTime The date the loop starts (derived; backwards-compatibility).
      */
     public ?DateTime $loopStartDate = null;
@@ -405,6 +417,7 @@ class TimeloopModel extends Model
 
         $rules[] = [['dtstart', 'timezone', 'rrule', 'endTime'], 'safe'];
         $rules[] = [['exdates', 'rdates', 'holidays', 'reminder', 'loopPeriod'], 'safe'];
+        $rules[] = [['holidayCountryDefault'], 'safe'];
         $rules[] = [['loopStartDate', 'loopEndDate', 'loopStartTime', 'loopEndTime'], 'safe'];
         $rules[] = [['version', 'loopReminderValue'], 'integer'];
 

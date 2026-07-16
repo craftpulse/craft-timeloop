@@ -14,6 +14,7 @@ use craft\base\Component;
 use craft\base\Model;
 use craftpulse\timeloop\models\RecurrenceModel;
 use craftpulse\timeloop\models\TimeloopModel;
+use craftpulse\timeloop\Timeloop;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -58,6 +59,14 @@ class TimeloopService extends Component
      */
     private const DEFAULT_HORIZON = '+20 years';
 
+    // Private Properties
+    // =========================================================================
+
+    /**
+     * @var ?HolidaysService Memoized holiday exclusion source.
+     */
+    private ?HolidaysService $_holidays = null;
+
     // Public Methods
     // =========================================================================
 
@@ -99,7 +108,7 @@ class TimeloopService extends Component
             return null;
         }
 
-        $recurrence = $data->getRecurrence();
+        $recurrence = $this->recurrenceFor($data);
 
         if ($recurrence === null) {
             return null;
@@ -173,6 +182,53 @@ class TimeloopService extends Component
         }
 
         return (clone $dates[0])->modify(sprintf('-%d %s', $data->loopReminderValue ?? 0, $data->loopReminderPeriod));
+    }
+
+    /**
+     * Returns the recurrence engine for a value, with public holidays merged in.
+     *
+     * This is the single read-time merge point: when the value has holidays
+     * enabled and a country resolves (value country, then field default, then
+     * site locale, see {@see HolidaysService::resolveCountry()}), the public
+     * holidays spanning the value's window are resolved per year and injected as
+     * extra exclusions via {@see RecurrenceModel::setExtraExclusions()} before any
+     * expansion. Holidays are never written into the value's stored `exdates`;
+     * they are resolved fresh on every read, so a series crossing a year boundary
+     * keeps excluding future years' holidays without being re-saved. When
+     * holidays are disabled, no country resolves, or the value carries no rule,
+     * the recurrence is returned untouched (or null).
+     *
+     * @param TimeloopModel $data
+     * @return ?RecurrenceModel
+     * @throws \Exception if the value's `dtstart` or `timezone` cannot be parsed while computing the
+     * holiday year window (see [[_holidayYears()]]).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function recurrenceFor(TimeloopModel $data): ?RecurrenceModel
+    {
+        $recurrence = $data->getRecurrence();
+
+        if ($recurrence === null || !($data->holidays['enabled'] ?? false)) {
+            return $recurrence;
+        }
+
+        $country = $this->_holidays()->resolveCountry(
+            $data->holidays['country'] ?? null,
+            $data->holidayCountryDefault,
+        );
+
+        if ($country === null) {
+            return $recurrence;
+        }
+
+        [$yearFrom, $yearTo] = $this->_holidayYears($data);
+        $recurrence->setExtraExclusions(
+            $this->_holidays()->exclusionDates($country, $data->holidays['region'] ?? null, $yearFrom, $yearTo),
+        );
+
+        return $recurrence;
     }
 
     // Recurrence Engine Adapters
@@ -286,5 +342,78 @@ class TimeloopService extends Component
     public function activeAt(RecurrenceModel $model, DateTimeInterface $dateTime): bool
     {
         return $model->activeAt($dateTime);
+    }
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Returns the holiday exclusion source.
+     *
+     * Prefers the plugin's registered singleton (so its per-year memo is shared
+     * across the request) and falls back to a fresh instance when no plugin is
+     * booted, keeping {@see recurrenceFor()} usable from the standalone Pest
+     * suite exactly as {@see getLoop()} already is. The lookup is guarded because
+     * {@see Timeloop::getInstance()} reaches into Yii's module registry, which is
+     * not available in a non-booted unit context.
+     *
+     * @return HolidaysService
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private function _holidays(): HolidaysService
+    {
+        if ($this->_holidays !== null) {
+            return $this->_holidays;
+        }
+
+        try {
+            $plugin = Timeloop::getInstance();
+
+            if ($plugin !== null && $plugin->has('holidays')) {
+                /** @var HolidaysService $service */
+                $service = $plugin->get('holidays');
+
+                return $this->_holidays = $service;
+            }
+        } catch (\Throwable) {
+            // No booted plugin (e.g. the standalone unit context); fall through.
+        }
+
+        return $this->_holidays = new HolidaysService();
+    }
+
+    /**
+     * Returns the `[from, to]` year span a value's holidays must cover.
+     *
+     * The span runs from the `dtstart` year to the rule's own end year (the
+     * `UNTIL` year for a finite rule), or to the 20-year horizon for an infinite
+     * or open-ended rule, mirroring the horizon {@see getLoop()} uses. The span
+     * is a property of the recurrence, not of any one query window, so the
+     * injected exclusions stay correct across every expansion of the value. The
+     * span is clamped to spatie's calculable range inside
+     * {@see HolidaysService::exclusionDates()}.
+     *
+     * @param TimeloopModel $data
+     * @return int[] A two-element `[yearFrom, yearTo]` list.
+     * @throws \Exception if the value's `dtstart` or `timezone` cannot be parsed into a date-time.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private function _holidayYears(TimeloopModel $data): array
+    {
+        $timezone = new DateTimeZone($data->timezone);
+        $yearFrom = (int)(new DateTimeImmutable((string)$data->dtstart, $timezone))->format('Y');
+
+        $recurrence = $data->getRecurrence();
+        $finite = $recurrence !== null && !$recurrence->isInfinite() && $data->loopEndDate !== null;
+
+        $yearTo = $finite
+            ? (int)$data->loopEndDate->format('Y')
+            : (int)(new DateTimeImmutable('now', $timezone))->modify(self::DEFAULT_HORIZON)->format('Y');
+
+        return [$yearFrom, $yearTo];
     }
 }
