@@ -59,7 +59,7 @@
   padding: var(--s, 10px);
   border-radius: var(--small-border-radius, 3px);
   background-color: var(--gray-100, #e4edf6);
-  font-family: var(--monospace-font, monospace);
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace;
   font-size: 12px;
   white-space: pre-wrap;
   word-break: break-all;

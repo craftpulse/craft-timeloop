@@ -322,7 +322,7 @@ class ValueNormalizer
      * {@see RecurrenceModel}, which is the only class allowed to touch it.
      *
      * @param string $rrule The RRULE string.
-     * @return array{freq: string, interval: int, byday: string[], bymonthday: ?string, until: ?string, count: ?int}
+     * @return array{freq: string, interval: int, byday: string[], bymonthday: ?string, until: ?string, count: ?int, wkst: ?string}
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -347,6 +347,7 @@ class ValueNormalizer
             'bymonthday' => $pairs['BYMONTHDAY'] ?? null,
             'until' => $pairs['UNTIL'] ?? null,
             'count' => isset($pairs['COUNT']) && $pairs['COUNT'] !== '' ? (int)$pairs['COUNT'] : null,
+            'wkst' => $pairs['WKST'] ?? null,
         ];
     }
 
@@ -359,8 +360,11 @@ class ValueNormalizer
      * only meaningful for a rule {@see isUiRepresentable()} accepts; an empty
      * rule yields the editor's defaults.
      *
+     * `wkst` is not editable in the UI; it is carried through a hidden input so
+     * a hand-written `WKST` part survives a simple-mode edit unchanged.
+     *
      * @param ?string $rrule The v2 RRULE string.
-     * @return array{frequency: string, interval: int, weekdays: string[], position: string, positionDay: string, endCondition: string, count: ?int}
+     * @return array{frequency: string, interval: int, weekdays: string[], position: string, positionDay: string, endCondition: string, count: ?int, wkst: string}
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -375,6 +379,7 @@ class ValueNormalizer
             'positionDay' => '',
             'endCondition' => 'never',
             'count' => null,
+            'wkst' => '',
         ];
 
         if ($rrule === null || $rrule === '') {
@@ -407,6 +412,7 @@ class ValueNormalizer
             'positionDay' => $positionDay,
             'endCondition' => $parts['until'] !== null ? 'until' : ($parts['count'] !== null ? 'count' : 'never'),
             'count' => $parts['count'],
+            'wkst' => in_array($parts['wkst'], self::WEEKDAYS, true) ? $parts['wkst'] : '',
         ];
     }
 
@@ -625,6 +631,14 @@ class ValueNormalizer
             if ($until !== null) {
                 $parts[] = "UNTIL=$until";
             }
+        }
+
+        // WKST is not editable in the UI; the hidden passthrough input carries
+        // a hand-written week-start unchanged through a simple-mode edit.
+        $wkst = strtoupper(self::_string($input['wkst'] ?? '') ?? '');
+
+        if (in_array($wkst, self::WEEKDAYS, true)) {
+            $parts[] = "WKST=$wkst";
         }
 
         return implode(';', $parts);

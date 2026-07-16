@@ -67,9 +67,8 @@ class SummaryController extends Controller
         $this->requireCpRequest();
         $this->requirePermission('accessCp');
 
-        $request = Craft::$app->getRequest();
-        $input = $request->getBodyParam('input', []);
-        $locale = (string)$request->getBodyParam('locale', Craft::$app->language);
+        $input = $this->request->getBodyParam('input', []);
+        $locale = (string)$this->request->getBodyParam('locale', Craft::$app->language);
 
         if (!is_array($input)) {
             return $this->asJson(['summary' => null]);

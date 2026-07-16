@@ -51,6 +51,12 @@
         inputAttributes: { data: { timeloop: 'rrule' } },
     }) }}
 
+    {# WKST is not editable in the UI; carry a hand-written week-start through a simple-mode edit unchanged. #}
+    {{ forms.hidden({
+        name: name ~ '[wkst]',
+        value: rule.wkst,
+    }) }}
+
     {# Start date + times #}
     <div class="timeloop-row">
         {{ forms.dateField({
@@ -170,6 +176,7 @@
                 {{ forms.date({
                     name: name ~ '[until]',
                     value: value.loopEndDate ?? null,
+                    inputAttributes: { aria: { label: 'End date'|t('timeloop') } },
                 }) }}
             </div>
 
@@ -179,7 +186,7 @@
                     value: rule.count,
                     type: 'number',
                     size: 5,
-                    inputAttributes: { min: 1, step: 1 },
+                    inputAttributes: { min: 1, step: 1, aria: { label: 'Number of occurrences'|t('timeloop') } },
                 }) }}
             </div>
         </fieldset>
@@ -271,11 +278,12 @@
                 value: value.reminder.value ?? '',
                 type: 'number',
                 size: 5,
-                inputAttributes: { min: 0, step: 1 },
+                inputAttributes: { min: 0, step: 1, aria: { label: 'Reminder lead time'|t('timeloop') } },
             }) }}
             {{ forms.select({
                 name: name ~ '[reminderPeriod]',
                 value: value.reminder.period ?? null,
+                inputAttributes: { aria: { label: 'Reminder period'|t('timeloop') } },
                 options: [
                     { label: 'None'|t('timeloop'), value: '' },
                     { label: 'Day(s)'|t('timeloop'), value: 'days' },

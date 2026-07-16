@@ -484,6 +484,38 @@ it('interprets the start date in the injected timezone', function() {
         ->toBe('Europe/Brussels');
 });
 
+it('round-trips a hand-written WKST through the simple editor unchanged', function() {
+    // WKST is UI-representable but not editable: rruleToInput exposes it for
+    // the hidden passthrough input, and inputToV2 re-emits it verbatim.
+    $rule = ValueNormalizer::rruleToInput('FREQ=WEEKLY;INTERVAL=2;BYDAY=MO;WKST=SU');
+
+    expect($rule['wkst'])->toBe('SU');
+
+    $v2 = input([
+        'startDate' => '2026-09-07',
+        'frequency' => 'WEEKLY',
+        'weekdays' => ['MO'],
+        'interval' => 2,
+        'wkst' => $rule['wkst'],
+    ]);
+
+    expect($v2['rrule'])->toBe('FREQ=WEEKLY;INTERVAL=2;BYDAY=MO;WKST=SU');
+});
+
+it('ignores an invalid WKST passthrough value', function() {
+    $v2 = input([
+        'startDate' => '2026-09-07',
+        'frequency' => 'DAILY',
+        'wkst' => 'XX',
+    ]);
+
+    expect($v2['rrule'])->toBe('FREQ=DAILY');
+});
+
+it('exposes an empty wkst for rules without one', function() {
+    expect(ValueNormalizer::rruleToInput('FREQ=DAILY')['wkst'])->toBe('');
+});
+
 // UI representability (isUiRepresentable)
 // -------------------------------------------------------------------------
 

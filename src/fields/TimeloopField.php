@@ -216,7 +216,16 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     }
 
     /**
+     * Renders the field settings template.
+     *
+     * The template receives the field itself (as `field`) so it can surface
+     * per-attribute validation errors, e.g. `field.getErrors('defaultHolidaysCountry')`.
+     *
      * @return string|null
+     * @throws \Throwable if the settings template cannot be rendered.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
      */
     public function getSettingsHtml(): ?string
     {
@@ -252,11 +261,19 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     }
 
     /**
+     * Renders the field input: the form-macro editor plus the per-instance
+     * Garnish component bootstrap.
+     *
      * @param mixed                 $value           The field’s value. This will either be the [[normalizeValue() normalized value]],
      *                                               raw POST data (i.e. if there was a validation error), or null
      * @param ElementInterface|null $element         The element the field is associated with, if there is one
      *
      * @return string The input HTML.
+     * @throws \Exception if the stored value cannot be normalized (see [[normalizeValue()]]).
+     * @throws \Throwable if the input template cannot be rendered.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
      */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
@@ -280,7 +297,6 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             'field' => $this,
             'required' => $this->required,
             'id' => $id,
-            'namespacedId' => $view->namespaceInputId($id),
             'showTime' => (bool)$this->showTime,
             'representable' => $representable,
             'rule' => ValueNormalizer::rruleToInput($value->rrule),
