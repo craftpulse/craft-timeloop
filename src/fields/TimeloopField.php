@@ -25,36 +25,32 @@ use craft\helpers\Gql;
 use craft\helpers\Json;
 
 use craft\i18n\Locale;
+use craftpulse\timeloop\assetbundles\timeloop\TimeloopAsset;
+use craftpulse\timeloop\gql\types\input\TimeloopInputType;
+use craftpulse\timeloop\models\TimeloopModel;
+
+use craftpulse\timeloop\Timeloop;
+
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 
-use craftpulse\timeloop\assetbundles\timeloop\TimeloopAsset;
-
-use craftpulse\timeloop\gql\types\input\TimeloopInputType;
-use craftpulse\timeloop\models\TimeloopModel;
-use craftpulse\timeloop\Timeloop;
-
-use yii\db\Schema;
-
 /**
- * Timeloop Field
+ * Timeloop field type.
  *
- * Whenever someone creates a new field in Craft, they must specify what
- * type of field it is. The system comes with a handful of field types baked in,
- * and we’ve made it extremely easy for plugins to add new ones.
+ * Stores a recurrence configuration and returns a [[TimeloopModel]] that
+ * expands into the matching dates.
  *
- * https://craftcms.com/docs/plugins/field-types
- *
- * @author    craftpulse
- * @package   Timeloop
+ * @author CraftPulse
+ * @since 1.0.0
  */
 class TimeloopField extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Public Properties
     // =========================================================================
+
     /**
-     * @var int
+     * @var int Whether start and end times can be set on the loop.
      */
     public int $showTime = 0;
 
@@ -62,9 +58,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     // =========================================================================
 
     /**
-     * Returns the display name of this class.
-     *
-     * @return string The display name of this class.
+     * @inheritdoc
      */
     public static function displayName(): string
     {
@@ -78,30 +72,9 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     {
         return Craft::getAlias('@craftpulse/timeloop/icon-mask.svg');
     }
-    
-    public bool $timeloopRequired = true;
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @return array
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-        $rules[] = [['showTime'], 'boolean'];
-
-        return $rules;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getContentColumnType(): array|string
-    {
-        return Schema::TYPE_TEXT;
-    }
 
     /**
      * @inheritdoc
@@ -113,10 +86,18 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     }
 
     /**
-     * @param mixed $value   The raw field value
-     * @param ElementInterface|null $element The element the field is associated with, if there is one
-     *
-     * @return mixed The prepared field value
+     * @inheritdoc
+     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+        $rules[] = [['showTime'], 'boolean'];
+
+        return $rules;
+    }
+
+    /**
+     * @inheritdoc
      */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
@@ -124,26 +105,21 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             return $value;
         }
 
-        // Check to see if this is already an array, which happens in some cases (Vizy)
-        if (is_array($value)) {
-            $value = Json::encode($value);
-        }
-
-        if (is_null($value)) {
-            return [];
-        }
-
-        if (is_string($value) && !empty($value)) {
+        if (is_string($value) && $value !== '') {
             $value = Json::decodeIfJson($value);
+        }
+
+        // Empty or unparseable values still normalize to a model, so
+        // downstream consumers can rely on the TimeloopModel API
+        if (!is_array($value)) {
+            return new TimeloopModel();
         }
 
         return new TimeloopModel($value);
     }
 
     /**
-     * @param mixed $value The raw field value
-     * @param ElementInterface|null $element The element the field is associated with, if there is one
-     * @return mixed The serialized field value
+     * @inheritdoc
      */
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
@@ -166,7 +142,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             $minutes = null;
 
             if (isset($value['loopEndTime']) && $value['loopEndTime'] instanceof \DateTime) {
-                $time = DateTimeHelper::toDateTime($value['loopStartTime'], true);
+                $time = DateTimeHelper::toDateTime($value['loopEndTime'], true);
                 $hours = $time->format('H');
                 $minutes = $time->format('i');
             }
@@ -204,23 +180,24 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     }
 
     /**
-     * @param mixed $value
-     * @param ElementInterface $element
-     * @return string
+     * @inheritdoc
+     * @throws \Exception
      */
     public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
-        if (!$value->loopStartDate) {
+        if (!$value instanceof TimeloopModel || $value->loopStartDate === null) {
             return '';
         }
 
         $upcoming = Timeloop::$plugin->timeloop->getLoop($value, 1);
 
-        if (count($upcoming) === 1) {
-            return '<span> Next up: ' . Craft::$app->getFormatter()->asDate($upcoming[0], Locale::LENGTH_SHORT) . '</span>';
-        } else {
-            return '<span> Next up: None</span>';
+        if (empty($upcoming)) {
+            return '<span>' . Craft::t('timeloop', 'Next up: None') . '</span>';
         }
+
+        return '<span>' . Craft::t('timeloop', 'Next up: {date}', [
+            'date' => Craft::$app->getFormatter()->asDate($upcoming[0], Locale::LENGTH_SHORT),
+        ]) . '</span>';
     }
 
     /**
@@ -257,14 +234,10 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
 
     /**
      * @inheritdoc
-    */
+     */
     public function isValueEmpty(mixed $value, ElementInterface $element): bool
     {
-        if (($value['loopStartDate'] ?? null) && $value['loopStartDate'] === []) {
-            return parent::isValueEmpty('', $element);
-        }
-
-        return false;
+        return !$value instanceof TimeloopModel || $value->loopStartDate === null;
     }
 
     /**
