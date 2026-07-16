@@ -2,7 +2,7 @@
     "name": "craftpulse/craft-timeloop",
     "description": "This Craft plugin will generate an array of dates between a start and end date based on frequency.",
     "type": "craft-plugin",
-    "version": "5.0.0-beta.3",
+    "version": "5.0.0",
     "keywords": [
         "craft",
         "cms",
@@ -17,7 +17,7 @@
     ],
     "support":{
         "email": "support@craft-pulse.com",
-        "docs": "https://github.com/craftpulse/craft-timeloop/blob/v5/README.md",
+        "docs": "https://github.com/craftpulse/craft-timeloop/blob/develop-v5/README.md",
         "issues": "https://github.com/craftpulse/craft-timeloop/issues"
     },
     "license": "proprietary",
@@ -59,9 +59,10 @@
         "handle": "timeloop",
         "developer": "craftpulse",
         "developerUrl": "https://craft-pulse.com",
-        "documentationUrl": "https://github.com/craftpulse/craft-timeloop/blob/v5/README.md",
-        "changelogUrl": "https://raw.githubusercontent.com/craftpulse/craft-timeloop/v5/CHANGELOG.md",
-        "class": "craftpulse\\timeloop\\Timeloop"
+        "documentationUrl": "https://github.com/craftpulse/craft-timeloop/blob/develop-v5/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/craftpulse/craft-timeloop/develop-v5/CHANGELOG.md",
+        "class": "craftpulse\\timeloop\\Timeloop",
+        "craftcms-claude-skills": "1.2.0"
     },
     "config": {
         "allow-plugins": {
