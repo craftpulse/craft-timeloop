@@ -21,12 +21,32 @@ Timeloop generates arrays of dates between a start and end date based on a frequ
 
 ## Installation
 
-In your Craft project root:
+### Standard Craft CMS Installation
 
-```bash
-composer require craftpulse/craft-timeloop
-./craft plugin/install timeloop
-```
+1. Open your terminal and navigate to your Craft project:
+   ```sh
+   cd /path/to/project
+   ```
+2. Install the plugin via Composer:
+   ```sh
+   composer require craftpulse/craft-timeloop
+   ```
+3. Install the plugin:
+   ```sh
+   ./craft plugin/install timeloop
+   ```
+   Alternatively, activate it via **Settings → Plugins** in the Craft Control Panel.
+
+### Installing on DDEV
+
+1. Install the Timeloop plugin:
+   ```sh
+   ddev composer require craftpulse/craft-timeloop
+   ```
+2. Install the plugin in Craft CMS:
+   ```sh
+   ddev craft plugin/install timeloop
+   ```
 
 Or install through the Plugin Store: **Settings → Plugins → Search "Timeloop"**.
 
