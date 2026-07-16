@@ -28,9 +28,12 @@ use craft\i18n\Locale;
 use craftpulse\timeloop\assetbundles\timeloop\TimeloopAsset;
 use craftpulse\timeloop\gql\types\input\TimeloopInputType;
 use craftpulse\timeloop\models\TimeloopModel;
+use craftpulse\timeloop\models\ValueNormalizer;
 
 use craftpulse\timeloop\Timeloop;
 
+use DateTimeInterface;
+use DateTimeZone;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
@@ -98,6 +101,14 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
 
     /**
      * @inheritdoc
+     *
+     * Normalizes any stored or submitted value to a v2-backed [[TimeloopModel]].
+     * Legacy shapes (4.x, 5.0.0 betas and 5.0.0) and legacy GraphQL mutation
+     * input are upgraded in memory by {@see ValueNormalizer}, so drafts,
+     * revisions, Matrix/Neo-nested values and rows the migration missed keep
+     * working. Empty or unparseable values still normalize to an (empty) model.
+     *
+     * @throws \Exception if a submitted date value cannot be coerced (via {@see DateTimeHelper::toDateTime()}).
      */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
@@ -109,60 +120,31 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             $value = Json::decodeIfJson($value);
         }
 
-        // Empty or unparseable values still normalize to a model, so
-        // downstream consumers can rely on the TimeloopModel API
         if (!is_array($value)) {
-            return new TimeloopModel();
+            $value = [];
         }
 
-        return new TimeloopModel($value);
+        $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+        return new TimeloopModel(ValueNormalizer::normalize($this->_coerceLegacyDates($value), $timezone));
     }
 
     /**
      * @inheritdoc
+     *
+     * Writes the v2 storage shape. Empty values serialize to `null`.
+     *
+     * @throws \Exception if the value cannot be normalized (via [[normalizeValue()]]).
      */
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
-        if (isset($value['loopStartDate']) && DateTimeHelper::toDateTime($value['loopStartDate']) instanceof \DateTime) {
-            $hours = null;
-            $minutes = null;
+        $model = $this->normalizeValue($value, $element);
 
-            if (isset($value['loopStartTime']) && $value['loopStartTime'] instanceof \DateTime) {
-                $time = DateTimeHelper::toDateTime($value['loopStartTime'], true);
-                $hours = $time->format('H');
-                $minutes = $time->format('i');
-            }
-
-            $loopStartDate = DateTimeHelper::toDateTime($value['loopStartDate'], true);
-            $value['loopStartDate'] = $loopStartDate->setTime($hours ?? 0, $minutes ?? 0);
+        if (!$model instanceof TimeloopModel || $model->isEmpty()) {
+            return null;
         }
 
-        if (isset($value['loopEndDate']) && DateTimeHelper::toDateTime($value['loopEndDate']) instanceof \DateTime) {
-            $hours = null;
-            $minutes = null;
-
-            if (isset($value['loopEndTime']) && $value['loopEndTime'] instanceof \DateTime) {
-                $time = DateTimeHelper::toDateTime($value['loopEndTime'], true);
-                $hours = $time->format('H');
-                $minutes = $time->format('i');
-            }
-
-            $loopEndDate = DateTimeHelper::toDateTime($value['loopEndDate'], true);
-            $value['loopEndDate'] = $loopEndDate->setTime($hours ?? 23, $minutes ?? 59);
-        } else {
-            //reset value to null (not a boolean)
-            $value['loopEndDate'] = null;
-        }
-
-        if (isset($value['loopReminderPeriod']) && '' === $value['loopReminderPeriod']) {
-            $value['loopReminderValue'] = 0;
-        }
-
-        if (isset($value['loopPeriod']) && is_string($value['loopPeriod']) && $value['loopPeriod'] !== '') {
-            $value['loopPeriod'] = Json::encode($value['loopPeriod']);
-        }
-
-        return parent::serializeValue($value, $element);
+        return $model->toV2Array();
     }
 
     /**
@@ -237,7 +219,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      */
     public function isValueEmpty(mixed $value, ElementInterface $element): bool
     {
-        return !$value instanceof TimeloopModel || $value->loopStartDate === null;
+        return !$value instanceof TimeloopModel || $value->isEmpty();
     }
 
     /**
@@ -412,5 +394,40 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     public function getContentGqlMutationArgumentType(): Type|array
     {
         return TimeloopInputType::getType($this);
+    }
+
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Coerces control-panel/GraphQL legacy date inputs into ISO-8601 strings.
+     *
+     * The pure {@see ValueNormalizer} accepts date-time objects and strings but
+     * not Craft's date-field POST arrays (`{date, timezone}`); coercing them
+     * here (with a running Craft app available) keeps the normalizer pure. Only
+     * legacy-shaped values are touched; v2 values pass through untouched.
+     *
+     * @param array $value
+     * @return array
+     * @throws \Exception if a date value cannot be coerced (via {@see DateTimeHelper::toDateTime()}).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private function _coerceLegacyDates(array $value): array
+    {
+        if (isset($value['version'])) {
+            return $value;
+        }
+
+        foreach (['loopStartDate', 'loopEndDate', 'loopStartTime', 'loopEndTime'] as $key) {
+            if (!isset($value[$key]) || $value[$key] instanceof DateTimeInterface || is_string($value[$key])) {
+                continue;
+            }
+
+            $value[$key] = DateTimeHelper::toDateTime($value[$key]) ?: null;
+        }
+
+        return $value;
     }
 }
