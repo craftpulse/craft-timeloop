@@ -1,0 +1,76 @@
+/**
+ * Timeloop plugin for Craft CMS 5.x
+ *
+ * Control-panel field styles. Uses Craft's own design tokens so the field sits
+ * naturally inside the element editor in both light and dark modes.
+ *
+ * @author    CraftPulse
+ * @copyright Copyright (c) 2025 CraftPulse
+ * @since     5.1.0
+ */
+
+.timeloop-field .timeloop-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--m, 14px);
+}
+
+.timeloop-field .timeloop-row > .field,
+.timeloop-field .timeloop-row > * {
+  margin-top: 0;
+}
+
+.timeloop-field fieldset {
+  margin-top: var(--l, 24px);
+  border: none;
+  padding: 0;
+}
+
+.timeloop-field fieldset > legend {
+  margin-bottom: var(--xs, 7px);
+}
+
+.timeloop-field .timeloop-indent {
+  margin-top: var(--s, 10px);
+  margin-left: var(--l, 24px);
+}
+
+.timeloop-field .timeloop-daterows {
+  margin-bottom: var(--s, 10px);
+}
+
+.timeloop-field .timeloop-daterow {
+  display: flex;
+  align-items: center;
+  gap: var(--xs, 7px);
+  margin-bottom: var(--xs, 7px);
+}
+
+.timeloop-field .timeloop-advanced {
+  padding: var(--m, 14px);
+  border: 1px solid var(--hairline-color);
+  border-radius: var(--large-border-radius, 5px);
+  background-color: var(--gray-050, #f3f7fc);
+}
+
+.timeloop-field .timeloop-rrule {
+  margin: var(--s, 10px) 0;
+  padding: var(--s, 10px);
+  border-radius: var(--small-border-radius, 3px);
+  background-color: var(--gray-100, #e4edf6);
+  font-family: var(--monospace-font, monospace);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.timeloop-field .timeloop-summary {
+  margin-top: var(--l, 24px);
+  color: var(--medium-text-color, #606d7b);
+  font-style: italic;
+}
+
+.timeloop-field .timeloop-summary:empty {
+  display: none;
+}

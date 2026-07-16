@@ -30,7 +30,6 @@
     "require": {
         "php": "^8.2.0",
         "craftcms/cms": "^5.0.0",
-        "nystudio107/craft-plugin-vite": "^5.0.0",
         "rlanvin/php-rrule": "^2.6",
         "nesbot/carbon": "^2.72.2 || ^3.0",
         "spatie/holidays": "^1.24 || ^2.0"

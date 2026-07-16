@@ -178,6 +178,26 @@ class ValueNormalizer
         'YEARLY' => 'P1Y',
     ];
 
+    /**
+     * @var string[] The RFC 5545 frequencies the control-panel UI can produce and edit.
+     */
+    private const UI_FREQUENCIES = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
+
+    /**
+     * @var string[] The RFC 5545 two-letter weekday codes.
+     */
+    private const WEEKDAYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
+
+    /**
+     * @var string[] RRULE parts the control-panel UI can render as editable controls.
+     *
+     * Any stored rule carrying a part outside this set (e.g. `BYSETPOS`,
+     * `BYMONTH`, `BYMONTHDAY`, `BYWEEKNO`, `BYHOUR`) is not representable by the
+     * simple editor: {@see isUiRepresentable()} returns false for it, and the
+     * field renders the rule read-only while round-tripping it verbatim.
+     */
+    private const UI_RRULE_PARTS = ['FREQ', 'INTERVAL', 'BYDAY', 'UNTIL', 'COUNT', 'WKST'];
+
     // Static Methods
     // =========================================================================
 
@@ -302,7 +322,7 @@ class ValueNormalizer
      * {@see RecurrenceModel}, which is the only class allowed to touch it.
      *
      * @param string $rrule The RRULE string.
-     * @return array{freq: string, interval: int, byday: string[], bymonthday: ?string, until: ?string}
+     * @return array{freq: string, interval: int, byday: string[], bymonthday: ?string, until: ?string, count: ?int}
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -326,11 +346,421 @@ class ValueNormalizer
             'byday' => isset($pairs['BYDAY']) && $pairs['BYDAY'] !== '' ? explode(',', $pairs['BYDAY']) : [],
             'bymonthday' => $pairs['BYMONTHDAY'] ?? null,
             'until' => $pairs['UNTIL'] ?? null,
+            'count' => isset($pairs['COUNT']) && $pairs['COUNT'] !== '' ? (int)$pairs['COUNT'] : null,
         ];
+    }
+
+    /**
+     * Derives the control-panel input control state from a v2 `rrule` string.
+     *
+     * The inverse of the simple-mode branch of {@see inputToV2()}: it maps a
+     * representable rule back onto the frequency / interval / weekday /
+     * position / end-condition controls so the field can pre-fill them. It is
+     * only meaningful for a rule {@see isUiRepresentable()} accepts; an empty
+     * rule yields the editor's defaults.
+     *
+     * @param ?string $rrule The v2 RRULE string.
+     * @return array{frequency: string, interval: int, weekdays: string[], position: string, positionDay: string, endCondition: string, count: ?int}
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public static function rruleToInput(?string $rrule): array
+    {
+        $default = [
+            'frequency' => 'WEEKLY',
+            'interval' => 1,
+            'weekdays' => [],
+            'position' => '',
+            'positionDay' => '',
+            'endCondition' => 'never',
+            'count' => null,
+        ];
+
+        if ($rrule === null || $rrule === '') {
+            return $default;
+        }
+
+        $parts = self::parseRrule($rrule);
+        $weekdays = [];
+        $position = '';
+        $positionDay = '';
+
+        foreach ($parts['byday'] as $token) {
+            if (preg_match('/^(-?\d+)(MO|TU|WE|TH|FR|SA|SU)$/', $token, $matches) === 1) {
+                $position = $matches[1];
+                $positionDay = $matches[2];
+
+                continue;
+            }
+
+            if (in_array($token, self::WEEKDAYS, true)) {
+                $weekdays[] = $token;
+            }
+        }
+
+        return [
+            'frequency' => in_array($parts['freq'], self::UI_FREQUENCIES, true) ? $parts['freq'] : 'DAILY',
+            'interval' => $parts['interval'],
+            'weekdays' => $weekdays,
+            'position' => $position,
+            'positionDay' => $positionDay,
+            'endCondition' => $parts['until'] !== null ? 'until' : ($parts['count'] !== null ? 'count' : 'never'),
+            'count' => $parts['count'],
+        ];
+    }
+
+    /**
+     * Normalizes the control-panel input POST subset into the v2 storage shape.
+     *
+     * The field layer coerces the date-picker POST arrays
+     * (`startDate`/`startTime`/`endTime`/`until`) into plain strings before
+     * handing them here, so this method stays pure (no `Craft::$app`, injected
+     * timezone) and is exercised directly by the Pest suite. An empty
+     * `startDate` yields the canonical empty value.
+     *
+     * In `simple` mode the RRULE is assembled from the curated subset
+     * (`frequency`, `interval`, `weekdays`, `position`/`positionDay`,
+     * `endCondition` + `until`/`count`). In `advanced` mode the posted `rrule`
+     * is round-tripped verbatim, so a rule the editor cannot represent (see
+     * {@see isUiRepresentable()}) survives an edit of its dates, holidays,
+     * times or reminder untouched.
+     *
+     * @param array $input The coerced input POST subset.
+     * @param DateTimeZone $timezone The timezone the value is stored and expanded in.
+     * @return array The v2 value.
+     * @throws \Exception if `startDate` cannot be parsed, or `until` cannot be parsed (via [[_until()]]).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public static function inputToV2(array $input, DateTimeZone $timezone): array
+    {
+        $startDate = self::_string($input['startDate'] ?? null);
+
+        if ($startDate === null) {
+            return self::emptyValue($timezone->getName());
+        }
+
+        $start = new DateTimeImmutable($startDate, $timezone);
+        $startTime = self::_time($input['startTime'] ?? null);
+
+        if ($startTime !== null) {
+            $start = $start->setTime((int)$startTime[0], (int)$startTime[1], 0);
+        }
+
+        $endTime = self::_time($input['endTime'] ?? null);
+        $endTimeString = $endTime !== null ? sprintf('%02d:%02d', $endTime[0], $endTime[1]) : null;
+
+        $mode = ($input['mode'] ?? 'simple') === 'advanced' ? 'advanced' : 'simple';
+        $rawRrule = self::_string($input['rrule'] ?? null);
+        $rrule = $mode === 'advanced' && $rawRrule !== null
+            ? $rawRrule
+            : self::_buildRruleFromInput($input, $endTimeString, $timezone);
+
+        $country = self::_string($input['holidaysCountry'] ?? null);
+        $region = self::_string($input['holidaysRegion'] ?? null);
+        $reminderPeriod = self::_string($input['reminderPeriod'] ?? null);
+
+        return [
+            'version' => self::VERSION,
+            'dtstart' => $start->format('Y-m-d\TH:i:s'),
+            'timezone' => $timezone->getName(),
+            'rrule' => $rrule,
+            'exdates' => self::_dateList($input['exdates'] ?? []),
+            'rdates' => self::_dateList($input['rdates'] ?? []),
+            'holidays' => [
+                'enabled' => (bool)($input['holidaysEnabled'] ?? false),
+                'country' => $country !== null ? strtolower($country) : null,
+                'region' => $region,
+            ],
+            'endTime' => $endTimeString,
+            'reminder' => [
+                'value' => (int)($input['reminderValue'] ?? 0),
+                'period' => $reminderPeriod,
+            ],
+        ];
+    }
+
+    /**
+     * Returns whether an RRULE can be rendered as editable controls by the CP UI.
+     *
+     * The simple editor understands `FREQ` (daily/weekly/monthly/yearly),
+     * `INTERVAL`, `BYDAY` (plain weekdays for a weekly rule, or a single
+     * positional token such as `1MO`/`-1SA` for a monthly rule), and the
+     * `UNTIL`/`COUNT` end conditions. Anything else (`BYSETPOS`, `BYMONTH`,
+     * `BYMONTHDAY`, `BYWEEKNO`, `BYHOUR`, a positional `BYDAY` on a non-monthly
+     * rule, multiple positional tokens, an unsupported frequency, and so on) is
+     * not representable: the field renders it read-only and round-trips it
+     * verbatim rather than silently dropping the advanced parts.
+     *
+     * An empty rule is trivially representable (a fresh value the editor fills in).
+     *
+     * @param ?string $rrule The RRULE string without a `DTSTART`.
+     * @return bool
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public static function isUiRepresentable(?string $rrule): bool
+    {
+        if ($rrule === null || $rrule === '') {
+            return true;
+        }
+
+        $pairs = [];
+
+        foreach (explode(';', $rrule) as $segment) {
+            if (!str_contains($segment, '=')) {
+                continue;
+            }
+
+            [$key, $val] = explode('=', $segment, 2);
+            $pairs[strtoupper(trim($key))] = trim($val);
+        }
+
+        if (array_diff(array_keys($pairs), self::UI_RRULE_PARTS) !== []) {
+            return false;
+        }
+
+        $freq = strtoupper($pairs['FREQ'] ?? '');
+
+        if (!in_array($freq, self::UI_FREQUENCIES, true)) {
+            return false;
+        }
+
+        if (!isset($pairs['BYDAY']) || $pairs['BYDAY'] === '') {
+            return true;
+        }
+
+        return self::_isUiRepresentableByday($pairs['BYDAY'], $freq);
     }
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Returns whether a `BYDAY` value is representable for the given frequency.
+     *
+     * Plain weekday tokens (`MO,FR`) are representable only for a weekly rule; a
+     * single positional token (`1MO`, `-1SA`) only for a monthly rule. Any mix,
+     * multiple positional tokens, or an unrecognized token is not representable.
+     *
+     * @param string $byday The raw `BYDAY` value.
+     * @param string $freq The uppercase RFC frequency.
+     * @return bool
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private static function _isUiRepresentableByday(string $byday, string $freq): bool
+    {
+        $tokens = explode(',', $byday);
+        $positional = false;
+        $plain = false;
+
+        foreach ($tokens as $token) {
+            if (in_array($token, self::WEEKDAYS, true)) {
+                $plain = true;
+
+                continue;
+            }
+
+            if (preg_match('/^-?\d+(MO|TU|WE|TH|FR|SA|SU)$/', $token) === 1) {
+                $positional = true;
+
+                continue;
+            }
+
+            return false;
+        }
+
+        if ($positional) {
+            return !$plain && count($tokens) === 1 && $freq === 'MONTHLY';
+        }
+
+        return $freq === 'WEEKLY';
+    }
+
+    /**
+     * Builds the RRULE string from the curated control-panel input subset.
+     *
+     * @param array $input The input POST subset.
+     * @param ?string $endTime The resolved end time (`H:i`), used for the `UNTIL` boundary.
+     * @param DateTimeZone $timezone
+     * @return string
+     * @throws \Exception if `until` cannot be parsed (via [[_inputUntil()]]).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private static function _buildRruleFromInput(array $input, ?string $endTime, DateTimeZone $timezone): string
+    {
+        $freq = strtoupper(self::_string($input['frequency'] ?? '') ?? '');
+
+        if (!in_array($freq, self::UI_FREQUENCIES, true)) {
+            $freq = 'DAILY';
+        }
+
+        $parts = ["FREQ=$freq"];
+        $interval = max(1, (int)($input['interval'] ?? 1));
+
+        if ($interval > 1) {
+            $parts[] = "INTERVAL=$interval";
+        }
+
+        $byday = self::_bydayFromInput($freq, $input);
+
+        if ($byday !== null) {
+            $parts[] = "BYDAY=$byday";
+        }
+
+        $endCondition = self::_string($input['endCondition'] ?? null);
+
+        if ($endCondition === 'count') {
+            $parts[] = 'COUNT=' . max(1, (int)($input['count'] ?? 1));
+        } elseif ($endCondition === 'until') {
+            $until = self::_inputUntil(self::_string($input['until'] ?? null), $endTime, $timezone);
+
+            if ($until !== null) {
+                $parts[] = "UNTIL=$until";
+            }
+        }
+
+        return implode(';', $parts);
+    }
+
+    /**
+     * Returns the `BYDAY` value for the curated input subset, or null.
+     *
+     * @param string $freq The uppercase RFC frequency.
+     * @param array $input The input POST subset.
+     * @return ?string
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private static function _bydayFromInput(string $freq, array $input): ?string
+    {
+        if ($freq === 'WEEKLY') {
+            $codes = array_values(array_filter(
+                (array)($input['weekdays'] ?? []),
+                static fn(mixed $code): bool => in_array($code, self::WEEKDAYS, true),
+            ));
+
+            return $codes === [] ? null : implode(',', $codes);
+        }
+
+        if ($freq !== 'MONTHLY') {
+            return null;
+        }
+
+        $position = (int)($input['position'] ?? 0);
+        $day = self::_string($input['positionDay'] ?? null);
+
+        if (!isset(self::POSITION_TO_ORDINAL[$position]) || $day === null || !in_array($day, self::WEEKDAYS, true)) {
+            return null;
+        }
+
+        return $position . $day;
+    }
+
+    /**
+     * Returns the RRULE `UNTIL` value (UTC, `Ymd\THis\Z`) for a UI end date.
+     *
+     * Unlike {@see _until()} (the legacy path, which parses offset-carrying ISO
+     * strings), the UI posts a bare `Y-m-d` date. It is interpreted directly in
+     * the value's timezone so the wall-clock day is preserved before converting
+     * to UTC for the boundary.
+     *
+     * @param ?string $date The bare `Y-m-d` end date, or null.
+     * @param ?string $endTime The resolved end time (`H:i`), or null (defaults to `23:59`).
+     * @param DateTimeZone $timezone
+     * @return ?string
+     * @throws \Exception if `$date` is not a valid date string.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private static function _inputUntil(?string $date, ?string $endTime, DateTimeZone $timezone): ?string
+    {
+        if ($date === null) {
+            return null;
+        }
+
+        [$hour, $minute] = $endTime !== null
+            ? array_map('intval', explode(':', $endTime))
+            : [23, 59];
+
+        return (new DateTimeImmutable($date, $timezone))
+            ->setTime($hour, $minute, 0)
+            ->setTimezone(new DateTimeZone('UTC'))
+            ->format('Ymd\THis\Z');
+    }
+
+    /**
+     * Normalizes a scalar input value into a non-empty trimmed string, or null.
+     *
+     * @param mixed $value
+     * @return ?string
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private static function _string(mixed $value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        return $value !== '' ? $value : null;
+    }
+
+    /**
+     * Parses an `H:i` (or ISO) time string into an `[hour, minute]` pair, or null.
+     *
+     * @param mixed $value
+     * @return ?int[] A two-element `[hour, minute]` list, or null.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private static function _time(mixed $value): ?array
+    {
+        $value = self::_string($value);
+
+        if ($value === null || preg_match('/(\d{1,2}):(\d{2})/', $value, $matches) !== 1) {
+            return null;
+        }
+
+        return [(int)$matches[1], (int)$matches[2]];
+    }
+
+    /**
+     * Filters a list of date values into unique non-empty trimmed strings.
+     *
+     * @param mixed $value An array of date strings, or a scalar.
+     * @return string[]
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private static function _dateList(mixed $value): array
+    {
+        $dates = [];
+
+        foreach ((array)$value as $date) {
+            $date = self::_string($date);
+
+            if ($date !== null) {
+                $dates[$date] = true;
+            }
+        }
+
+        return array_keys($dates);
+    }
 
     /**
      * Backfills a v2 value's optional keys to their defaults (idempotent path).

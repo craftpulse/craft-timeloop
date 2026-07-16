@@ -15,7 +15,6 @@ use craft\base\Plugin;
 use craft\events\RegisterComponentTypesEvent;
 use craft\services\Fields;
 use craft\web\twig\variables\CraftVariable;
-use craftpulse\timeloop\assetbundles\timeloop\TimeloopAsset;
 use craftpulse\timeloop\fields\TimeloopField;
 use craftpulse\timeloop\models\SettingsModel as Settings;
 use craftpulse\timeloop\services\HolidaysService;
@@ -23,13 +22,11 @@ use craftpulse\timeloop\services\ServicesTrait;
 use craftpulse\timeloop\services\TimeloopService;
 use craftpulse\timeloop\twigextensions\TimeloopTwigExtension;
 use craftpulse\timeloop\variables\TimeloopVariable;
-use nystudio107\pluginvite\services\VitePluginService;
 use yii\base\Event;
 
 /**
  * Timeloop plugin entry point.
  *
- * @property VitePluginService $vite
  * @property TimeloopService $timeloop
  * @property HolidaysService $holidays
  *
@@ -87,16 +84,6 @@ class Timeloop extends Plugin
             'components' => [
                 'timeloop' => TimeloopService::class,
                 'holidays' => HolidaysService::class,
-                'vite' => [
-                    'class' => VitePluginService::class,
-                    'assetClass' => TimeloopAsset::class,
-                    'useDevServer' => true,
-                    'devServerPublic' => 'http://localhost:3001',
-                    'serverPublic' => 'http://localhost:8000',
-                    'errorEntry' => '/src/js/timeloop.ts',
-                    'devServerInternal' => 'http://craft-timeloop-buildchain:3001',
-                    'checkDevServer' => true,
-                ],
             ],
         ];
     }
@@ -128,10 +115,7 @@ class Timeloop extends Plugin
             function(Event $event): void {
                 /** @var CraftVariable $variable */
                 $variable = $event->sender;
-                $variable->set('timeloop', [
-                    'class' => TimeloopVariable::class,
-                    'viteService' => $this->vite,
-                ]);
+                $variable->set('timeloop', TimeloopVariable::class);
             }
         );
 

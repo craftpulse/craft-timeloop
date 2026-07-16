@@ -14,8 +14,6 @@ use craft\base\Model;
 use craftpulse\timeloop\models\TimeloopModel;
 use craftpulse\timeloop\Timeloop;
 use DateTime;
-use nystudio107\pluginvite\variables\ViteVariableInterface;
-use nystudio107\pluginvite\variables\ViteVariableTrait;
 
 /**
  * Timeloop template variable, available as `craft.timeloop`.
@@ -23,13 +21,8 @@ use nystudio107\pluginvite\variables\ViteVariableTrait;
  * @author CraftPulse
  * @since 1.0.0
  */
-class TimeloopVariable implements ViteVariableInterface
+class TimeloopVariable
 {
-    // Traits
-    // =========================================================================
-
-    use ViteVariableTrait;
-
     // Public Methods
     // =========================================================================
 

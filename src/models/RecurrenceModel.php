@@ -151,6 +151,42 @@ class RecurrenceModel extends Model
     }
 
     /**
+     * Returns a localized, human-readable summary of the recurrence rule.
+     *
+     * Wraps the library's `humanReadable()` (which ships 18 locales, including
+     * en, nl, fr and de). The locale is passed straight through; an unknown or
+     * partially-supported locale falls back to English rather than throwing.
+     * The summary describes the RRULE only (frequency, interval, by-day,
+     * end condition) and deliberately ignores the injected holiday exclusions,
+     * which are resolved per-year at read time and are not part of the rule.
+     *
+     * Returns null when there is no rule to describe.
+     *
+     * @param ?string $locale The locale to render in (e.g. `nl`, `fr-FR`); null autodetects.
+     * @return ?string
+     * @throws \InvalidArgumentException if the rule cannot be parsed, or the locale is malformed
+     * and the `intl` extension is unavailable.
+     * @throws \Exception if [[dtstart]] or [[timezone]] cannot be parsed into a date-time (see [[_dtstart()]]).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function summary(?string $locale = null): ?string
+    {
+        if ($this->rrule === null || $this->rrule === '' || $this->dtstart === null) {
+            return null;
+        }
+
+        $options = ['fallback' => 'en'];
+
+        if ($locale !== null && $locale !== '') {
+            $options['locale'] = $locale;
+        }
+
+        return (new RRule($this->rrule, $this->_dtstart()))->humanReadable($options);
+    }
+
+    /**
      * Returns the extra exclusion dates injected from elsewhere (e.g. holidays).
      *
      * @return string[]

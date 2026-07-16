@@ -23,6 +23,7 @@ use craft\helpers\DateTimeHelper;
 
 use craft\helpers\Gql;
 use craft\helpers\Json;
+use craft\helpers\UrlHelper;
 
 use craft\i18n\Locale;
 use craftpulse\timeloop\assetbundles\timeloop\TimeloopAsset;
@@ -88,6 +89,37 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         return Craft::getAlias('@craftpulse/timeloop/icon-mask.svg');
     }
 
+    /**
+     * Coerces the control-panel input POST's date-picker arrays into plain strings.
+     *
+     * The date/time form macros post `{date|time, timezone, locale}` arrays; the
+     * pure {@see ValueNormalizer::inputToV2()} expects plain `Y-m-d`/`H:i`
+     * strings. This shared coercion (used by both [[normalizeValue()]] and
+     * {@see \craftpulse\timeloop\controllers\SummaryController}) needs a running
+     * Craft app for {@see DateTimeHelper::toDateTime()}, so it lives here rather
+     * than in the pure normalizer. Values already given as strings pass through.
+     *
+     * @param array $input The raw input POST subset.
+     * @return array The same subset with `startDate`/`until` reduced to `Y-m-d` and
+     * `startTime`/`endTime` reduced to `H:i` strings (or null).
+     * @throws \Exception if a date value cannot be coerced (via {@see DateTimeHelper::toDateTime()}).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public static function coerceInputDates(array $input): array
+    {
+        foreach (['startDate', 'until'] as $key) {
+            $input[$key] = self::_coerceDate($input[$key] ?? null, 'Y-m-d');
+        }
+
+        foreach (['startTime', 'endTime'] as $key) {
+            $input[$key] = self::_coerceDate($input[$key] ?? null, 'H:i');
+        }
+
+        return $input;
+    }
+
     // Public Methods
     // =========================================================================
 
@@ -107,7 +139,8 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     {
         $rules = parent::defineRules();
         $rules[] = [['showTime'], 'boolean'];
-        $rules[] = [['defaultHolidaysCountry'], 'string'];
+        $rules[] = [['defaultHolidaysCountry'], 'filter', 'filter' => 'strtolower', 'skipOnEmpty' => true];
+        $rules[] = [['defaultHolidaysCountry'], 'match', 'pattern' => '/^[a-z]{2}$/', 'skipOnEmpty' => true, 'message' => Craft::t('timeloop', 'Enter a two-letter country code, for example "be".')];
         $rules[] = [['defaultHolidaysCountry'], 'default', 'value' => null];
 
         return $rules;
@@ -117,13 +150,23 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * @inheritdoc
      *
      * Normalizes any stored or submitted value to a v2-backed [[TimeloopModel]].
-     * Legacy shapes (4.x, 5.0.0 betas and 5.0.0) and legacy GraphQL mutation
-     * input are upgraded in memory by {@see ValueNormalizer}, so drafts,
-     * revisions, Matrix/Neo-nested values and rows the migration missed keep
-     * working. Empty or unparseable values still normalize to an (empty) model.
+     * Three input shapes are recognized:
+     *
+     * - a control-panel form submission (discriminated by the hidden `mode`
+     *   key the new UI always posts) is built into v2 by
+     *   {@see ValueNormalizer::inputToV2()} after its date-picker POST arrays
+     *   are coerced to plain strings by [[coerceInputDates()]];
+     * - a legacy shape (4.x, 5.0.0 betas and 5.0.0) or legacy GraphQL mutation
+     *   input is upgraded by {@see ValueNormalizer::normalize()};
+     * - a stored v2 value is normalized idempotently by the same method.
+     *
+     * So drafts, revisions, Matrix/Neo-nested values and rows the migration
+     * missed keep working. Empty or unparseable values still normalize to an
+     * (empty) model.
      *
      * @throws \Exception if a submitted date value cannot be coerced (via {@see DateTimeHelper::toDateTime()}),
-     * or if a stored date string cannot be parsed (via {@see ValueNormalizer::normalize()}).
+     * or if a stored date string cannot be parsed (via {@see ValueNormalizer::normalize()} /
+     * {@see ValueNormalizer::inputToV2()}).
      */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
@@ -140,7 +183,12 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         }
 
         $timezone = new DateTimeZone(Craft::$app->getTimeZone());
-        $model = new TimeloopModel(ValueNormalizer::normalize($this->_coerceLegacyDates($value), $timezone));
+
+        $v2 = isset($value['mode'])
+            ? ValueNormalizer::inputToV2(self::coerceInputDates($value), $timezone)
+            : ValueNormalizer::normalize($this->_coerceLegacyDates($value), $timezone);
+
+        $model = new TimeloopModel($v2);
 
         // Stamp the field-level default country onto the value for the read-time
         // holiday resolution chain. Runtime only: it is excluded from storage.
@@ -177,6 +225,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             'timeloop/fields/timeloop-settings',
             [
                 'settings' => $this->getSettings(),
+                'field' => $this,
             ]
         );
     }
@@ -211,27 +260,33 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
-        // Register our asset bundle
-        Craft::$app->getView()->registerAssetBundle(TimeloopAsset::class);
+        $view = Craft::$app->getView();
+        $view->registerAssetBundle(TimeloopAsset::class);
 
-        // Get our id and namespace
-        $id = Craft::$app->getView()->formatInputId($this->handle);
-        $nameSpacedId = Craft::$app->getView()->namespaceInputId($id);
+        if (!$value instanceof TimeloopModel) {
+            $value = $this->normalizeValue($value, $element);
+        }
 
-        // Render the input template
-        return Craft::$app->getView()->renderTemplate(
-            'timeloop/fields/timeloop-input',
-            [
-                'name' => $this->handle,
-                'value' => $value,
-                'field' => $this,
-                'required' => $this->required,
-                'id' => $id,
-                'nameSpacedId' => $nameSpacedId,
-                'settings' => $this->getSettings(),
-                'prefix' => Craft::$app->getView()->namespaceInputId(''),
-            ]
-        );
+        $id = $view->formatInputId($this->handle);
+
+        // A representable rule pre-fills the simple controls; an advanced rule
+        // (BYSETPOS, BYMONTH, ...) is round-tripped read-only until the editor
+        // opts into the simple editor and drops the advanced parts.
+        $representable = ValueNormalizer::isUiRepresentable($value->rrule);
+
+        return $view->renderTemplate('timeloop/fields/timeloop-input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+            'required' => $this->required,
+            'id' => $id,
+            'namespacedId' => $view->namespaceInputId($id),
+            'showTime' => (bool)$this->showTime,
+            'representable' => $representable,
+            'rule' => ValueNormalizer::rruleToInput($value->rrule),
+            'holidayCountryPlaceholder' => Timeloop::$plugin->getHolidays()->resolveCountry(null, $this->defaultHolidaysCountry),
+            'summaryAction' => UrlHelper::actionUrl('timeloop/summary'),
+        ]);
     }
 
     /**
@@ -418,6 +473,32 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Coerces a single date-picker POST value into a formatted string, or null.
+     *
+     * @param mixed $value A date/time picker POST array, a string, or null/empty.
+     * @param string $format The target format (`Y-m-d` or `H:i`).
+     * @return ?string
+     * @throws \Exception if the value cannot be coerced (via {@see DateTimeHelper::toDateTime()}).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private static function _coerceDate(mixed $value, string $format): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_string($value)) {
+            return trim($value) !== '' ? trim($value) : null;
+        }
+
+        $date = DateTimeHelper::toDateTime($value);
+
+        return $date instanceof DateTimeInterface ? $date->format($format) : null;
+    }
 
     /**
      * Coerces control-panel/GraphQL legacy date inputs into ISO-8601 strings.

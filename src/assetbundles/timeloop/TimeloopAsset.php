@@ -14,10 +14,15 @@ use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 
 /**
+ * Timeloop control-panel asset bundle.
  *
- * @author    craftpulse
- * @package   Timeloop
- * @since     1.0.0
+ * As of 5.1.0 this is a plain, hand-written bundle: no Vite, no build step, no
+ * npm. It publishes a single Garnish component ({@see timeloop.js}) and a single
+ * stylesheet ({@see timeloop.css}) from `web/assets/timeloop`, and depends on
+ * {@see CpAsset} so Garnish and jQuery are guaranteed loaded first.
+ *
+ * @author CraftPulse
+ * @since 1.0.0
  */
 class TimeloopAsset extends AssetBundle
 {
@@ -25,16 +30,22 @@ class TimeloopAsset extends AssetBundle
     // =========================================================================
 
     /**
-     * Initializes the bundle.
+     * @inheritdoc
      */
     public function init(): void
     {
-        // define the path that your publishable resources live
-        $this->sourcePath = "@craftpulse/timeloop/web/assets/dist";
+        $this->sourcePath = '@craftpulse/timeloop/web/assets/timeloop';
 
-        // define the dependencies
         $this->depends = [
             CpAsset::class,
+        ];
+
+        $this->js = [
+            'timeloop.js',
+        ];
+
+        $this->css = [
+            'timeloop.css',
         ];
 
         parent::init();

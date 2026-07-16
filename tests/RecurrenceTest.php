@@ -530,6 +530,56 @@ it('resolves activeAt and nextOccurrence correctly when the input date-time is i
         ->and($model->nextOccurrence($utcInstant)->format('Y-m-d'))->toBe('2026-01-19');
 });
 
+// Human-readable summary
+// -------------------------------------------------------------------------
+// Only the model method lands this phase; full Twig/GQL exposure and the
+// plugin translation files are Phase 5. `humanReadable()` ships its own
+// locale catalogue, so `en`/`nl`/`fr` render without any plugin translations.
+
+it('renders an English summary of the rule', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T09:00:00',
+        'timezone' => 'UTC',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=5',
+    ]);
+
+    expect($model->summary('en'))->toContain('weekly')
+        ->and($model->summary('en'))->toContain('Monday');
+});
+
+it('passes the locale through to the library catalogue', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T09:00:00',
+        'timezone' => 'UTC',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=5',
+    ]);
+
+    expect($model->summary('nl'))->toContain('wekelijks')
+        ->and($model->summary('nl'))->not->toBe($model->summary('en'));
+});
+
+it('falls back to English wording for a locale the catalogue lacks', function() {
+    // `is` (Icelandic) is a valid locale intl can construct, but the library
+    // ships no `is` catalogue, so the rule wording falls back to English.
+    $model = recurrence([
+        'dtstart' => '2026-01-05T09:00:00',
+        'timezone' => 'UTC',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=5',
+    ]);
+
+    expect($model->summary('is'))->toContain('weekly');
+});
+
+it('returns null when there is no rule to summarize', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T09:00:00',
+        'timezone' => 'UTC',
+        'rrule' => null,
+    ]);
+
+    expect($model->summary())->toBeNull();
+});
+
 it('matches occursAt regardless of the input timezone or DateTime mutability', function() {
     // rlanvin/php-rrule's RRule::occursAt() converts the input to the rule's
     // timezone via `$date->setTimezone(...)` without reassigning the result —

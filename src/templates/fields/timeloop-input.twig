@@ -3,134 +3,297 @@
 /**
  * Timeloop plugin for Craft CMS 5.x
  *
- * Timeloop Field Input
+ * Timeloop field input. Form-macro controls plus one Garnish component
+ * (Craft.TimeloopField) that toggles the frequency-dependent controls, switches
+ * the end condition, manages the exclusion/extra date rows, and refreshes the
+ * live localized summary from the timeloop/summary action.
  *
- * @author    craftpulse
- * @copyright Copyright (c) 2024 CraftPulse
- * @link      https://craftpulse.com
+ * @author    CraftPulse
+ * @copyright Copyright (c) 2025 CraftPulse
  * @package   Timeloop
- * @since     0.1.0
+ * @since     5.1.0
  */
 #}
 
-{% set scriptTagOptions = {
-    'depends': [
-        'craftpulse\\timeloop\\assetbundles\\timeloop\\TimeloopAsset'
-    ],
-} %}
-
-{{ craft.timeloop.register('/src/js/timeloop.ts', false, scriptTagOptions) }}
-{{ craft.timeloop.register('/src/js/timeloop-field.ts', false, scriptTagOptions) }}
-
 {% import "_includes/forms" as forms %}
 
-{%- set showTime = settings.showTime ?? false -%}
+{% set weekdayOptions = [
+    { label: 'Mon'|t('timeloop'), value: 'MO' },
+    { label: 'Tue'|t('timeloop'), value: 'TU' },
+    { label: 'Wed'|t('timeloop'), value: 'WE' },
+    { label: 'Thu'|t('timeloop'), value: 'TH' },
+    { label: 'Fri'|t('timeloop'), value: 'FR' },
+    { label: 'Sat'|t('timeloop'), value: 'SA' },
+    { label: 'Sun'|t('timeloop'), value: 'SU' },
+] %}
 
-<div id="{{ id }}" class="bg-gray-100 p-6">
+{% set positionDayOptions = [
+    { label: 'Monday'|t('timeloop'), value: 'MO' },
+    { label: 'Tuesday'|t('timeloop'), value: 'TU' },
+    { label: 'Wednesday'|t('timeloop'), value: 'WE' },
+    { label: 'Thursday'|t('timeloop'), value: 'TH' },
+    { label: 'Friday'|t('timeloop'), value: 'FR' },
+    { label: 'Saturday'|t('timeloop'), value: 'SA' },
+    { label: 'Sunday'|t('timeloop'), value: 'SU' },
+] %}
 
-    <div class="flex flex-nowrap items-start -mx-8">
+<div id="{{ id }}" class="timeloop-field">
 
-        <div class="w-1/2 px-8">
+    {{ forms.hidden({
+        name: name ~ '[mode]',
+        value: representable ? 'simple' : 'advanced',
+        inputAttributes: { data: { timeloop: 'mode' } },
+    }) }}
 
-            {{- forms.dateField({
-                label: 'Start date',
-                instructions: 'Enter a date when the loop should start',
-                name: name ~ '[loopStartDate]',
-                value: value.loopStartDate ?? now,
-                required: false,
-            }) -}}
+    {{ forms.hidden({
+        name: name ~ '[rrule]',
+        value: value.rrule,
+        inputAttributes: { data: { timeloop: 'rrule' } },
+    }) }}
 
-        </div>
-        <div class="w-1/2 px-8">
+    {# Start date + times #}
+    <div class="timeloop-row">
+        {{ forms.dateField({
+            label: 'Start date'|t('timeloop'),
+            instructions: 'The date the recurrence starts.'|t('timeloop'),
+            name: name ~ '[startDate]',
+            value: value.loopStartDate ?? null,
+            required: required,
+        }) }}
 
-            {{- forms.dateField({
-                label: 'End date',
-                instructions: 'Enter a date when the loop should end',
-                name: name ~ '[loopEndDate]',
-                value: value.loopEndDate ?? null,
-                required: false,
-            }) -}}
+        {% if showTime %}
+            {{ forms.timeField({
+                label: 'Start time'|t('timeloop'),
+                name: name ~ '[startTime]',
+                value: value.loopStartTime ?? null,
+            }) }}
 
-        </div>
+            {{ forms.timeField({
+                label: 'End time'|t('timeloop'),
+                instructions: 'When each occurrence ends.'|t('timeloop'),
+                name: name ~ '[endTime]',
+                value: value.loopEndTime ?? null,
+            }) }}
+        {% endif %}
     </div>
 
-    {% if showTime %}
+    <hr>
 
-        <div class="flex flex-nowrap items-start -mx-8 mt-6">
-            <div class="w-1/2 px-8">
-                {{- forms.timeField({
-                    label: 'Start time',
-                    instructions: 'Enter a start time',
-                    name: name ~ '[loopStartTime]',
-                    value: value.loopStartTime ?? null,
-                    required: false,
-                }) -}}
-            </div>
-            <div class="w-1/2 px-8">
-                {{- forms.timeField({
-                    label: 'End time',
-                    instructions: 'Enter an end time',
-                    name: name ~ '[loopEndTime]',
-                    value: value.loopEndTime ?? null,
-                    required: false,
-                }) -}}
-            </div>
+    {# Advanced (non-representable) rule notice #}
+    <div data-timeloop-region="advanced" class="timeloop-advanced{{ representable ? ' hidden' : '' }}">
+        <div class="readable">
+            <p>{{ 'This recurrence uses an advanced rule the simple editor cannot show. It is kept exactly as stored.'|t('timeloop') }}</p>
         </div>
-
-    {% endif %}
-
-    <hr />
-
-    {% set loopPeriodOptions = {
-        label: 'Loop Period',
-        instructions: "Select a frequency and provide an interval for the loop",
-        name: '[' ~ name ~ ']' ~ '[loopPeriod]',
-        value: value.loopPeriod ?? null,
-        id: name ~ '[loopPeriod]',
-        required: false,
-    } %}
-
-    <div id="{{- name -}}_timeloop" class="mt-6">
-        <loop-period :options="{{- loopPeriodOptions | json_encode -}}"></loop-period>
+        <pre class="timeloop-rrule">{{ value.rrule }}</pre>
+        <button type="button" class="btn" data-timeloop-action="edit-simple">
+            {{ 'Edit as a simple rule'|t('timeloop') }}
+        </button>
+        <p class="light">{{ 'Switching to the simple editor drops the advanced parts of the rule.'|t('timeloop') }}</p>
     </div>
 
-    <hr />
+    {# Simple rule controls #}
+    <div data-timeloop-region="simple" class="timeloop-simple{{ representable ? '' : ' hidden' }}">
 
+        <div class="timeloop-row">
+            {{ forms.selectField({
+                label: 'Frequency'|t('timeloop'),
+                name: name ~ '[frequency]',
+                value: rule.frequency,
+                options: [
+                    { label: 'Daily'|t('timeloop'), value: 'DAILY' },
+                    { label: 'Weekly'|t('timeloop'), value: 'WEEKLY' },
+                    { label: 'Monthly'|t('timeloop'), value: 'MONTHLY' },
+                    { label: 'Yearly'|t('timeloop'), value: 'YEARLY' },
+                ],
+            }) }}
+
+            {{ forms.textField({
+                label: 'Repeat every'|t('timeloop'),
+                instructions: 'Interval between occurrences.'|t('timeloop'),
+                name: name ~ '[interval]',
+                value: rule.interval,
+                type: 'number',
+                size: 4,
+                inputAttributes: { min: 1, step: 1 },
+            }) }}
+        </div>
+
+        {# Weekly: by-day #}
+        <fieldset data-timeloop-region="weekly"{{ rule.frequency == 'WEEKLY' ? '' : ' class="hidden"' }}>
+            <legend class="h6">{{ 'On these days'|t('timeloop') }}</legend>
+            {{ forms.checkboxGroup({
+                name: name ~ '[weekdays]',
+                values: rule.weekdays,
+                options: weekdayOptions,
+            }) }}
+        </fieldset>
+
+        {# Monthly: by-position #}
+        <fieldset data-timeloop-region="monthly"{{ rule.frequency == 'MONTHLY' ? '' : ' class="hidden"' }}>
+            <legend class="h6">{{ 'On the'|t('timeloop') }}</legend>
+            <div class="timeloop-row">
+                {{ forms.select({
+                    name: name ~ '[position]',
+                    value: rule.position,
+                    options: [
+                        { label: 'Day of the month'|t('timeloop'), value: '' },
+                        { label: 'First'|t('timeloop'), value: '1' },
+                        { label: 'Second'|t('timeloop'), value: '2' },
+                        { label: 'Third'|t('timeloop'), value: '3' },
+                        { label: 'Fourth'|t('timeloop'), value: '4' },
+                        { label: 'Last'|t('timeloop'), value: '-1' },
+                    ],
+                }) }}
+
+                {{ forms.select({
+                    name: name ~ '[positionDay]',
+                    value: rule.positionDay ?: 'MO',
+                    options: positionDayOptions,
+                }) }}
+            </div>
+        </fieldset>
+
+        {# End condition #}
+        <fieldset>
+            <legend class="h6">{{ 'Ends'|t('timeloop') }}</legend>
+            {{ forms.radioGroup({
+                name: name ~ '[endCondition]',
+                value: rule.endCondition,
+                options: [
+                    { label: 'Never'|t('timeloop'), value: 'never' },
+                    { label: 'On date'|t('timeloop'), value: 'until' },
+                    { label: 'After a number of occurrences'|t('timeloop'), value: 'count' },
+                ],
+            }) }}
+
+            <div data-timeloop-region="until" class="timeloop-indent{{ rule.endCondition == 'until' ? '' : ' hidden' }}">
+                {{ forms.date({
+                    name: name ~ '[until]',
+                    value: value.loopEndDate ?? null,
+                }) }}
+            </div>
+
+            <div data-timeloop-region="count" class="timeloop-indent{{ rule.endCondition == 'count' ? '' : ' hidden' }}">
+                {{ forms.text({
+                    name: name ~ '[count]',
+                    value: rule.count,
+                    type: 'number',
+                    size: 5,
+                    inputAttributes: { min: 1, step: 1 },
+                }) }}
+            </div>
+        </fieldset>
+    </div>
+
+    <hr>
+
+    {# Exclusion dates (EXDATE) #}
     <div class="field">
         <div class="heading">
-            <label>Reminder</label>
+            <label>{{ 'Excluded dates'|t('timeloop') }}</label>
         </div>
-        <div class="instructions">
-            <span>Set a reminder for the loop, an alert will be sent for every generated date.</span>
+        <div class="instructions"><p>{{ 'Dates removed from the recurrence.'|t('timeloop') }}</p></div>
+        <div data-timeloop-region="exdates" class="timeloop-daterows">
+            {% for exdate in value.exdates %}
+                <div class="timeloop-daterow">
+                    <input type="date" class="text" name="{{ name }}[exdates][]" value="{{ exdate }}">
+                    <button type="button" class="delete icon" data-timeloop-action="remove-row" title="{{ 'Remove'|t('timeloop') }}"></button>
+                </div>
+            {% endfor %}
         </div>
+        <button type="button" class="btn add icon" data-timeloop-action="add-row" data-timeloop-target="exdates">
+            {{ 'Add an excluded date'|t('timeloop') }}
+        </button>
+    </div>
 
-        <div class="flex flex-nowrap">
+    {# Extra dates (RDATE) #}
+    <div class="field">
+        <div class="heading">
+            <label>{{ 'Extra dates'|t('timeloop') }}</label>
+        </div>
+        <div class="instructions"><p>{{ 'One-off dates added to the recurrence.'|t('timeloop') }}</p></div>
+        <div data-timeloop-region="rdates" class="timeloop-daterows">
+            {% for rdate in value.rdates %}
+                <div class="timeloop-daterow">
+                    <input type="date" class="text" name="{{ name }}[rdates][]" value="{{ rdate }}">
+                    <button type="button" class="delete icon" data-timeloop-action="remove-row" title="{{ 'Remove'|t('timeloop') }}"></button>
+                </div>
+            {% endfor %}
+        </div>
+        <button type="button" class="btn add icon" data-timeloop-action="add-row" data-timeloop-target="rdates">
+            {{ 'Add an extra date'|t('timeloop') }}
+        </button>
+    </div>
 
-            {{- forms.text({
-                name: name ~ "[loopReminderValue]",
-                value: value.loopReminderValue ?? "",
-                id: name ~ "[loopReminderValue]",
-                type: 'number',
-                class: 'w-16',
+    <hr>
+
+    {# Public holidays #}
+    <fieldset>
+        <legend class="h6">{{ 'Public holidays'|t('timeloop') }}</legend>
+        {{ forms.lightswitchField({
+            label: 'Exclude public holidays'|t('timeloop'),
+            instructions: 'Skip occurrences that fall on a public holiday.'|t('timeloop'),
+            name: name ~ '[holidaysEnabled]',
+            on: value.holidays.enabled ?? false,
+        }) }}
+
+        <div data-timeloop-region="holidays-detail" class="timeloop-row{{ (value.holidays.enabled ?? false) ? '' : ' hidden' }}">
+            {{ forms.textField({
+                label: 'Country'|t('timeloop'),
+                instructions: 'Two-letter country code.'|t('timeloop'),
+                name: name ~ '[holidaysCountry]',
+                value: value.holidays.country ?? null,
+                placeholder: holidayCountryPlaceholder,
+                size: 6,
+            }) }}
+
+            {{ forms.textField({
+                label: 'Region'|t('timeloop'),
+                instructions: 'Optional region code, for example DE-BY.'|t('timeloop'),
+                name: name ~ '[holidaysRegion]',
+                value: value.holidays.region ?? null,
                 size: 10,
-                required: false,
-            }) -}}
+            }) }}
+        </div>
+    </fieldset>
 
-            {{- forms.select({
-                id: name ~ "[loopReminderPeriod]",
-                name: name ~ "[loopReminderPeriod]",
-                value: value.loopReminderPeriod ?? null,
+    <hr>
+
+    {# Reminder #}
+    <div class="field">
+        <div class="heading">
+            <label>{{ 'Reminder'|t('timeloop') }}</label>
+        </div>
+        <div class="instructions"><p>{{ 'A lead time computed before each occurrence.'|t('timeloop') }}</p></div>
+        <div class="timeloop-row">
+            {{ forms.text({
+                name: name ~ '[reminderValue]',
+                value: value.reminder.value ?? '',
+                type: 'number',
+                size: 5,
+                inputAttributes: { min: 0, step: 1 },
+            }) }}
+            {{ forms.select({
+                name: name ~ '[reminderPeriod]',
+                value: value.reminder.period ?? null,
                 options: [
-                    {label: 'None'|t('timeloop'), value: null},
-                    {label: 'Day(s)'|t('timeloop'), value: 'days'},
-                    {label: 'Week(s)'|t('timeloop'), value: 'weeks'},
-                    {label: 'Month(s)'|t('timeloop'), value: 'months'},
-                    {label: 'Year(s)'|t('timeloop'), value: 'years'},
+                    { label: 'None'|t('timeloop'), value: '' },
+                    { label: 'Day(s)'|t('timeloop'), value: 'days' },
+                    { label: 'Week(s)'|t('timeloop'), value: 'weeks' },
+                    { label: 'Month(s)'|t('timeloop'), value: 'months' },
+                    { label: 'Year(s)'|t('timeloop'), value: 'years' },
                 ],
-                required: false,
-            }) -}}
-
+            }) }}
         </div>
     </div>
 
+    {# Live summary #}
+    <div class="timeloop-summary" data-timeloop-summary aria-live="polite"></div>
 </div>
+
+{% js %}
+    new Craft.TimeloopField('{{ id|namespaceInputId|e('js') }}', {
+        summaryAction: '{{ summaryAction|e('js') }}',
+        locale: '{{ craft.app.language|e('js') }}'
+    });
+{% endjs %}
