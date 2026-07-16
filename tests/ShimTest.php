@@ -56,7 +56,9 @@ function baseline(array $legacy, int $limit = 0, bool $futureDates = true): arra
     $start = bx($legacy['loopStartDate']);
     $end = isset($legacy['loopEndDate']) && $legacy['loopEndDate'] !== null
         ? bx($legacy['loopEndDate'])
-        : (clone $start)->modify('+20 years');
+        // Real 5.0.0 fallback is `(new DateTime())->modify('+20 years')`, i.e.
+        // now + 20 years, not the loop's own start date + 20 years.
+        : (new DateTime())->modify('+20 years');
     $period = new PeriodModel($legacy['loopPeriod']);
     $limit = $limit === 0 ? TimeloopService::MAX_ARRAY_ENTRIES : $limit;
 
@@ -285,9 +287,28 @@ it('bounds an infinite yearly loop by the 20-year horizon', function() {
     $fixture = fixture(['loopPeriod' => ['frequency' => 'P1Y', 'cycle' => 1, 'days' => [], 'timestring' => []]]);
     $dates = shim($fixture, 0, false);
 
-    // 20-year horizon, not the 100 cap: far fewer than 100 dates.
+    // 20-year horizon, not the 100 cap: far fewer than 100 dates. Full-series
+    // equality (not a slice) proves the shim applies the same `now + 20 years`
+    // horizon as 5.0.0, not merely an identical opening run.
     expect(count($dates))->toBeLessThan(100)
-        ->and(array_slice($dates, 0, 15))->toBe(array_slice(baseline($fixture, 0, false), 0, 15));
+        ->and($dates)->toBe(baseline($fixture, 0, false));
+});
+
+it('expands a finite rule whose UNTIL lies beyond the 20-year horizon', function() {
+    // The headline 5.1.0 regression: a yearly loop with an explicit end date
+    // more than 20 years out must expand to that real end, not be truncated
+    // at now + 20 years. Full-series equality against the 5.0.0 baseline
+    // (which honours `loopEndDate` verbatim, however far out) proves parity.
+    $fixture = fixture([
+        'loopStartDate' => '2030-01-07T09:00:00+01:00',
+        'loopEndDate' => '2070-01-07T23:59:00+01:00',
+        'loopPeriod' => ['frequency' => 'P1Y', 'cycle' => 1, 'days' => [], 'timestring' => []],
+    ]);
+    $dates = shim($fixture, 0, false);
+
+    expect(count($dates))->toBe(41)
+        ->and($dates)->toBe(baseline($fixture, 0, false))
+        ->and($dates)->toContain('2070-01-07T09:00:00+01:00');
 });
 
 // Limit and futureDates arguments
@@ -359,6 +380,38 @@ it('computes the reminder date from the first upcoming occurrence', function() {
 
     // First Monday on/after 2030-09-09 is 2030-09-09 (a Monday); minus 2 days.
     expect((new TimeloopService())->getReminder($model)->format('Y-m-d'))->toBe('2030-09-07');
+});
+
+// Field resave round-trip
+// -------------------------------------------------------------------------
+// `TimeloopField::serializeValue()` is `normalizeValue()` (ValueNormalizer +
+// new TimeloopModel) followed by `$model->toV2Array()`; both are exercised
+// directly here since the field class itself needs a running Craft app
+// (Craft::$app->getTimeZone(), getView(), ...) to construct.
+
+it('round-trips a v2 value byte-for-byte through TimeloopModel::toV2Array()', function() {
+    $v2 = ValueNormalizer::normalize(fixture([
+        'loopStartDate' => '2030-09-07T20:00:00+02:00',
+        'loopEndDate' => '2031-06-30T22:00:00+02:00',
+        'loopReminderValue' => 2,
+        'loopReminderPeriod' => 'days',
+        'loopPeriod' => ['frequency' => 'P1W', 'cycle' => 1, 'days' => ['Monday'], 'timestring' => ['ordinal' => 'none', 'day' => 'none']],
+    ]), new DateTimeZone(SHIM_TZ));
+
+    // normalizeValue(v2json): a v2 value in is passed straight through.
+    $renormalized = new TimeloopModel(ValueNormalizer::normalize($v2, new DateTimeZone(SHIM_TZ)));
+
+    // serializeValue(...): the model's canonical storage array.
+    expect(json_encode($renormalized->toV2Array()))->toBe(json_encode($v2));
+});
+
+it('round-trips an upgraded legacy value byte-for-byte a second time', function() {
+    $v2 = ValueNormalizer::normalize(fixture(['loopEndDate' => '2030-01-20T23:59:00+01:00']), new DateTimeZone(SHIM_TZ));
+    $model = new TimeloopModel(ValueNormalizer::normalize($v2, new DateTimeZone(SHIM_TZ)));
+
+    $again = new TimeloopModel(ValueNormalizer::normalize($model->toV2Array(), new DateTimeZone(SHIM_TZ)));
+
+    expect(json_encode($again->toV2Array()))->toBe(json_encode($model->toV2Array()));
 });
 
 // Empty model

@@ -78,6 +78,18 @@ use DateTimeZone;
  * class maps that case to a plain `FREQ=MONTHLY` (skip), the closest expressible
  * behaviour, and the divergence is documented rather than silently shipped.
  *
+ * ## Unknown-frequency default (deliberate divergence from 5.0.0)
+ *
+ * {@see parseRrule()} defaults an unrecognized `FREQ` to `DAILY`. The 5.0.0
+ * engine's `_calculateInterval()` defaulted an unrecognized legacy frequency to
+ * `yearly` instead. Both defaults are garbage-in/garbage-out cases: the legacy
+ * `loopPeriod.frequency` is always one of `P1D`/`P1W`/`P1M`/`P1Y` when written
+ * by the control panel, so this path is only reachable through a free-string
+ * `FREQ` submitted via raw GraphQL mutation input. `DAILY` is kept as the safer
+ * of the two garbage defaults (bounded daily expansion vs. a silent decade-plus
+ * jump to `yearly`) rather than chasing exact 5.0.0 parity for a value no
+ * legitimate caller can produce (pinned by a `NormalizerTest` case).
+ *
  * ## #62 end-time repair
  *
  * When mapping `loopEndDate` to the RRULE `UNTIL`, the boundary time is taken
@@ -191,6 +203,28 @@ class ValueNormalizer
             'endTime' => null,
             'reminder' => ['value' => 0, 'period' => null],
         ];
+    }
+
+    /**
+     * Returns whether a stored value is a non-empty legacy value needing upgrade to v2.
+     *
+     * Pure predicate shared by the read-time field normalizer's callers and the
+     * content migration ({@see \craftpulse\timeloop\migrations\m260716_000000_timeloop_v2_content}),
+     * so the "does this need upgrading" decision lives in one place.
+     *
+     * @param mixed $value The raw decoded field value.
+     * @return bool
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public static function needsUpgrade(mixed $value): bool
+    {
+        if (!is_array($value) || $value === []) {
+            return false;
+        }
+
+        return (int)($value['version'] ?? 0) < self::VERSION;
     }
 
     /**

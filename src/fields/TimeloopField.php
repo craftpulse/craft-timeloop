@@ -108,7 +108,8 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * revisions, Matrix/Neo-nested values and rows the migration missed keep
      * working. Empty or unparseable values still normalize to an (empty) model.
      *
-     * @throws \Exception if a submitted date value cannot be coerced (via {@see DateTimeHelper::toDateTime()}).
+     * @throws \Exception if a submitted date value cannot be coerced (via {@see DateTimeHelper::toDateTime()}),
+     * or if a stored date string cannot be parsed (via {@see ValueNormalizer::normalize()}).
      */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {

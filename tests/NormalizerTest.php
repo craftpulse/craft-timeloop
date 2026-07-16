@@ -239,6 +239,16 @@ it('returns a null rrule when the start exists but no period does', function() {
         ->and($v2['rrule'])->toBeNull();
 });
 
+it('defaults an out-of-vocabulary frequency to FREQ=DAILY (deliberate divergence from 5.0.0)', function() {
+    // Only reachable through a free-string GraphQL mutation input; the control
+    // panel always writes one of P1D/P1W/P1M/P1Y. 5.0.0 defaulted an unknown
+    // legacy frequency to `yearly`; the v2 normalizer deliberately defaults to
+    // `DAILY` instead (see the ValueNormalizer class docblock).
+    $v2 = normalize(legacy(['loopPeriod' => ['frequency' => 'P1Q', 'cycle' => 1, 'days' => [], 'timestring' => []]]));
+
+    expect($v2['rrule'])->toBe('FREQ=DAILY');
+});
+
 // Idempotency
 // -------------------------------------------------------------------------
 
@@ -291,4 +301,51 @@ it('derives the interval back out of an rrule', function() {
 
 it('returns a null loop period for an empty rrule', function() {
     expect(ValueNormalizer::rruleToLoopPeriod(null))->toBeNull();
+});
+
+// Reverse derivation: graceful degradation
+// -------------------------------------------------------------------------
+
+it('degrades an unknown FREQ to a P1D view without crashing', function() {
+    $period = ValueNormalizer::rruleToLoopPeriod('FREQ=SECONDLY');
+
+    expect($period['frequency'])->toBe('P1D')
+        ->and($period['cycle'])->toBe(1)
+        ->and($period['days'])->toBe([]);
+});
+
+it('skips a malformed BYDAY token without crashing', function() {
+    $period = ValueNormalizer::rruleToLoopPeriod('FREQ=WEEKLY;BYDAY=MO,XX,FR');
+
+    expect($period['days'])->toBe(['Monday', 'Friday']);
+});
+
+it('ignores unrecognized RRULE parts without crashing', function() {
+    $period = ValueNormalizer::rruleToLoopPeriod('FREQ=WEEKLY;BYDAY=MO;COUNT=5;BYSETPOS=1;WKST=SU');
+
+    expect($period['frequency'])->toBe('P1W')
+        ->and($period['days'])->toBe(['Monday']);
+});
+
+// Migration predicate (needsUpgrade)
+// -------------------------------------------------------------------------
+// Pure logic shared with `m260716_000000_timeloop_v2_content`, extracted here
+// so it is unit-testable without booting a Craft app / DB connection (see
+// `_needsUpgrade()` -> `ValueNormalizer::needsUpgrade()`).
+
+it('flags a legacy value (version below current) as needing upgrade', function() {
+    expect(ValueNormalizer::needsUpgrade(legacy()))->toBeTrue();
+});
+
+it('does not flag a v2 value as needing upgrade', function() {
+    expect(ValueNormalizer::needsUpgrade(normalize(legacy())))->toBeFalse();
+});
+
+it('does not flag a non-array value as needing upgrade', function() {
+    expect(ValueNormalizer::needsUpgrade('{"still":"json-encoded"}'))->toBeFalse()
+        ->and(ValueNormalizer::needsUpgrade(null))->toBeFalse();
+});
+
+it('does not flag an empty array as needing upgrade', function() {
+    expect(ValueNormalizer::needsUpgrade([]))->toBeFalse();
 });

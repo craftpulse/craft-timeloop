@@ -25,7 +25,20 @@ use DateTimeZone;
  * Expands a Timeloop field value into its recurrence dates. As of 5.1.0 the
  * expansion is delegated to the {@see RecurrenceModel} engine; the legacy
  * `getLoop()`/`getReminder()`/`getLoopBetweenDates()` surface is preserved and
- * produces output identical to 5.0.0.
+ * produces output identical to 5.0.0, except for four documented divergences:
+ *
+ * 1. A monthly loop starting on day 29 or 30 (not the month's last day) maps
+ *    to a plain `FREQ=MONTHLY` (skip short months) instead of 5.0.0's
+ *    day-clamping (see {@see \craftpulse\timeloop\models\ValueNormalizer}).
+ * 2. An occurrence landing exactly on `loopEndDate` can be dropped by 5.0.0's
+ *    `DatePeriod`-based stepping but is kept here, since the RRULE `UNTIL` is
+ *    inclusive by instant (see `tests/ShimTest.php`).
+ * 3. A free-string frequency outside `{P1D,P1W,P1M,P1Y}` (only reachable via
+ *    raw GraphQL input) normalizes to `FREQ=DAILY`, not 5.0.0's `yearly`
+ *    fallback (see {@see \craftpulse\timeloop\models\ValueNormalizer}).
+ * 4. `getLoop()` with `futureDates` can include an occurrence landing exactly
+ *    on `now` (`occurrencesBetween()` is inclusive of both boundaries); 5.0.0
+ *    compared strictly after `now`. Negligible in practice.
  *
  * @author CraftPulse
  * @since 1.0.0
@@ -65,9 +78,11 @@ class TimeloopService extends Component
     /**
      * Returns the recurrence dates for the given field value.
      *
-     * Mirrors the 5.0.0 contract: `futureDates` returns occurrences strictly
-     * after now within a 20-year horizon; a `0` limit falls back to
-     * [[MAX_ARRAY_ENTRIES]]. Returns `null` when the value carries no rule.
+     * Mirrors the 5.0.0 contract: `futureDates` returns occurrences at or after
+     * now (see divergence 4 in the class docblock); a `0` limit falls back to
+     * [[MAX_ARRAY_ENTRIES]]. A finite rule (a real `UNTIL`) always expands to
+     * its own natural end; the 20-year horizon only bounds an infinite rule.
+     * Returns `null` when the value carries no rule.
      *
      * @param TimeloopModel|array $data
      * @param int $limit Maximum number of dates to return, `0` falls back to [[MAX_ARRAY_ENTRIES]].
@@ -96,12 +111,17 @@ class TimeloopService extends Component
 
         // 5.0.0 expanded from the start date up to (loopEndDate ?? now + 20 years),
         // breaking once the limit was hit; `futureDates` then dropped anything at
-        // or before now. The rule already carries the end date as its UNTIL, so
-        // the horizon only needs to cap otherwise-infinite rules, and the lower
-        // bound switches between the start date and now.
+        // or before now. A finite rule's `UNTIL` is already the rule's own real
+        // end date (derived onto [[TimeloopModel::$loopEndDate]] from the RRULE
+        // in {@see TimeloopModel::init()}), so it is used as-is; the 20-year
+        // horizon only bounds an otherwise-infinite rule, matching 5.0.0's
+        // `loopEndDate ?? now + 20 years` fallback exactly.
         $now = new DateTimeImmutable('now', new DateTimeZone($data->timezone));
         $from = $futureDates ? $now : new DateTimeImmutable((string)$data->dtstart, new DateTimeZone($data->timezone));
-        $occurrences = $recurrence->occurrencesBetween($from, $now->modify(self::DEFAULT_HORIZON), $limit);
+        $to = $recurrence->isInfinite() || $data->loopEndDate === null
+            ? $now->modify(self::DEFAULT_HORIZON)
+            : DateTimeImmutable::createFromInterface($data->loopEndDate);
+        $occurrences = $recurrence->occurrencesBetween($from, $to, $limit);
 
         return array_map(static fn(DateTimeImmutable $date): DateTime => DateTime::createFromInterface($date), $occurrences);
     }
