@@ -13,33 +13,42 @@ namespace craftpulse\timeloop\services;
 use craft\base\Component;
 use craft\base\Model;
 use craft\helpers\DateTimeHelper;
-
+use craftpulse\timeloop\models\PeriodModel;
+use craftpulse\timeloop\models\TimeloopModel;
+use craftpulse\timeloop\models\TimeStringModel;
 use DateInterval;
 use DatePeriod;
 use DateTime;
 
-use craftpulse\timeloop\models\PeriodModel;
-use craftpulse\timeloop\models\TimeloopModel;
-use craftpulse\timeloop\models\TimeStringModel;
-
 /**
- * @author    craftpulse
- * @package   Timeloop
- * @since     1.0.0
+ * Timeloop recurrence service.
+ *
+ * Expands a Timeloop field value into its recurrence dates.
+ *
+ * @author CraftPulse
+ * @since 1.0.0
  */
-
 class TimeloopService extends Component
 {
+    // Constants
+    // =========================================================================
+
+    /**
+     * @var int The maximum number of dates returned when no limit is given.
+     */
     public const MAX_ARRAY_ENTRIES = 100;
 
     // Public Methods
     // =========================================================================
 
     /**
-     * Returns the $limit upcoming dates from the timeloop start date
+     * Returns the loop period configuration of the given field value.
      *
      * @param TimeloopModel $data
+     * @return ?Model
      *
+     * @author CraftPulse
+     * @since 1.0.0
      */
     public function showPeriod(TimeloopModel $data): ?Model
     {
@@ -47,43 +56,58 @@ class TimeloopService extends Component
     }
 
     /**
-     * Returns the $limit upcoming dates from the timeloop start date
+     * Returns the recurrence dates for the given field value.
      *
-     * @param TimeloopModel $data
-     * @param bool $futureDates
-     * @param integer $limit
-     *
+     * @param TimeloopModel|array $data
+     * @param int $limit Maximum number of dates to return, `0` falls back to [[MAX_ARRAY_ENTRIES]].
+     * @param bool $futureDates Whether only dates after now should be returned.
+     * @return ?array
      * @throws \Exception
+     *
+     * @author CraftPulse
+     * @since 1.0.0
      */
     public function getLoop(TimeloopModel|array $data, int $limit = 0, bool $futureDates = true): ?array
     {
-        //  get start date from data object
-        if (!isset($data->loopStartDate)) {
+        if (!$data instanceof TimeloopModel || $data->loopStartDate === null) {
             return null;
         }
 
-        // check if the end date is set in data object, otherwise use today + 20 years as default to get way ahead in the future
-        $next = new DateTime();
-        $end = isset($data->loopEndDate) ? $data->loopEndDate : $next->modify('+20 years');
-
-        // get ISO 8601 from the repeater in data object
-        // Parse our period object to fetch dates
         $period = $data->getPeriod();
-        $timestring = !is_null($period) ? new TimeStringModel($period->timestring) : null;
 
-        // if no limit is set, use the default so we don't end up with high number arrays
-        $limit = $limit === 0 ? self::MAX_ARRAY_ENTRIES : $limit;
+        if ($period === null) {
+            return null;
+        }
 
-        // return the array with dates
+        // Use today + 20 years as the default end date to get way ahead in the future
+        $end = $data->loopEndDate ?? (new DateTime())->modify('+20 years');
+        $timestring = new TimeStringModel($period->timestring);
+
+        // If no limit is set, use the default so we don't end up with high number arrays
+        if ($limit === 0) {
+            $limit = self::MAX_ARRAY_ENTRIES;
+        }
+
         return $this->_fetchDates($data->loopStartDate, $end, $period, $timestring, $limit, $futureDates);
     }
 
+    /**
+     * Returns the dates of the given set that fall between two dates (inclusive).
+     *
+     * @param array $dates
+     * @param DateTime $start
+     * @param DateTime $end
+     * @return array
+     *
+     * @author CraftPulse
+     * @since 1.0.0
+     */
     public function getLoopBetweenDates(array $dates, DateTime $start, DateTime $end): array
     {
         $loopDates = [];
 
         foreach ($dates as $date) {
-            if ($date > $start && $date < $end) {
+            if ($date >= $start && $date <= $end) {
                 $loopDates[] = $date;
             }
         }
@@ -92,82 +116,81 @@ class TimeloopService extends Component
     }
 
     /**
+     * Returns the reminder date for the first upcoming occurrence.
+     *
      * @param TimeloopModel $data
-     * @return DateTime|null
+     * @return ?DateTime
+     * @throws \Exception
+     *
+     * @author CraftPulse
+     * @since 1.0.0
      */
     public function getReminder(TimeloopModel $data): ?DateTime
     {
-        $date = $this->getLoop($data, 1);
-        $loopReminderValue = $data->loopReminderValue ?? 0;
-        $loopReminderPeriod = $data->loopReminderPeriod ?? 'days';
-        $loopReminder = $loopReminderValue . ' ' . $loopReminderPeriod;
-
-        if ($date && $date !== [] && $data->loopReminderPeriod) {
-            $remindDate = $date[0];
-            $remindDate->modify('-' . $loopReminder);
-            return $remindDate;
+        if (!$data->loopReminderPeriod) {
+            return null;
         }
 
-        return null;
-    }
+        $dates = $this->getLoop($data, 1);
 
+        if (empty($dates)) {
+            return null;
+        }
+
+        $reminder = (clone $dates[0])->modify(sprintf('-%d %s', $data->loopReminderValue ?? 0, $data->loopReminderPeriod));
+
+        return $reminder ?: null;
+    }
 
     // Private Methods
     // =========================================================================
 
     /**
-     * Returns an array with all the dates between a start and end point
-     *
-     * Returned data is based on the period entered
+     * Returns an array with all the dates between a start and end point,
+     * based on the period entered.
      *
      * @param DateTime $start
      * @param DateTime $end
      * @param PeriodModel $period
      * @param TimeStringModel $timestring
-     * @param int $limit positive
+     * @param int $limit
      * @param bool $futureDates
+     * @return array
      * @throws \Exception
+     *
+     * @author CraftPulse
+     * @since 1.0.0
      */
-    public function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, int $limit = 0, bool $futureDates = true): array
+    private function _fetchDates(DateTime $start, DateTime $end, PeriodModel $period, TimeStringModel $timestring, int $limit = 0, bool $futureDates = true): array
     {
-        $interval = $this->_calculateInterval($period)[0]->interval;
-        $frequency = $this->_calculateInterval($period)[0]->frequency;
-
+        $interval = $this->_calculateInterval($period);
         $today = new DateTime();
 
-        $dateInterval = new DateInterval($interval);
-        $arrDates = [];
-
+        $dateInterval = new DateInterval($interval->interval);
         $datePeriod = new DatePeriod($start, $dateInterval, $end);
+
+        $arrDates = [];
         $counter = 0;
 
         foreach ($datePeriod as $date) {
+            $dateToParse = $interval->frequency === 'monthly' ? $start : $date;
+            $loopDates = $this->_parseDate($interval->frequency, $dateToParse, $end, $counter, $period, $timestring);
 
-            // if the date is larger than today and only future dates are accepted, only fill the array.
-            // Otherwise, if we don't have to check on future dates, add everything in it
+            if (!is_array($loopDates)) {
+                $loopDates = [$loopDates];
+            }
 
-            $dateToParse = $frequency === 'monthly' ? $start : $date;
-
-            if ($date > $today && $futureDates) {
-                $loopDates = $this->_parseDate($frequency, $dateToParse, $end, $counter, $period, $timestring);
-
-                if (is_array($loopDates)) {
-                    foreach ($loopDates as &$loopDate) {
-                        $arrDates[] = $loopDate;
-                    }
-                } else {
-                    $arrDates[] = $loopDates;
+            foreach ($loopDates as $loopDate) {
+                // Weekly expansion can produce dates earlier in the start date's week
+                if ($loopDate < $start) {
+                    continue;
                 }
-            } elseif (!$futureDates) {
-                $loopDates = $this->_parseDate($frequency, $dateToParse, $end, $counter, $period, $timestring);
 
-                if (gettype($loopDates) === 'array') {
-                    foreach ($loopDates as &$loopDate) {
-                        $arrDates[] = $loopDate;
-                    }
-                } else {
-                    $arrDates[] = $loopDates;
+                if ($futureDates && $loopDate <= $today) {
+                    continue;
                 }
+
+                $arrDates[] = $loopDate;
             }
 
             if ($limit > 0 && count($arrDates) >= $limit) {
@@ -177,117 +200,120 @@ class TimeloopService extends Component
             $counter++;
         }
 
+        if ($limit > 0) {
+            $arrDates = array_slice($arrDates, 0, $limit);
+        }
+
         return $arrDates;
     }
 
     /**
-     * Returns the $interval for the DatePeriod
+     * Returns the DateInterval spec and frequency name for the given period.
      *
      * @param PeriodModel $period
+     * @return object
      *
+     * @author CraftPulse
+     * @since 1.0.0
      */
-    private function _calculateInterval(PeriodModel $period): array
+    private function _calculateInterval(PeriodModel $period): object
     {
-        $frequency = [];
+        $cycle = max(1, $period->cycle);
 
-        $frequency[] = match ($period->frequency) {
+        return match ($period->frequency) {
             'P1D' => (object)[
-                'interval' => 'P' . $period->cycle . 'D',
+                'interval' => "P{$cycle}D",
                 'frequency' => 'daily',
             ],
             'P1W' => (object)[
-                'interval' => 'P' . $period->cycle . 'W',
+                'interval' => "P{$cycle}W",
                 'frequency' => 'weekly',
             ],
             'P1M' => (object)[
-                'interval' => 'P' . $period->cycle . 'M',
+                'interval' => "P{$cycle}M",
                 'frequency' => 'monthly',
             ],
             default => (object)[
-                'interval' => 'P' . $period->cycle . 'Y',
+                'interval' => "P{$cycle}Y",
                 'frequency' => 'yearly',
-            ]
+            ],
         };
-
-        return $frequency;
     }
 
     /**
-     * Returns the $date with the month corrected for a monthly loop
+     * Returns the $date with the month corrected for a monthly loop.
      *
-     * correctly calculates end of months when we shift to a shorter or longer month
-     *
-     * Shifting from the 28th Feb +1 month is 31st March
-     * Shifting from the 28th Feb -1 month is 31st Jan
-     * Shifting from the 29,30,31 Jan +1 month is 28th (or 29th) Feb
-     *
+     * Correctly calculates end of months when we shift to a shorter or longer month:
+     * shifting from the 28th Feb +1 month is 31st March,
+     * shifting from the 28th Feb -1 month is 31st Jan,
+     * shifting from the 29, 30, 31 Jan +1 month is 28th (or 29th) Feb.
      *
      * @param DateTime $date
-     * @param int $months positive or negative
-     * @param int $cycle positive
+     * @param int $months
+     * @param int $cycle
+     * @return DateTime
      *
+     * @author CraftPulse
+     * @since 1.0.0
      */
-
     private function _monthCorrection(DateTime $date, int $months, int $cycle): DateTime
     {
         $frequency = $months * $cycle;
 
-        // making 2 clones of our dates to be able to do calculations
+        // Making 2 clones of our dates to be able to do calculations
         $date1 = clone($date);
         $date2 = clone($date);
 
         $addedMonths = clone($date1->modify($frequency . ' Month'));
 
         if ($date2 != $date1->modify($frequency * -1 . ' Month')) {
-            $result = $addedMonths->modify('last day of last month');
-        } elseif ($date == $date2->modify('last day of this month')) {
-            $result = $addedMonths->modify('last day of this month');
-        } else {
-            $result = $addedMonths;
+            return $addedMonths->modify('last day of last month');
         }
 
-        return $result;
+        if ($date == $date2->modify('last day of this month')) {
+            return $addedMonths->modify('last day of this month');
+        }
+
+        return $addedMonths;
     }
 
     /**
-     * Returns the $date to add to the result could be DateTime or Array
+     * Returns the date(s) to add to the result for the given frequency.
      *
-     * correctly calculates end of months when we shift to a shorter or longer month
-     *
-     *
-     * @param String $frequency
+     * @param string $frequency
      * @param DateTime $date
-     * @param int $counter The loop Counter
+     * @param DateTime $end
+     * @param int $counter The loop counter
      * @param PeriodModel $period
      * @param TimeStringModel $timestring
+     * @return DateTime|array
+     * @throws \Exception
      *
+     * @author CraftPulse
+     * @since 1.0.0
      */
     private function _parseDate(string $frequency, DateTime $date, DateTime $end, int $counter, PeriodModel $period, TimeStringModel $timestring): DateTime|array
     {
         switch ($frequency) {
-            case 'daily':
-            case 'yearly':
-            default:
-                $loopDate = $date;
-                break;
             case 'weekly':
+                if (count($period->days) === 0) {
+                    $loopDate = $date;
+                    break;
+                }
+
                 $weekDates = [];
                 $hours = (int)$date->format('H');
                 $minutes = (int)$date->format('i');
 
-                if (count($period->days) > 0) {
-                    foreach ($period->days as $day) {
-                        $weekDay = clone($date)->modify(strtolower($day) . ' this week')->setTime($hours, $minutes);
+                foreach ($period->days as $day) {
+                    $weekDay = clone($date)->modify(strtolower($day) . ' this week')->setTime($hours, $minutes);
 
-                        if ($weekDay <= $end) {
-                            $weekDates[] = DateTimeHelper::toDateTime($weekDay);
-                        }
+                    if ($weekDay <= $end) {
+                        $weekDates[] = DateTimeHelper::toDateTime($weekDay);
                     }
-
-                    $loopDate = $weekDates;
-                } else {
-                    $loopDate = $date;
                 }
+
+                $loopDate = $weekDates;
                 break;
             case 'monthly':
                 $monthlyDate = $this->_monthCorrection($date, $counter, $period->cycle);
@@ -295,15 +321,19 @@ class TimeloopService extends Component
                 $minutes = (int)$date->format('i');
 
                 if ($timestring->ordinal !== 'none' && $timestring->day !== 'none') {
-                    // set to timestring variables else == $monthlyDate.
                     $loopDate = $monthlyDate->modify($timestring->ordinal . ' ' . $timestring->day . ' of this month')->setTime($hours, $minutes);
-                } else {
-                    $loopDate = $monthlyDate;
+                    break;
                 }
 
+                $loopDate = $monthlyDate;
+                break;
+            case 'daily':
+            case 'yearly':
+            default:
+                $loopDate = $date;
                 break;
         }
 
-        return gettype($loopDate) === 'array' ? $loopDate : DateTimeHelper::toDateTime($loopDate);
+        return is_array($loopDate) ? $loopDate : DateTimeHelper::toDateTime($loopDate);
     }
 }
