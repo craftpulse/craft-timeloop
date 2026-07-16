@@ -14,11 +14,14 @@ use craft\base\Component;
 use craft\base\Model;
 use craft\helpers\DateTimeHelper;
 use craftpulse\timeloop\models\PeriodModel;
+use craftpulse\timeloop\models\RecurrenceModel;
 use craftpulse\timeloop\models\TimeloopModel;
 use craftpulse\timeloop\models\TimeStringModel;
 use DateInterval;
 use DatePeriod;
 use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
 
 /**
  * Timeloop recurrence service.
@@ -140,6 +143,91 @@ class TimeloopService extends Component
         $reminder = (clone $dates[0])->modify(sprintf('-%d %s', $data->loopReminderValue ?? 0, $data->loopReminderPeriod));
 
         return $reminder ?: null;
+    }
+
+    // Recurrence Engine Adapters
+    // =========================================================================
+
+    /**
+     * Returns the occurrences of a recurrence, in its stored timezone.
+     *
+     * @param RecurrenceModel $model
+     * @param ?int $limit Maximum number of occurrences (null or `0` means everything for a finite rule).
+     * @return DateTimeImmutable[]
+     * @throws \InvalidArgumentException if the rule cannot be parsed.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function occurrences(RecurrenceModel $model, ?int $limit = null): array
+    {
+        return $model->occurrences($limit);
+    }
+
+    /**
+     * Returns the occurrences between two dates (inclusive of both boundaries).
+     *
+     * @param RecurrenceModel $model
+     * @param DateTimeInterface $from The lower boundary (inclusive).
+     * @param DateTimeInterface $to The upper boundary (inclusive).
+     * @param ?int $limit Maximum number of occurrences (null or `0` means everything within the range).
+     * @return DateTimeImmutable[]
+     * @throws \InvalidArgumentException if the rule cannot be parsed.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function occurrencesBetween(RecurrenceModel $model, DateTimeInterface $from, DateTimeInterface $to, ?int $limit = null): array
+    {
+        return $model->occurrencesBetween($from, $to, $limit);
+    }
+
+    /**
+     * Returns the first occurrence strictly after the given date.
+     *
+     * @param RecurrenceModel $model
+     * @param ?DateTimeInterface $after The reference date, defaulting to now in the stored timezone.
+     * @return ?DateTimeImmutable
+     * @throws \InvalidArgumentException if the rule cannot be parsed.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function nextOccurrence(RecurrenceModel $model, ?DateTimeInterface $after = null): ?DateTimeImmutable
+    {
+        return $model->nextOccurrence($after);
+    }
+
+    /**
+     * Returns whether an occurrence starts exactly at the given date-time.
+     *
+     * @param RecurrenceModel $model
+     * @param DateTimeInterface $dateTime
+     * @return bool
+     * @throws \InvalidArgumentException if the rule cannot be parsed.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function occursAt(RecurrenceModel $model, DateTimeInterface $dateTime): bool
+    {
+        return $model->occursAt($dateTime);
+    }
+
+    /**
+     * Returns whether an occurrence is in progress at the given date-time.
+     *
+     * @param RecurrenceModel $model
+     * @param DateTimeInterface $dateTime
+     * @return bool
+     * @throws \InvalidArgumentException if the rule cannot be parsed.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function activeAt(RecurrenceModel $model, DateTimeInterface $dateTime): bool
+    {
+        return $model->activeAt($dateTime);
     }
 
     // Private Methods
