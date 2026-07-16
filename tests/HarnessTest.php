@@ -6,12 +6,9 @@
  * @copyright Copyright (c) CraftPulse
  */
 
-/**
- * Trivial smoke test proving the Pest harness runs standalone.
- *
- * @author CraftPulse
- * @since 5.1.0
- */
+// =========================================================================
+// HARNESS SMOKE TEST
+// =========================================================================
 
 it('boots the pest harness', function() {
     expect(true)->toBeTrue();
