@@ -8,13 +8,7 @@ The timeloop plugin creates repeating dates without the need of complex inputs.
 
 This plugin requires Craft CMS 5.0.0 or later.
 
-# Teamleader Plugin for Craft CMS 5.x
-
-Seamlessly integrate **Teamleader Focus** with **Craft CMS** and **Formie forms** to manage contacts, companies, and deals efficiently.
-
 ## Installation
-
-### Standard Craft CMS Installation
 
 1. Open your terminal and navigate to your Craft project:
    ```sh
@@ -29,21 +23,6 @@ Seamlessly integrate **Teamleader Focus** with **Craft CMS** and **Formie forms*
    craft plugin/install timeloop
    ```
    Alternatively, activate it via **Settings → Plugins** in the Craft Control Panel.
-
-### Installing on DDEV
-
-1. Install the Teamleader plugin:
-   ```sh
-   ddev composer require craftpulse/craft-timeloop
-   ```
-2. Install the plugin in Craft CMS:
-   ```sh
-   ddev craft plugin/install timeloop
-   ```
-
----
-
-3. In the Control Panel, go to Settings → Plugins and click the “Install” button.
 
 ## Timeloop Overview
 
