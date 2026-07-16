@@ -13,36 +13,40 @@ namespace craftpulse\timeloop\models;
 use craft\base\Model;
 
 /**
- * @author    craftpulse
- * @package   Timeloop
+ * Loop period model.
+ *
+ * Describes how a loop recurs: the frequency, the cycle (interval) and the
+ * weekly or monthly refinements.
+ *
+ * @author CraftPulse
+ * @since 1.0.0
  */
-
 class PeriodModel extends Model
 {
     // Public Properties
     // =========================================================================
 
     /**
-     * @var string
+     * @var string The frequency as an ISO 8601 duration (`P1D`, `P1W`, `P1M` or `P1Y`).
      */
-    public string $frequency;
+    public string $frequency = 'P1D';
 
     /**
-     * @var integer
+     * @var int The cycle (interval) between occurrences.
      */
-    public int $cycle;
+    public int $cycle = 1;
 
     /**
-     * @var array
+     * @var array The selected days of the week for the weekly frequency.
      */
-    public array $days;
+    public array $days = [];
 
     /**
-     * @var array
+     * @var array The ordinal and day configuration for the monthly frequency.
      */
-    public array $timestring;
+    public array $timestring = [];
 
-    // Public Methods
+    // Protected Methods
     // =========================================================================
 
     /**
@@ -51,9 +55,10 @@ class PeriodModel extends Model
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
+
         $rules[] = [['frequency'], 'string'];
-        $rules[] = [['days', 'timestring'], 'array'];
-        $rules[] = [['cycle'], 'number'];
+        $rules[] = [['days', 'timestring'], 'safe'];
+        $rules[] = [['cycle'], 'integer', 'min' => 1];
 
         return $rules;
     }

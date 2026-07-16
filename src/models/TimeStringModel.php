@@ -13,39 +13,40 @@ namespace craftpulse\timeloop\models;
 use craft\base\Model;
 
 /**
- * @author    craftpulse
- * @package   Timeloop
- * @since     1.0.0
+ * Monthly timestring model.
+ *
+ * Describes the ordinal weekday refinement for monthly loops,
+ * e.g. "first Monday" or "last Saturday".
+ *
+ * @author CraftPulse
+ * @since 1.0.0
  */
-
 class TimeStringModel extends Model
 {
     // Public Properties
     // =========================================================================
 
     /**
-     * @var string
+     * @var string The ordinal (`first`, `second`, `third`, `fourth`, `last` or `none`).
      */
-    public string $ordinal;
+    public string $ordinal = 'none';
 
     /**
-     * @var string
+     * @var string The day of the week, or `none`.
      */
-    public string $day;
+    public string $day = 'none';
 
-    // Public Methods
+    // Protected Methods
     // =========================================================================
 
     /**
-     * @return array
+     * @inheritdoc
      */
-    public function defineRules(): array
+    protected function defineRules(): array
     {
         $rules = parent::defineRules();
-        $rules[] = [['ordinal'], 'string'];
-        $rules[] = [['day', 'loopPeriod'], 'array'];
-        $rules[] = [['loopStartTime', 'loopEndTime'], 'datetime'];
-        $rules[] = [['loopReminderValue'], 'integer'];
+
+        $rules[] = [['ordinal', 'day'], 'string'];
 
         return $rules;
     }

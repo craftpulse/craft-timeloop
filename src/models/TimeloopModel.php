@@ -12,63 +12,226 @@ namespace craftpulse\timeloop\models;
 
 use craft\base\Model;
 use craft\helpers\DateTimeHelper;
-use DateTime;
-use nystudio107\seomatic\models\jsonld\Date;
 use craftpulse\timeloop\Timeloop;
+use DateTime;
 
 /**
- * @author    craftpulse
- * @package   Timeloop
- * @since     1.0.0
+ * Timeloop field value model.
+ *
+ * Holds the loop configuration (start and end dates, times, period and
+ * reminder settings) and exposes the computed recurrence dates.
+ *
+ * @author CraftPulse
+ * @since 1.0.0
  */
-
 class TimeloopModel extends Model
 {
     // Public Properties
     // =========================================================================
 
     /**
-     * @var DateTime|null
+     * @var ?DateTime The date the loop starts.
      */
-    public DateTime|null $loopStartDate = null;
+    public ?DateTime $loopStartDate = null;
 
     /**
-     * @var DateTime|null
+     * @var ?DateTime The date the loop ends.
      */
-    public DateTime|null $loopEndDate = null;
+    public ?DateTime $loopEndDate = null;
 
     /**
-     * @var DateTime|null
+     * @var ?DateTime The time of day each occurrence starts.
      */
-    public DateTime|null $loopStartTime = null;
+    public ?DateTime $loopStartTime = null;
 
     /**
-     * @var DateTime|null
+     * @var ?DateTime The time of day each occurrence ends.
      */
-    public DateTime|null $loopEndTime = null;
+    public ?DateTime $loopEndTime = null;
 
     /**
-     * @var string|null
+     * @var ?string The reminder period unit (e.g. `days`, `weeks`).
      */
-    public string|null $loopReminderPeriod = null;
+    public ?string $loopReminderPeriod = null;
 
     /**
-     * @var int|null
+     * @var ?int The reminder period value.
      */
-    public int|null $loopReminderValue = null;
+    public ?int $loopReminderValue = null;
 
     /**
-     * @var array|null
+     * @var ?array The loop period configuration (frequency, cycle, days, timestring).
      */
-    public array|null $loopPeriod = null;
+    public ?array $loopPeriod = null;
+
+    // Private Properties
+    // =========================================================================
 
     /**
-     * @var array|null
+     * @var ?array Memoized upcoming dates.
      */
-    private array|null $upcomingDates = null;
-
+    private ?array $_upcomingDates = null;
 
     // Public Methods
+    // =========================================================================
+
+    /**
+     * Returns the loop period configuration as a model.
+     *
+     * @return ?PeriodModel
+     *
+     * @author CraftPulse
+     * @since 1.0.0
+     */
+    public function getPeriod(): ?PeriodModel
+    {
+        if (empty($this->loopPeriod)) {
+            return null;
+        }
+
+        return new PeriodModel($this->loopPeriod);
+    }
+
+    /**
+     * Returns the monthly timestring configuration as a model.
+     *
+     * @return ?TimeStringModel
+     *
+     * @author CraftPulse
+     * @since 1.0.0
+     */
+    public function getTimeString(): ?TimeStringModel
+    {
+        if (empty($this->loopPeriod['timestring'])) {
+            return null;
+        }
+
+        return new TimeStringModel($this->loopPeriod['timestring']);
+    }
+
+    /**
+     * Returns the loop start time formatted as `H:i`.
+     *
+     * @return ?string
+     * @throws \Exception
+     *
+     * @author CraftPulse
+     * @since 1.0.0
+     */
+    public function getLoopStartTime(): ?string
+    {
+        $value = DateTimeHelper::toDateTime($this->loopStartTime);
+
+        return $value ? $value->format('H:i') : null;
+    }
+
+    /**
+     * Returns the loop start time as a DateTime object.
+     *
+     * @return ?DateTime
+     * @throws \Exception
+     *
+     * @author CraftPulse
+     * @since 1.0.0
+     */
+    public function getLoopStart(): ?DateTime
+    {
+        $value = DateTimeHelper::toDateTime($this->loopStartTime);
+
+        return $value === false ? null : $value;
+    }
+
+    /**
+     * Returns the loop end time formatted as `H:i`.
+     *
+     * @return ?string
+     * @throws \Exception
+     *
+     * @author CraftPulse
+     * @since 1.0.0
+     */
+    public function getLoopEndTime(): ?string
+    {
+        $value = DateTimeHelper::toDateTime($this->loopEndTime);
+
+        return $value ? $value->format('H:i') : null;
+    }
+
+    /**
+     * Returns the loop end time as a DateTime object.
+     *
+     * @return ?DateTime
+     * @throws \Exception
+     *
+     * @author CraftPulse
+     * @since 1.0.0
+     */
+    public function getLoopEnd(): ?DateTime
+    {
+        $value = DateTimeHelper::toDateTime($this->loopEndTime);
+
+        return $value === false ? null : $value;
+    }
+
+    /**
+     * Returns the reminder date for the first upcoming occurrence.
+     *
+     * @return ?DateTime
+     * @throws \Exception
+     *
+     * @author CraftPulse
+     * @since 1.0.0
+     */
+    public function getReminder(): ?DateTime
+    {
+        return Timeloop::$plugin->timeloop->getReminder($this);
+    }
+
+    /**
+     * Returns the computed recurrence dates.
+     *
+     * @param int $limit
+     * @param bool $futureDates
+     * @return ?array
+     * @throws \Exception
+     *
+     * @author CraftPulse
+     * @since 1.0.0
+     */
+    public function getDates(int $limit = 0, bool $futureDates = true): ?array
+    {
+        return Timeloop::$plugin->timeloop->getLoop($this, $limit, $futureDates);
+    }
+
+    /**
+     * Returns the first upcoming occurrence.
+     *
+     * @return ?DateTime
+     * @throws \Exception
+     *
+     * @author CraftPulse
+     * @since 1.0.0
+     */
+    public function getUpcoming(): ?DateTime
+    {
+        return $this->_getUpcomingDates()[0] ?? null;
+    }
+
+    /**
+     * Returns the second upcoming occurrence.
+     *
+     * @return ?DateTime
+     * @throws \Exception
+     *
+     * @author CraftPulse
+     * @since 1.0.0
+     */
+    public function getNextUpcoming(): ?DateTime
+    {
+        return $this->_getUpcomingDates()[1] ?? null;
+    }
+
+    // Protected Methods
     // =========================================================================
 
     /**
@@ -80,134 +243,30 @@ class TimeloopModel extends Model
 
         $rules[] = [['loopStartDate'], 'required'];
         $rules[] = [['loopStartDate', 'loopEndDate'], 'datetime'];
-//        $rules[] = [['loopStartTime', 'loopEndTime'], 'datetime', 'null'];
-        $rules[] = [['loopPeriod'], 'array'];
+        $rules[] = [['loopPeriod'], 'safe'];
         $rules[] = [['loopReminderValue'], 'integer'];
 
         return $rules;
     }
 
-    /**
-     * @throws \yii\base\Exception
-     */
-    public function init(): void
-    {
-        if (!empty($this->loopStartDate) && !empty($this->loopEndDate)) {
-            $this->upcomingDates = Timeloop::$plugin->timeloop->getLoop($this, 2, true);
-        }
-    }
+    // Private Methods
+    // =========================================================================
 
     /**
-     * @return bool
-     */
-    public function beforeValidate(): bool
-    {
-        return parent::beforeValidate(); // TODO: Change the autogenerated stub
-    }
-
-    /**
-     * @return PeriodModel|null
-     */
-    public function getPeriod(): ?PeriodModel
-    {
-        if ($this->loopPeriod !== []) {
-            return new PeriodModel($this->loopPeriod);
-        }
-        return null;
-    }
-
-    /**
-     * @return TimeStringModel|null
-     */
-    public function getTimeString(): ?TimeStringModel
-    {
-        if ($this->loopPeriod['timestring'] !== null) {
-            return new TimeStringModel($this->loopPeriod['timestring']);
-        }
-        return null;
-    }
-
-    /**
-     * @return string|null
+     * Memoizes and returns the next two upcoming occurrences.
+     *
+     * @return array
      * @throws \Exception
+     *
+     * @author CraftPulse
+     * @since 5.0.0
      */
-    public function getLoopStartTime(): ?string
+    private function _getUpcomingDates(): array
     {
-        $value = DateTimeHelper::toDateTime($this->loopStartTime);
-        return $value ? $value->format('H:i') : null;
-    }
-
-    /**
-     * @return DateTime|null
-     * @throws \Exception
-     */
-    public function getLoopStart(): ?DateTime
-    {
-        $value = DateTimeHelper::toDateTime($this->loopStartTime);
-        return $value === false ? null : $value;
-    }
-
-    /**
-     * @return string|null
-     * @throws \Exception
-     */
-    public function getLoopEndTime(): ?string
-    {
-        $value = DateTimeHelper::toDateTime($this->loopEndTime);
-        return $value ? $value->format('H:i') : null;
-    }
-
-    /**
-     * @return DateTime|null
-     * @throws \Exception
-     */
-    public function getLoopEnd(): ?DateTime
-    {
-        $value = DateTimeHelper::toDateTime($this->loopEndTime);
-        return $value === false ? null : $value;
-    }
-
-    /**
-     * @return DateTime|null
-     * @throws \yii\base\Exception
-     */
-    public function getReminder(): ?DateTime
-    {
-        return Timeloop::$plugin->timeloop->getReminder($this);
-    }
-
-    /**
-     * @param int $limit
-     * @param bool $futureDates
-     * @return array|null
-     * @throws \yii\base\Exception
-     */
-    public function getDates(int $limit = 0, bool $futureDates = true): ?array
-    {
-        return Timeloop::$plugin->timeloop->getLoop($this, $limit, $futureDates);
-    }
-
-    /**
-     * @return DateTime|null
-     */
-    public function getUpcoming(): ?DateTime
-    {
-        if (count($this->upcomingDates) > 1) {
-            return $this->upcomingDates[0];
+        if ($this->_upcomingDates === null) {
+            $this->_upcomingDates = Timeloop::$plugin->timeloop->getLoop($this, 2) ?? [];
         }
 
-        return null;
-    }
-
-    /**
-     * @return DateTime|null
-     */
-    public function getNextUpcoming(): ?DateTime
-    {
-        if (count($this->upcomingDates) > 1) {
-            return $this->upcomingDates[1];
-        }
-
-        return null;
+        return $this->_upcomingDates;
     }
 }
