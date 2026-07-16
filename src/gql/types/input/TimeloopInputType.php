@@ -12,23 +12,33 @@ namespace craftpulse\timeloop\gql\types\input;
 
 use craft\gql\GqlEntityRegistry;
 use craft\gql\types\DateTime;
+use craftpulse\timeloop\fields\TimeloopField;
 use GraphQL\Type\Definition\InputObjectType;
+
 use GraphQL\Type\Definition\Type;
 
-use craftpulse\timeloop\fields\TimeloopField;
-
 /**
- * Class Timeloop
+ * Timeloop GraphQL mutation input type.
+ *
+ * @author CraftPulse
+ * @since 4.0.0
  */
-
 class TimeloopInputType extends InputObjectType
 {
+    // Static Methods
+    // =========================================================================
+
     /**
-     * Create the type for a timeloop field.
+     * Creates the mutation input type for a Timeloop field.
+     *
+     * @param TimeloopField $context
+     * @return Type
+     *
+     * @author CraftPulse
+     * @since 4.0.0
      */
-    public static function getType(TimeloopField $context)
+    public static function getType(TimeloopField $context): Type
     {
-        /** @var TimeloopField $context */
         $typeName = $context->handle . '_TimeloopInput';
         $periodTypeName = 'periodInput';
         $timeStringTypeName = 'timestringInput';

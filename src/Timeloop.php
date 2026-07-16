@@ -15,32 +15,23 @@ use craft\base\Plugin;
 use craft\events\RegisterComponentTypesEvent;
 use craft\services\Fields;
 use craft\web\twig\variables\CraftVariable;
-use nystudio107\pluginvite\services\VitePluginService;
 use craftpulse\timeloop\assetbundles\timeloop\TimeloopAsset;
 use craftpulse\timeloop\fields\TimeloopField;
 use craftpulse\timeloop\models\SettingsModel as Settings;
 use craftpulse\timeloop\services\TimeloopService;
 use craftpulse\timeloop\twigextensions\TimeloopTwigExtension;
 use craftpulse\timeloop\variables\TimeloopVariable;
+use nystudio107\pluginvite\services\VitePluginService;
 use yii\base\Event;
 
 /**
- * Craft plugins are very much like little applications in and of themselves. We’ve made
- * it as simple as we can, but the training wheels are off. A little prior knowledge is
- * going to be required to write a plugin.
+ * Timeloop plugin entry point.
  *
- * For the purposes of the plugin docs, we’re going to assume that you know PHP and SQL,
- * as well as some semi-advanced concepts like object-oriented programming and PHP namespaces.
- *
- * https://docs.craftcms.com/v3/extend/
- *
- * @author    craftpulse
- * @package   Timeloop
- * @since     1.0.0
- *
- * @property VitePluginService  $vite
+ * @property VitePluginService $vite
  * @property TimeloopService $timeloop
  *
+ * @author CraftPulse
+ * @since 1.0.0
  */
 class Timeloop extends Plugin
 {
@@ -48,19 +39,9 @@ class Timeloop extends Plugin
     // =========================================================================
 
     /**
-     * @var Timeloop|null
+     * @var ?Timeloop The plugin instance.
      */
-    public static ?Timeloop $plugin;
-
-    /**
-     * @var null|TimeloopVariable
-     */
-    public static ?TimeloopVariable $timeloopVariable = null;
-
-    /**
-     * @var null|Settings
-     */
-    public static ?Settings $settings = null;
+    public static ?Timeloop $plugin = null;
 
     // Public Properties
     // =========================================================================
@@ -88,42 +69,34 @@ class Timeloop extends Plugin
 
     // Static Methods
     // =========================================================================
+
     /**
      * @inheritdoc
      */
-
-    public function __construct($id, $parent = null, array $config = [])
+    public static function config(): array
     {
-        $config['components'] = [
-            'timeloop' => __CLASS__,
-            'vite' => [
-                'class' => VitePluginService::class,
-                'assetClass' => TimeloopAsset::class,
-                'useDevServer' => true,
-                'devServerPublic' => 'http://localhost:3001',
-                'serverPublic' => 'http://localhost:8000',
-                'errorEntry' => '/src/js/timeloop.ts',
-                'devServerInternal' => 'http://craft-timeloop-buildchain:3001',
-                'checkDevServer' => true,
+        return [
+            'components' => [
+                'timeloop' => TimeloopService::class,
+                'vite' => [
+                    'class' => VitePluginService::class,
+                    'assetClass' => TimeloopAsset::class,
+                    'useDevServer' => true,
+                    'devServerPublic' => 'http://localhost:3001',
+                    'serverPublic' => 'http://localhost:8000',
+                    'errorEntry' => '/src/js/timeloop.ts',
+                    'devServerInternal' => 'http://craft-timeloop-buildchain:3001',
+                    'checkDevServer' => true,
+                ],
             ],
         ];
-
-        parent::__construct($id, $parent, $config);
     }
 
     // Public Methods
     // =========================================================================
 
     /**
-     * Set our $plugin static property to this class so that it can be accessed via
-     * Timeloop::$plugin
-     *
-     * Called after the plugin class is instantiated; do any one-time initialization
-     * here such as hooks and events.
-     *
-     * If you have a '/vendor/autoload.php' file, it will be loaded for you automatically;
-     * you do not need to load it in your init() method.
-     *
+     * @inheritdoc
      */
     public function init(): void
     {
@@ -153,13 +126,8 @@ class Timeloop extends Plugin
             }
         );
 
-        // Register services as components
-        $this->setComponents([
-            'timeloop' => TimeloopService::class,
-        ]);
-
         // Add in our Twig extensions
-        Craft::$app->view->registerTwigExtension(new TimeloopTwigExtension());
+        Craft::$app->getView()->registerTwigExtension(new TimeloopTwigExtension());
 
         Craft::info(
             Craft::t(
