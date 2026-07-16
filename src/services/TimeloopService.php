@@ -155,6 +155,8 @@ class TimeloopService extends Component
      * @param ?int $limit Maximum number of occurrences (null or `0` means everything for a finite rule).
      * @return DateTimeImmutable[]
      * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if the model's `dtstart` or `timezone` cannot be parsed into a date-time, or
+     * an exclusion/extra date cannot be parsed (see {@see RecurrenceModel::occurrences()}).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -162,6 +164,23 @@ class TimeloopService extends Component
     public function occurrences(RecurrenceModel $model, ?int $limit = null): array
     {
         return $model->occurrences($limit);
+    }
+
+    /**
+     * Returns the first occurrence of a recurrence, in its stored timezone.
+     *
+     * @param RecurrenceModel $model
+     * @return ?DateTimeImmutable
+     * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if the model's `dtstart` or `timezone` cannot be parsed into a date-time, or
+     * an exclusion/extra date cannot be parsed (see {@see RecurrenceModel::firstOccurrence()}).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function firstOccurrence(RecurrenceModel $model): ?DateTimeImmutable
+    {
+        return $model->firstOccurrence();
     }
 
     /**
@@ -173,6 +192,8 @@ class TimeloopService extends Component
      * @param ?int $limit Maximum number of occurrences (null or `0` means everything within the range).
      * @return DateTimeImmutable[]
      * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if the model's `dtstart` or `timezone` cannot be parsed into a date-time, or
+     * an exclusion/extra date cannot be parsed (see {@see RecurrenceModel::occurrencesBetween()}).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -189,6 +210,9 @@ class TimeloopService extends Component
      * @param ?DateTimeInterface $after The reference date, defaulting to now in the stored timezone.
      * @return ?DateTimeImmutable
      * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if the model's `dtstart` or `timezone` cannot be parsed into a date-time, if
+     * `$after` defaults to `now` and cannot be constructed, or an exclusion/extra date cannot be
+     * parsed (see {@see RecurrenceModel::nextOccurrence()}).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -205,6 +229,8 @@ class TimeloopService extends Component
      * @param DateTimeInterface $dateTime
      * @return bool
      * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if the model's `dtstart` or `timezone` cannot be parsed into a date-time, or
+     * an exclusion/extra date cannot be parsed (see {@see RecurrenceModel::occursAt()}).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -221,6 +247,8 @@ class TimeloopService extends Component
      * @param DateTimeInterface $dateTime
      * @return bool
      * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if the model's `dtstart` or `timezone` cannot be parsed into a date-time, or
+     * an exclusion/extra date cannot be parsed (see {@see RecurrenceModel::activeAt()}).
      *
      * @author CraftPulse
      * @since 5.1.0

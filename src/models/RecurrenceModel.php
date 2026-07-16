@@ -34,7 +34,21 @@ use RRule\RSet;
  * Expansion is timezone correct: `dtstart` is interpreted in the stored
  * timezone, and occurrences are returned in that same timezone with a constant
  * wall-clock time across daylight-saving transitions (the library rebuilds each
- * occurrence from the `dtstart` timezone and re-applies the time of day).
+ * occurrence from the `dtstart` timezone and re-applies the time of day). The
+ * one exception is a wall-clock time that falls inside a spring-forward gap
+ * (e.g. a `02:30` occurrence on the day local clocks jump from 02:00 to 03:00):
+ * PHP's `DateTime` normalizes that invalid local time forward to the
+ * corresponding post-transition instant (`03:30` in that example) rather than
+ * erroring, and the library carries that normalization straight through.
+ *
+ * [[dtstart]], [[timezone]], [[rrule]], [[exdates]], [[rdates]] and [[endTime]]
+ * are construct-once: the recurrence set is memoized on first expansion, and
+ * mutating any of them afterwards is unsupported (the change would silently
+ * have no effect while [[$_rset]] stays cached). [[extraExclusions]] is the one
+ * property that supports post-construction mutation, via [[setExtraExclusions()]],
+ * which explicitly resets the memoized set; this is the hook the Phase 3
+ * holiday service uses to inject newly resolved exclusion dates without
+ * rebuilding the model.
  *
  * @author CraftPulse
  * @since 5.1.0
@@ -46,6 +60,10 @@ class RecurrenceModel extends Model
 
     /**
      * @var int Fallback cap applied when expanding an infinite rule without an explicit limit.
+     *
+     * Only guards infinite rules (no `COUNT` or `UNTIL`): a finite rule always
+     * expands fully when no limit is given, regardless of how many occurrences
+     * it produces.
      */
     public const DEFAULT_LIMIT = 100;
 
@@ -74,6 +92,11 @@ class RecurrenceModel extends Model
 
     /**
      * @var string[] Extra one-off dates (date or date-time strings) added to the set.
+     *
+     * Rdates are anchored to the [[dtstart]] time of day (see [[_atOccurrenceTime()]]):
+     * an rdate cannot carry a time of its own that differs from the rest of the
+     * series. This is relevant to the future GraphQL raw-input contract, which
+     * must not imply per-rdate time overrides.
      */
     public array $rdates = [];
 
@@ -82,13 +105,13 @@ class RecurrenceModel extends Model
      */
     public ?string $endTime = null;
 
+    // Private Properties
+    // =========================================================================
+
     /**
      * @var string[] Injected exclusion dates resolved elsewhere (e.g. holidays). Merged with [[exdates]].
      */
-    public array $extraExclusions = [];
-
-    // Private Properties
-    // =========================================================================
+    private array $_extraExclusions = [];
 
     /**
      * @var ?RSet Memoized recurrence set.
@@ -103,6 +126,8 @@ class RecurrenceModel extends Model
      *
      * @return bool
      * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if [[dtstart]] or [[timezone]] cannot be parsed into a date-time, or an
+     * exclusion/extra date cannot be parsed (see [[_rset()]]).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -126,14 +151,49 @@ class RecurrenceModel extends Model
     }
 
     /**
+     * Returns the extra exclusion dates injected from elsewhere (e.g. holidays).
+     *
+     * @return string[]
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function getExtraExclusions(): array
+    {
+        return $this->_extraExclusions;
+    }
+
+    /**
+     * Sets the extra exclusion dates injected from elsewhere (e.g. holidays).
+     *
+     * This is the one property that supports mutation after construction (see
+     * the class docblock): setting it resets the memoized recurrence set so the
+     * next expansion picks up the new exclusions.
+     *
+     * @param string[] $exclusions
+     * @return void
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function setExtraExclusions(array $exclusions): void
+    {
+        $this->_extraExclusions = $exclusions;
+        $this->_rset = null;
+    }
+
+    /**
      * Returns the occurrences of the recurrence, in the stored timezone.
      *
      * When no limit is given and the rule is infinite, the result is capped at
      * [[DEFAULT_LIMIT]] to avoid an unbounded expansion.
      *
-     * @param ?int $limit Maximum number of occurrences (null or `0` means everything for a finite rule).
+     * @param ?int $limit Maximum number of occurrences (null or `0` means everything for a finite
+     * rule; infinite rules are capped at [[DEFAULT_LIMIT]]).
      * @return DateTimeImmutable[]
      * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if [[dtstart]] or [[timezone]] cannot be parsed into a date-time, or an
+     * exclusion/extra date cannot be parsed (see [[_rset()]]).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -142,11 +202,29 @@ class RecurrenceModel extends Model
     {
         $rset = $this->_rset();
 
-        if ($limit === null && $rset->isInfinite()) {
+        if (!$limit && $rset->isInfinite()) {
             $limit = self::DEFAULT_LIMIT;
         }
 
         return $this->_toImmutableList($rset->getOccurrences($limit ?? 0));
+    }
+
+    /**
+     * Returns the first occurrence of the set, in the stored timezone.
+     *
+     * @return ?DateTimeImmutable
+     * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if [[dtstart]] or [[timezone]] cannot be parsed into a date-time, or an
+     * exclusion/extra date cannot be parsed (see [[_rset()]]).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function firstOccurrence(): ?DateTimeImmutable
+    {
+        $occurrences = $this->_rset()->getOccurrences(1);
+
+        return isset($occurrences[0]) ? $this->_toImmutable($occurrences[0]) : null;
     }
 
     /**
@@ -157,6 +235,8 @@ class RecurrenceModel extends Model
      * @param ?int $limit Maximum number of occurrences (null or `0` means everything within the range).
      * @return DateTimeImmutable[]
      * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if [[dtstart]] or [[timezone]] cannot be parsed into a date-time, or an
+     * exclusion/extra date cannot be parsed (see [[_rset()]]).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -169,9 +249,17 @@ class RecurrenceModel extends Model
     /**
      * Returns the first occurrence strictly after the given date.
      *
+     * Cost is O(occurrences since [[dtstart]]) per call: the library has no
+     * reverse iterator, so `getOccurrencesAfter()` re-expands the series from
+     * its start every time. Fine for a single-value check; do not loop this
+     * over many entries. The Phase 6 occurrence index is the at-scale path.
+     *
      * @param ?DateTimeInterface $after The reference date, defaulting to now in the stored timezone.
      * @return ?DateTimeImmutable
      * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if [[dtstart]] or [[timezone]] cannot be parsed into a date-time, if `$after`
+     * defaults to `now` and cannot be constructed, or an exclusion/extra date cannot be parsed
+     * (see [[_rset()]]).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -193,13 +281,21 @@ class RecurrenceModel extends Model
      * @param DateTimeInterface $dateTime
      * @return bool
      * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if [[dtstart]] or [[timezone]] cannot be parsed into a date-time, or an
+     * exclusion/extra date cannot be parsed (see [[_rset()]]).
      *
      * @author CraftPulse
      * @since 5.1.0
      */
     public function occursAt(DateTimeInterface $dateTime): bool
     {
-        return $this->_rset()->occursAt($dateTime);
+        // Normalize to a mutable DateTime in the stored timezone before
+        // delegating: the library's occursAt() calls setTimezone() on the input
+        // without reassigning the result, which is a silent no-op for
+        // DateTimeImmutable and would compare the wrong wall-clock components.
+        $normalized = DateTime::createFromInterface($dateTime)->setTimezone($this->_timezone());
+
+        return $this->_rset()->occursAt($normalized);
     }
 
     /**
@@ -211,9 +307,16 @@ class RecurrenceModel extends Model
      * no [[endTime]] is set the occurrence is all-day and the window spans from
      * the start until the following midnight. The end boundary is exclusive.
      *
+     * Cost is O(occurrences since [[dtstart]]) per call: the library has no
+     * reverse iterator, so `getOccurrencesBefore()` re-expands the series from
+     * its start every time. Fine for a single-value check; do not loop this
+     * over many entries. The Phase 6 occurrence index is the at-scale path.
+     *
      * @param DateTimeInterface $dateTime
      * @return bool
      * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if [[dtstart]] or [[timezone]] cannot be parsed into a date-time, or an
+     * exclusion/extra date cannot be parsed (see [[_rset()]]).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -238,6 +341,8 @@ class RecurrenceModel extends Model
      *
      * @return RSet
      * @throws \InvalidArgumentException if the rule, dates or exclusions cannot be parsed.
+     * @throws \Exception if [[dtstart]] or [[timezone]] cannot be parsed into a date-time (see
+     * [[_dtstart()]], [[_timezone()]] and [[_atOccurrenceTime()]]).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -258,7 +363,7 @@ class RecurrenceModel extends Model
             $rset->addDate($this->_atOccurrenceTime($rdate));
         }
 
-        foreach ([...$this->exdates, ...$this->extraExclusions] as $exdate) {
+        foreach ([...$this->exdates, ...$this->getExtraExclusions()] as $exdate) {
             $rset->addExDate($this->_atOccurrenceTime($exdate));
         }
 
@@ -272,6 +377,9 @@ class RecurrenceModel extends Model
      * iterating; the timezone it carries is what every occurrence inherits.
      *
      * @return DateTime
+     * @throws \Exception if [[dtstart]] is not a valid date-time string or [[timezone]] is not a
+     * valid timezone identifier (PHP 8.3+ throws the narrower `\DateMalformedStringException` /
+     * `\DateInvalidTimeZoneException`, both of which extend `\Exception`).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -285,6 +393,8 @@ class RecurrenceModel extends Model
      * Returns the stored timezone as a DateTimeZone.
      *
      * @return DateTimeZone
+     * @throws \Exception if [[timezone]] is not a valid timezone identifier (PHP 8.3+ throws the
+     * narrower `\DateInvalidTimeZoneException`, which extends `\Exception`).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -304,6 +414,10 @@ class RecurrenceModel extends Model
      *
      * @param string $date A date or date-time string.
      * @return DateTime
+     * @throws \Exception if `$date` is not a valid date-time string or [[timezone]] is not a valid
+     * timezone identifier (via [[_dtstart()]] and the inline `DateTime` construction; PHP 8.3+
+     * throws the narrower `\DateMalformedStringException` / `\DateInvalidTimeZoneException`, both
+     * of which extend `\Exception`).
      *
      * @author CraftPulse
      * @since 5.1.0

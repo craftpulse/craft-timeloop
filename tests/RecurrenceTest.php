@@ -335,3 +335,220 @@ it('includes both boundaries of a range', function() {
         '2026-01-26',
     ]);
 });
+
+it('truncates occurrencesBetween to the given limit', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T09:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=6',
+    ]);
+
+    $occurrences = $model->occurrencesBetween(
+        brussels('2026-01-05T09:00:00'),
+        brussels('2026-02-09T09:00:00'),
+        2,
+    );
+
+    expect(ymd($occurrences))->toBe([
+        '2026-01-05',
+        '2026-01-12',
+    ]);
+});
+
+// firstOccurrence
+// -------------------------------------------------------------------------
+
+it('returns the first occurrence of the set', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T09:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=4',
+    ]);
+
+    expect($model->firstOccurrence()->format('Y-m-d'))->toBe('2026-01-05');
+});
+
+// Daylight saving: spring-forward gap
+// -------------------------------------------------------------------------
+
+it('normalizes a spring-forward skipped wall-clock time forward', function() {
+    $model = recurrence([
+        'dtstart' => '2026-03-22T02:30:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=SU;COUNT=4',
+    ]);
+
+    $occurrences = $model->occurrences();
+
+    // 2026-03-29 falls inside the spring-forward gap (local clocks jump from
+    // 02:00 to 03:00 that day). PHP's DateTime normalizes the invalid 02:30
+    // wall-clock time forward to 03:30 instead of erroring, and the library
+    // carries that normalization straight through.
+    expect($occurrences[0]->format('Y-m-d H:i:s P'))->toBe('2026-03-22 02:30:00 +01:00')
+        ->and($occurrences[1]->format('Y-m-d H:i:s P'))->toBe('2026-03-29 03:30:00 +02:00')
+        ->and($occurrences[2]->format('Y-m-d H:i:s P'))->toBe('2026-04-05 02:30:00 +02:00')
+        ->and($occurrences[3]->format('Y-m-d H:i:s P'))->toBe('2026-04-12 02:30:00 +02:00');
+});
+
+// activeAt: window rollover and edge cases
+// -------------------------------------------------------------------------
+
+it('rolls the active window into the next day when endTime is before the start time', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T22:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=2',
+        'endTime' => '02:00',
+    ]);
+
+    expect($model->activeAt(brussels('2026-01-06T01:00:00')))->toBeTrue()
+        ->and($model->activeAt(brussels('2026-01-06T03:00:00')))->toBeFalse();
+});
+
+it('treats an endTime of 00:00 as rolling to the following midnight', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T09:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=2',
+        'endTime' => '00:00',
+    ]);
+
+    expect($model->activeAt(brussels('2026-01-05T23:59:59')))->toBeTrue()
+        ->and($model->activeAt(brussels('2026-01-06T00:00:00')))->toBeFalse();
+});
+
+it('reports inactive before the first occurrence of a future-dated rule', function() {
+    $model = recurrence([
+        'dtstart' => '2026-06-01T09:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=4',
+    ]);
+
+    expect($model->activeAt(brussels('2026-01-01T00:00:00')))->toBeFalse();
+});
+
+// Infinite rules
+// -------------------------------------------------------------------------
+
+it('caps an infinite rule at DEFAULT_LIMIT when no limit is given', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-01T00:00:00',
+        'timezone' => 'UTC',
+        'rrule' => 'FREQ=DAILY',
+    ]);
+
+    expect($model->occurrences())->toHaveCount(RecurrenceModel::DEFAULT_LIMIT)
+        ->and($model->occurrences(null))->toHaveCount(RecurrenceModel::DEFAULT_LIMIT);
+});
+
+it('caps an infinite rule at DEFAULT_LIMIT when occurrences(0) is called', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-01T00:00:00',
+        'timezone' => 'UTC',
+        'rrule' => 'FREQ=DAILY',
+    ]);
+
+    // Regression: occurrences(0) used to reach the library's LogicException
+    // guard because the old cap only fired for a null limit, not a falsy 0.
+    expect($model->occurrences(0))->toHaveCount(RecurrenceModel::DEFAULT_LIMIT);
+});
+
+it('supports nextOccurrence on an infinite rule', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-01T00:00:00',
+        'timezone' => 'UTC',
+        'rrule' => 'FREQ=DAILY',
+    ]);
+
+    expect($model->nextOccurrence(new DateTimeImmutable('2026-01-01T00:00:00', new DateTimeZone('UTC')))->format('Y-m-d'))->toBe('2026-01-02');
+});
+
+it('supports activeAt on an infinite rule', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-01T00:00:00',
+        'timezone' => 'UTC',
+        'rrule' => 'FREQ=DAILY',
+    ]);
+
+    expect($model->activeAt(new DateTimeImmutable('2026-01-05T12:00:00', new DateTimeZone('UTC'))))->toBeTrue();
+});
+
+// Extra exclusions: mutation and memoization
+// -------------------------------------------------------------------------
+
+it('accepts extraExclusions from the config array via the magic setter', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T09:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=4',
+        'extraExclusions' => ['2026-01-19'],
+    ]);
+
+    expect($model->getExtraExclusions())->toBe(['2026-01-19']);
+});
+
+it('picks up extra exclusions injected after a first expansion', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T09:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=4',
+    ]);
+
+    // First expansion memoizes the recurrence set before any exclusion is known.
+    expect(ymd($model->occurrences()))->toBe([
+        '2026-01-05',
+        '2026-01-12',
+        '2026-01-19',
+        '2026-01-26',
+    ]);
+
+    $model->setExtraExclusions(['2026-01-19']);
+
+    // The setter must reset the memoized set, or this would still return all 4 dates.
+    expect(ymd($model->occurrences()))->toBe([
+        '2026-01-05',
+        '2026-01-12',
+        '2026-01-26',
+    ]);
+});
+
+// Timezone-mismatched input
+// -------------------------------------------------------------------------
+
+it('resolves activeAt and nextOccurrence correctly when the input date-time is in a different timezone', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T09:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=4',
+        'endTime' => '11:00',
+    ]);
+
+    // 2026-01-12T09:00:00+01:00 (Brussels, winter time) is 2026-01-12T08:00:00Z (UTC).
+    $utcInstant = new DateTimeImmutable('2026-01-12T08:00:00', new DateTimeZone('UTC'));
+
+    expect($model->activeAt($utcInstant))->toBeTrue()
+        ->and($model->nextOccurrence($utcInstant)->format('Y-m-d'))->toBe('2026-01-19');
+});
+
+it('matches occursAt regardless of the input timezone or DateTime mutability', function() {
+    // rlanvin/php-rrule's RRule::occursAt() converts the input to the rule's
+    // timezone via `$date->setTimezone(...)` without reassigning the result —
+    // a silent no-op for DateTimeImmutable. RecurrenceModel::occursAt()
+    // compensates by normalizing every input to a mutable DateTime in the
+    // stored timezone before delegating, so any DateTimeInterface in any
+    // timezone matches by instant.
+    $model = recurrence([
+        'dtstart' => '2026-01-05T09:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=4',
+    ]);
+
+    // 2026-01-12T09:00:00+01:00 (Brussels, winter time) is 2026-01-12T08:00:00Z (UTC).
+    $utcImmutable = new DateTimeImmutable('2026-01-12T08:00:00', new DateTimeZone('UTC'));
+    $utcMutable = new DateTime('2026-01-12T08:00:00', new DateTimeZone('UTC'));
+
+    expect($model->occursAt($utcImmutable))->toBeTrue()
+        ->and($model->occursAt($utcMutable))->toBeTrue()
+        ->and($model->occursAt(brussels('2026-01-12T09:00:00')))->toBeTrue()
+        ->and($model->occursAt(new DateTimeImmutable('2026-01-12T09:00:00', new DateTimeZone('UTC'))))->toBeFalse();
+});
