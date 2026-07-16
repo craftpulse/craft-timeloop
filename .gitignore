@@ -26,6 +26,10 @@ node_modules
 yarn-error.log
 npm-error.log
 
+# TESTING
+.phpunit.cache
+.phpunit.result.cache
+
 # MISC FILES
 .cache
 .DS_Store

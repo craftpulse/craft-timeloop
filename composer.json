@@ -30,13 +30,15 @@
     "require": {
         "php": "^8.2.0",
         "craftcms/cms": "^5.0.0",
-        "nystudio107/craft-plugin-vite": "^5.0.0"
+        "nystudio107/craft-plugin-vite": "^5.0.0",
+        "rlanvin/php-rrule": "^2.6",
+        "nesbot/carbon": "^2.72.2 || ^3.0",
+        "spatie/holidays": "^1.24 || ^2.0"
     },
     "require-dev":{
         "craftcms/ecs": "dev-main",
         "craftcms/phpstan": "dev-main",
-        "yiisoft/yii2-redis": "^2.0",
-        "vlucas/phpdotenv": "^5.4.0"
+        "pestphp/pest": "^3.0"
     },
     "repositories": [
         {
@@ -47,6 +49,11 @@
     "autoload": {
         "psr-4": {
             "craftpulse\\timeloop\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "craftpulse\\timeloop\\tests\\": "tests/"
         }
     },
     "scripts": {
@@ -67,7 +74,8 @@
     "config": {
         "allow-plugins": {
             "craftcms/plugin-installer": true,
-            "yiisoft/yii2-composer": true
+            "yiisoft/yii2-composer": true,
+            "pestphp/pest-plugin": true
         }
     }
 }
