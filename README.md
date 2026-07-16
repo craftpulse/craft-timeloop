@@ -1,250 +1,230 @@
-# Timeloop plugin for Craft CMS 5.x
+# Timeloop for Craft CMS
 
-The timeloop plugin creates repeating dates without the need of complex inputs.
+Timeloop generates arrays of dates between a start and end date based on a frequency — recurring events, repeating classes, courses, payment schedules — without complex recurrence inputs. Authors pick a start date, a frequency, and an interval; your templates get clean `DateTime` arrays back.
 
 ![Screenshot](./resources/img/timeloop-banner.jpg)
 
+## Features
+
+- **Timeloop field type** — a single field that captures start/end dates, optional start/end times, frequency, interval, and refinements per frequency.
+- **Four frequencies** — daily, weekly, monthly, and yearly, each with a configurable interval (every 2 weeks, every 3 months, ...).
+- **Weekly day selection** — repeat on specific weekdays, e.g. every week on Monday and Friday.
+- **Monthly ordinals** — repeat on the first, second, third, fourth, or last weekday of the month, e.g. "last Saturday of every month".
+- **Computed dates in Twig** — `dates`, `upcoming`, and `nextUpcoming` on the field value, plus a `recurringDates()` function to collect dates across a whole element query.
+- **Reminder offset** — store a reminder period (e.g. 2 days before) and read the computed reminder date for the next occurrence.
+- **GraphQL support** — query the field's raw settings and computed dates, and set the field through mutations.
+
 ## Requirements
 
-This plugin requires Craft CMS 5.0.0 or later.
+- Craft CMS 5.0 or newer
+- PHP 8.2+
 
 ## Installation
 
-1. Open your terminal and navigate to your Craft project:
-   ```sh
-   cd /path/to/project
-   ```
-2. Install the plugin via Composer:
-   ```sh
-   composer require craftpulse/craft-timeloop
-   ```
-3. Install the plugin:
-   ```sh
-   craft plugin/install timeloop
-   ```
-   Alternatively, activate it via **Settings → Plugins** in the Craft Control Panel.
+In your Craft project root:
 
-## Timeloop Overview
-
-The Timeloop plugin provides recurring dates based on a starting date and a regular loop period.
-
-**Example**: Set a payment date for employees on the first of each month.
-
-## Configuring the Timeloop field.
-
-The following configuration options that are available for the field:
-
-- **ShowTimes**: When selected, this will give the ability to choose a starting time and end time for the recurring dates.
-
-## Using Timeloop
-
-### The Timeloop Model
-
-#### Getting the entered dates (returned as DateTime objects)
-
-Getting the start date for the loop (this includes the time set in `loopStartTime`):
-
-```
-    {{ entry.timeloop.loopStartDate | date('Y-m-d\\TH:i:sP') }}
+```bash
+composer require craftpulse/craft-timeloop
+./craft plugin/install timeloop
 ```
 
-Getting the end date for the loop (this includes the time set in `loopEndHour`):
-```
-    {{ entry.timeloop.loopEndDate | date('Y-m-d\\TH:i:sP') }}
+Or install through the Plugin Store: **Settings → Plugins → Search "Timeloop"**.
+
+## Setting up the field
+
+Create a new field and pick **Timeloop** as the field type. The field has one setting:
+
+- **Show Times** — when enabled, authors can set a start time and end time alongside the start and end dates. The times are merged into the stored dates (occurrences start at the start time; the loop end date ends at the end time, or 23:59 when no end time is set).
+
+Authors then configure each entry's loop:
+
+- **Start date** (required) — the first occurrence.
+- **End date** (optional) — when the loop stops. Without an end date, dates are generated up to 20 years ahead.
+- **Loop period** — the frequency (daily, weekly, monthly, or yearly) and the interval between occurrences. Weekly loops can target specific days of the week; monthly loops can target an ordinal weekday (e.g. "last Friday").
+- **Reminder** (optional) — a value and unit (days, weeks, months, or years) subtracted from the next occurrence to produce a reminder date. Timeloop computes the date; sending the actual notification is up to your project.
+
+## Templating
+
+The examples below assume an `events` section with a Timeloop field whose handle is `schedule`.
+
+### Getting the computed dates
+
+`dates` returns the upcoming occurrences as an array of `DateTime` objects (future dates only, capped at 100 by default):
+
+```twig
+{% for date in entry.schedule.dates %}
+    {{ date | date('d/m/Y H:i') }}
+{% endfor %}
 ```
 
-Getting the start time for the loop:
+Use `getDates()` to control the limit and whether past dates are included:
 
-```
-    {{ entry.timeloop.loopStartTime | date('H:i:s') }}
+```twig
+{# The next 5 occurrences #}
+{% for date in entry.schedule.getDates(5) %}
+    {{ date | date('d/m/Y H:i') }}
+{% endfor %}
+
+{# Occurrences from the start date onwards, including past ones (max 100) #}
+{% for date in entry.schedule.getDates(0, false) %}
+    {{ date | date('d/m/Y H:i') }}
+{% endfor %}
 ```
 
-Getting the end time for the loop:
+The generated dates take all field values into account: frequency, interval, weekly days, and monthly ordinals.
 
-```
-    {{ entry.timeloop.loopEndTime | date('H:i:s') }}
+### Upcoming occurrences
+
+```twig
+{# The first upcoming occurrence #}
+{{ entry.schedule.upcoming | date('d/m/Y H:i') }}
+
+{# The occurrence after that #}
+{{ entry.schedule.nextUpcoming | date('d/m/Y H:i') }}
 ```
 
-Getting an array of dates between the selected start and end dates (Array with DateTime Objects):
+Both return `null` when the loop has no (more) upcoming dates, so guard accordingly:
 
+```twig
+{% if entry.schedule.upcoming %}
+    Next class: {{ entry.schedule.upcoming | date('l d F Y') }}
+{% endif %}
 ```
-    {% for date in entry.timeloop.dates %}
-        {{ date | date('Y-m-d\\TH:i:sP') }}
+
+### The entered dates and times
+
+The raw field values are available as `DateTime` objects (or `null` when not set):
+
+```twig
+{{ entry.schedule.loopStartDate | date('Y-m-d\\TH:i:sP') }}   {# includes the start time #}
+{{ entry.schedule.loopEndDate | date('Y-m-d\\TH:i:sP') }}     {# includes the end time #}
+{{ entry.schedule.loopStartTime | date('H:i') }}
+{{ entry.schedule.loopEndTime | date('H:i') }}
+```
+
+### The loop period
+
+`period` returns the recurrence configuration:
+
+```twig
+{{ entry.schedule.period.frequency }}   {# ISO 8601 duration: P1D, P1W, P1M or P1Y #}
+{{ entry.schedule.period.cycle }}       {# the interval, e.g. 2 for "every 2 weeks" #}
+
+{# Selected weekdays for weekly loops #}
+{% for day in entry.schedule.period.days %}
+    {{ day }}
+{% endfor %}
+```
+
+For monthly loops, `timestring` returns the ordinal weekday configuration:
+
+```twig
+{% set timestring = entry.schedule.timestring %}
+{% if timestring and timestring.ordinal != 'none' %}
+    Repeats every {{ timestring.ordinal }} {{ timestring.day }} of the month
+{% endif %}
+```
+
+`timestring` is `null` when no timestring data is stored, and `ordinal`/`day` are the string `'none'` when no selection has been made.
+
+### The reminder date
+
+`reminder` returns the reminder date for the first upcoming occurrence, or `null` when no reminder is configured:
+
+```twig
+{% if entry.schedule.reminder %}
+    Send a reminder on {{ entry.schedule.reminder | date('d/m/Y') }}
+{% endif %}
+```
+
+### Collecting dates across entries
+
+The `recurringDates()` Twig function expands a whole element query into recurring dates within a window — handy for calendars and agenda views. Pass the query, the Timeloop field handle, and a start and end date (boundaries are inclusive):
+
+```twig
+{% set agenda = recurringDates(craft.entries.section('events'), 'schedule', '2026-01-01', '2026-12-31') %}
+
+{% for item in agenda %}
+    <h2>{{ item.entryTitle }}</h2>
+    {% for date in item.dates %}
+        {{ date | date('d/m/y H:i') }}<br>
     {% endfor %}
+{% endfor %}
 ```
 
-This generated set of dates takes all the field values into consideration (frequency, cycle and custom)
+Each item contains `entryId`, `entryTitle`, and `dates` (an array of `DateTime` objects within the window, including past dates).
 
+## GraphQL
 
-#### Upcoming Dates (returned as DateTime Objects)
+### Querying
 
-Getting the first upcoming date:
-
-```
-    {{ entry.timeloop.upcoming | date('Y-m-d\\TH:i:sP') }}
-```
-
-Getting the next upcoming date:
-
-```
-    {{ entry.timeloop.nextUpcoming | date('Y-m-d\\TH:i:sP') }}
-```
-
-
-#### Get entries between certain dates
-
-If you want to fetch entries from a certain section between two dates. You can fetch them by giving the ElementsQuery with the name of the timeloop field, start and end date. This will return you an array of recurring dates per entry between this period. If no dates are defined, you will get an empty array. In the returned array, you can find the entry id, entry title and the dates.
-
-```
-    {%- set recurringEntries = recurringDates(craft.entries.section('events'), 'timeloop', '2021-01-01', '2022-02-01')  %}
-    {% for recurringEntry in recurringEntries %}
-        <div>
-            <h2>{{ recurringEntry.entryTitle }}: {{ recurringEntry.entryId }}</h2>
-            {% for date in recurringEntry.dates %}
-                {{ date | date('d/m/y H:i') }}<br/>
-            {% endfor %}
-        </div>
-    {% endfor %}
-```
-
-Returns this array layout
-```
-0 => [
-    'entryId' => 1111
-    'entryTitle' => 'Event title'
-    'dates' => [
-        0 => DateTime#1
-        (
-            [date] => '2022-01-01 00:00:00.000000'
-            [timezone_type] => 3
-            [timezone] => 'Europe/London'
-        )
-        1 => DateTime#2
-        (
-            [date] => '2022-01-08 00:00:00.000000'
-            [timezone_type] => 3
-            [timezone] => 'Europe/London'
-        )
-    ]
-]
-```
-
-### Period Model
-
-Getting the frequency (DateTimePeriod String):
-
-```
-    {{ entry.timeloop.period.frequency }}
-```
-
-Getting the cycle (Integer):
-
-```
-    {{ entry.timeloop.period.cycle }}
-```
-
-Displaying the selected days (Array):
-
-```
-    {% for day in entry.timeloop.period.days %}
-        {{ day }}
-    {% endfor %}
-```
-
-This will parse the names of the selected days when weekly has been chosen as frequency.
-
-### Timestring Model
-
-Get the ordinal of a monthly set loop (e.g. first, second, ..., last)
-
-**warning:** If the frequency is not set to monthly, the returned value will be `null`.<br>
-**warning:** If the frequency is set to monthly and no timestring selection has been made, the returned value will be `none` as `String`.
-
-```
-    {{ entry.timeloop.timestring.ordinal ?? 'not set' }}
-```
-
-### Reminder Model (WIP - not ready for production)
-
-### GraphQL
-
-If you want to use the plugin through GraphQL, we've added a GraphQL Type to provide the field data.
-
-You can get the DateTime Types from the data directly for 
-* `loopStartDate` will return the start date
-* `loopStartTime` will return the start time, defaults to `00:00:00` when no start time has been entered or `showTimes` is set to false.
-* `loopEndDate` will return the end date
-* `loopEndTime` will return the end time, defaults to `23:59:59` when no end time has been entered or `showTimes` is set to false.
-* `loopReminder`
-
-#### Loop Period
-
-You can get the `loopPeriod` object as follows:
-
-```
-    loopPeriod {
-        frequency
-        cycle
-        days
-        timestring {
-          ordinal
-          day
-        }
-    }
-```
-
-* `frequency` will return the selected frequency ( P1D / P1W / P1M / P1Y )
-* `cycle` will return the entered cycle value
-* `days` will return an Array that contains the selected days of the week
-* `timestring` will return an object that contains the `ordinal` (e.g. last) and `day` (e.g. saturday)
-
-#### The Dates
-
-To get an array of formatted dates, use `dates`.
-
-##### Dates arguments:
-
-* limit (Integer): add a limit of dates you want to return, default to `100`.
-* futureDates (Boolean): if you want to show future dates only, default to `true`.
-
-##### Dates directives:
-
-`formatDateTime(timezone: "Europe/London" format: "d/m/Y")`
-
+The field exposes the stored settings and the computed dates. Dates support Craft's `@formatDateTime` directive; `loopStartTime` and `loopEndTime` resolve to `H:i` strings.
 
 ```graphql
-query{
-  entries(section: "homepage"){
-    id,
-    ...on homepage_homepage_Entry{
-      dateCreated,
-      title,
-      timeloop {
-        loopReminder,
-        loopStartDate,
-        loopStartTime,
-        loopEndDate,
-        loopEndTime,
-        loopPeriod,
-        dates(limit: 5) @formatDateTime(format: "d/m/Y" )
+{
+  entries(section: "events") {
+    title
+    ... on event_Entry {
+      schedule {
+        loopStartDate
+        loopEndDate
+        loopStartTime
+        loopEndTime
+        loopPeriod {
+          frequency
+          cycle
+          days
+          timestring {
+            ordinal
+            day
+          }
+        }
+        getDates(limit: 5) @formatDateTime(format: "d/m/Y")
+        getUpcoming
+        getReminder
       }
     }
   }
 }
-
 ```
 
-## Timeloop Roadmap
+- `loopPeriod.frequency` — the selected frequency (`P1D`, `P1W`, `P1M` or `P1Y`)
+- `loopPeriod.cycle` — the interval between occurrences
+- `loopPeriod.days` — the selected weekdays for weekly loops
+- `loopPeriod.timestring` — the `ordinal` (e.g. `last`) and `day` (e.g. `saturday`) for monthly loops
+- `getDates` — the computed dates; accepts `limit` (default `100`) and `futureDates` (default `true`)
+- `getUpcoming` — the first upcoming occurrence
+- `getReminder` — the reminder date for the first upcoming occurrence
 
-Potential features for the future:
+### Mutating
 
-* Reminder Support
-* Make the fieldtype translatable
-* Provide language translations
-* Add the possibility to blocklist dates
-* Add holiday settings
-* Localise holidays based on the CraftCMS timezone settings
+The field can be set through entry mutations. The input type accepts `loopStartDate`, `loopEndDate`, `loopStartTime`, `loopEndTime`, and a `loopPeriod` object:
 
-And many more!
+```graphql
+mutation {
+  save_events_event_Entry(
+    title: "Weekly yoga class"
+    schedule: {
+      loopStartDate: "2026-09-01"
+      loopEndDate: "2027-06-30"
+      loopPeriod: {
+        frequency: "P1W"
+        cycle: 1
+        days: ["Monday", "Thursday"]
+      }
+    }
+  ) {
+    id
+  }
+}
+```
 
-Brought to you by [CraftPulse](https://craft-pulse.com)
+For monthly loops, pass a `timestring` object with `ordinal` (`First`, `Second`, `Third`, `Fourth`, `Last`) and `day` (e.g. `Saturday`) inside `loopPeriod`. Reminder settings cannot be set through GraphQL.
+
+## Support
+
+- **Plugin Store**: [plugins.craftcms.com/timeloop](https://plugins.craftcms.com/timeloop)
+- **Bugs and feature requests**: [github.com/craftpulse/craft-timeloop/issues](https://github.com/craftpulse/craft-timeloop/issues)
+- **Email**: support@craft-pulse.com
+
+Brought to you by [CraftPulse](https://craft-pulse.com/).
