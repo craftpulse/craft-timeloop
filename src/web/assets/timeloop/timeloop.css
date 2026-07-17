@@ -25,7 +25,7 @@
 .timeloop-field .timeloop-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: var(--m, 14px);
 }
 
@@ -49,11 +49,23 @@
   margin-bottom: var(--xs, 7px);
 }
 
-/* Excluded | Extra dates, two equal columns. */
+/* Weekday checkboxes read as one horizontal row of day pills, like the
+   pre-5.1 UI, instead of Craft's default vertical checkbox stack. */
+.timeloop-field [data-timeloop-region="weekly"] .checkbox-group {
+  display: flex;
+  /* Craft's CP stylesheet stacks .checkbox-group vertically; override to a row. */
+  flex-direction: row;
+  flex-wrap: wrap;
+  column-gap: var(--m, 14px);
+  row-gap: var(--xs, 7px);
+}
+
+/* Excluded | Extra dates, two equal columns with top-aligned headings. */
 .timeloop-field .timeloop-daterows-cols {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--l, 24px);
+  align-items: start;
 }
 
 .timeloop-field .timeloop-daterows-cols > .field {
