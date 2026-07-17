@@ -17,6 +17,7 @@
 use craftpulse\timeloop\models\RecurrenceModel;
 use craftpulse\timeloop\models\TimeloopModel;
 use craftpulse\timeloop\services\IcsService;
+use yii\base\Security;
 
 // Helpers
 // -------------------------------------------------------------------------
@@ -167,4 +168,165 @@ it('exposes the reminder period the loopReminder GQL resolver returns', function
 
 it('exposes a null reminder period when the value carries no reminder', function() {
     expect(timeloopValue()->loopReminderPeriod)->toBeNull();
+});
+
+// Final-review fixes
+// -------------------------------------------------------------------------
+
+// TimeloopModel::occurrences() DoS guard
+// -------------------------------------------------------------------------
+
+it('caps an infinite rule with no limit at RecurrenceModel::DEFAULT_LIMIT even across a huge explicit range', function() {
+    // A public GraphQL `occurrences(rangeEnd: "9999-12-31")` on an infinite
+    // daily rule with no `limit` must not force a multi-millennium expansion:
+    // TimeloopModel::occurrences() applies the same cap
+    // RecurrenceModel::occurrences() already applies on its "no range" path,
+    // but here across an explicit, huge `to` boundary.
+    $value = timeloopValue(['rrule' => 'FREQ=DAILY']);
+
+    $from = new DateTimeImmutable('2027-01-01', new DateTimeZone('Europe/Brussels'));
+    $to = new DateTimeImmutable('9999-12-31', new DateTimeZone('Europe/Brussels'));
+
+    $occurrences = $value->occurrences($from, $to);
+
+    expect($occurrences)->toHaveCount(RecurrenceModel::DEFAULT_LIMIT);
+});
+
+it('does not cap a finite rule across the same huge explicit range', function() {
+    // A finite rule (a real UNTIL) still expands to its own natural end,
+    // regardless of how far `to` reaches beyond it: the guard only applies
+    // to an infinite rule with no positive limit.
+    $value = timeloopValue([
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;UNTIL=20270927T000000Z',
+    ]);
+
+    $from = new DateTimeImmutable('2027-01-01', new DateTimeZone('Europe/Brussels'));
+    $to = new DateTimeImmutable('9999-12-31', new DateTimeZone('Europe/Brussels'));
+
+    $occurrences = $value->occurrences($from, $to);
+
+    expect(count($occurrences))->toBeLessThan(RecurrenceModel::DEFAULT_LIMIT)
+        ->and($occurrences)->not->toBeEmpty();
+});
+
+it('honours an explicit positive limit lower than DEFAULT_LIMIT on an infinite rule', function() {
+    $value = timeloopValue(['rrule' => 'FREQ=DAILY']);
+
+    $from = new DateTimeImmutable('2027-01-01', new DateTimeZone('Europe/Brussels'));
+    $to = new DateTimeImmutable('9999-12-31', new DateTimeZone('Europe/Brussels'));
+
+    $occurrences = $value->occurrences($from, $to, 5);
+
+    expect($occurrences)->toHaveCount(5);
+});
+
+// RecurrenceModel::storedExclusionDates() vs exclusionDates()
+// -------------------------------------------------------------------------
+
+it('excludes injected holidays from storedExclusionDates but includes them in exclusionDates', function() {
+    $model = new RecurrenceModel([
+        'dtstart' => '2027-09-06T19:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO',
+        'exdates' => ['2027-12-27'],
+    ]);
+    $model->setExtraExclusions(['2027-12-25']);
+
+    expect(ymd($model->storedExclusionDates()))->toBe(['2027-12-27'])
+        ->and(ymd($model->exclusionDates()))->toBe(['2027-12-27', '2027-12-25']);
+});
+
+it('anchors storedExclusionDates to the occurrence time of day', function() {
+    $model = new RecurrenceModel([
+        'dtstart' => '2027-09-06T19:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO',
+        'exdates' => ['2027-12-27'],
+    ]);
+
+    expect($model->storedExclusionDates()[0]->format('Y-m-d H:i'))->toBe('2027-12-27 19:00');
+});
+
+// TimeloopModel/RecurrenceModel: garbage `rrule` must not crash construction
+// -------------------------------------------------------------------------
+
+it('does not throw when constructing a value with a malformed UNTIL', function() {
+    $value = timeloopValue(['rrule' => 'FREQ=DAILY;UNTIL=not-a-date']);
+
+    expect($value->loopEndDate)->toBeNull()
+        ->and($value->rrule)->toBe('FREQ=DAILY;UNTIL=not-a-date');
+});
+
+it('still reports a malformed rrule as invalid when actually expanded', function() {
+    $value = timeloopValue(['rrule' => 'FREQ=DAILY;UNTIL=not-a-date']);
+
+    expect(fn() => $value->getRecurrence()->isInfinite())->toThrow(\InvalidArgumentException::class);
+});
+
+// IcsService: injectable Security, token round trip
+// -------------------------------------------------------------------------
+
+function icsServiceWithSecurity(): IcsService
+{
+    // yii\base\Security::hashData()/validateData() require an explicit key
+    // (unlike craft\services\Security, which falls back to the app's
+    // securityKey); IcsService resolves and passes its own [[$securityKey]]
+    // explicitly for exactly this reason (see the property docblock), so an
+    // arbitrary fixed key works here.
+    return new IcsService(['security' => new Security(), 'securityKey' => 'test-key']);
+}
+
+it('round-trips a signed token', function() {
+    $service = icsServiceWithSecurity();
+    $token = $service->signToken(42, 1, 'schedule');
+
+    expect($service->validateToken($token))->toBe([
+        'elementId' => 42,
+        'siteId' => 1,
+        'fieldHandle' => 'schedule',
+    ]);
+});
+
+it('returns null for a tampered token', function() {
+    $service = icsServiceWithSecurity();
+    $token = $service->signToken(42, 1, 'schedule');
+    $tampered = substr($token, 0, -1) . (str_ends_with($token, 'a') ? 'b' : 'a');
+
+    expect($service->validateToken($tampered))->toBeNull();
+});
+
+it('returns null when the decoded payload has the wrong segment count', function() {
+    $service = icsServiceWithSecurity();
+    // Sign a payload with only two `|`-delimited segments (no fieldHandle),
+    // bypassing signToken()'s own three-part payload builder, but with the
+    // same key validateToken() will use to verify it.
+    $token = (new Security())->hashData('42|1', 'test-key');
+
+    expect($service->validateToken($token))->toBeNull();
+});
+
+it('returns null when the decoded payload has an empty fieldHandle segment', function() {
+    $service = icsServiceWithSecurity();
+    $token = (new Security())->hashData('42|1|', 'test-key');
+
+    expect($service->validateToken($token))->toBeNull();
+});
+
+it('safely reassembles a field handle containing extra delimiters (delimiter-abuse attempt)', function() {
+    // explode(..., 3) means the third segment absorbs any further `|`
+    // characters instead of truncating or misparsing the handle.
+    $service = icsServiceWithSecurity();
+    $token = $service->signToken(42, 1, 'weird|handle|with|pipes');
+
+    expect($service->validateToken($token))->toBe([
+        'elementId' => 42,
+        'siteId' => 1,
+        'fieldHandle' => 'weird|handle|with|pipes',
+    ]);
+});
+
+it('returns null for a garbage token that was never signed', function() {
+    $service = icsServiceWithSecurity();
+
+    expect($service->validateToken('not-a-real-token'))->toBeNull();
 });

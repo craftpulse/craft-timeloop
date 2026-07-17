@@ -166,7 +166,11 @@ class TimeloopModel extends Model
      *
      * Derives the legacy backwards-compatibility properties from the v2 data.
      *
-     * @throws \Exception if the stored timezone, `dtstart` or rule `UNTIL` cannot be parsed.
+     * A malformed rule `UNTIL` degrades [[loopEndDate]] to null rather than
+     * throwing (see the inline guard); only the stored timezone and `dtstart`
+     * itself can still throw.
+     *
+     * @throws \Exception if the stored timezone or `dtstart` cannot be parsed.
      */
     public function init(): void
     {
@@ -192,7 +196,23 @@ class TimeloopModel extends Model
         $until = $this->rrule !== null ? ValueNormalizer::parseRrule($this->rrule)['until'] : null;
 
         if ($until !== null) {
-            $this->loopEndDate = (new DateTime($until, new DateTimeZone('UTC')))->setTimezone($timezone);
+            try {
+                $this->loopEndDate = (new DateTime($until, new DateTimeZone('UTC')))->setTimezone($timezone);
+            } catch (Throwable) {
+                // A syntactically invalid UNTIL (e.g. a raw GraphQL mutation
+                // posting garbage into `rrule`, see
+                // {@see \craftpulse\timeloop\fields\TimeloopField::getElementValidationRules()})
+                // must not crash construction: content normalization runs on
+                // every `getFieldValue()` call, so throwing here would take
+                // down the control panel edit screen, the element index and
+                // any front-end template rendering the element, not just the
+                // one read that actually needs the date. The recurrence
+                // engine still reports the rule as invalid when it is
+                // actually expanded (see {@see RecurrenceModel}); this only
+                // defers that failure to a point where it can be surfaced as
+                // a validation error instead of a fatal one.
+                $this->loopEndDate = null;
+            }
         }
     }
 
@@ -347,10 +367,23 @@ class TimeloopModel extends Model
      * When neither `from` nor `to` is given the engine's own bounds apply (a
      * finite rule expands fully, an infinite rule is capped at `limit`).
      *
+     * An infinite rule with no positive `limit` is always capped at
+     * {@see RecurrenceModel::DEFAULT_LIMIT}, even when an explicit `from`/`to`
+     * is given. {@see RecurrenceModel::occurrences()} already applies this cap
+     * on its own "no range" path, but {@see RecurrenceModel::occurrencesBetween()}
+     * has no cap of its own: a bounded `to` is assumed to already bound the
+     * work. That assumption doesn't hold for a caller-supplied `to`, most
+     * notably the `occurrences(rangeEnd: ...)` GraphQL field on a public
+     * schema: `rangeEnd: "9999-12-31"` against an infinite daily rule and no
+     * `limit` would otherwise force a multi-millennium expansion per request.
+     * The guard lives here, once, so every caller of this model (GraphQL,
+     * Twig, PHP) is protected, not just the GraphQL resolver.
+     *
      * @param ?DateTimeInterface $from The lower boundary (inclusive), or null for the series start.
      * @param ?DateTimeInterface $to The upper boundary (inclusive), or null for the default horizon.
      * @param ?int $limit Maximum number of occurrences, or null for no cap.
      * @return DateTimeImmutable[]
+     * @throws \InvalidArgumentException if the rule cannot be parsed (see {@see RecurrenceModel::isInfinite()}).
      * @throws \Exception if the recurrence cannot be expanded (see {@see TimeloopService::occurrencesBetween()}).
      *
      * @author CraftPulse
@@ -363,6 +396,10 @@ class TimeloopModel extends Model
 
         if ($recurrence === null) {
             return [];
+        }
+
+        if (($limit === null || $limit <= 0) && $recurrence->isInfinite()) {
+            $limit = RecurrenceModel::DEFAULT_LIMIT;
         }
 
         if ($from === null && $to === null) {

@@ -19,6 +19,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Spatie\IcalendarGenerator\Components\Calendar;
 use Spatie\IcalendarGenerator\Components\Event;
+use yii\base\Security;
 
 /**
  * ICS (iCalendar) export service.
@@ -44,6 +45,41 @@ use Spatie\IcalendarGenerator\Components\Event;
  */
 class IcsService extends Component
 {
+    // Public Properties
+    // =========================================================================
+
+    /**
+     * @var ?Security The security component used to sign and validate ICS tokens.
+     *
+     * Injectable via the component config (`new IcsService(['security' => ...])`),
+     * so the standalone Pest suite can exercise [[signToken()]]/[[validateToken()]]
+     * with a bare `new \yii\base\Security()` and no booted Craft application;
+     * [[_security()]] defaults it to `Craft::$app->getSecurity()` on first use.
+     * The same injectable-dependency seam as {@see HolidaysService}'s guarded
+     * Craft lookups.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public ?Security $security = null;
+
+    /**
+     * @var ?string The key `hashData()`/`validateData()` sign and verify with.
+     *
+     * `craft\services\Security::hashData()`/`validateData()` default a null
+     * key to `Craft::$app->getConfig()->getGeneral()->securityKey` themselves,
+     * but the base `yii\base\Security` (what [[$security]] is injected with in
+     * the standalone Pest suite) requires an explicit key on every call: there
+     * is no app config for it to fall back to. The key is therefore resolved
+     * once, here, and always passed explicitly, so both a Craft-booted and a
+     * standalone [[$security]] behave identically. [[_securityKey()]] defaults
+     * it to the app's own `securityKey` on first use.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public ?string $securityKey = null;
+
     // Public Methods
     // =========================================================================
 
@@ -88,7 +124,7 @@ class IcsService extends Component
      */
     public function signToken(int $elementId, int $siteId, string $fieldHandle): string
     {
-        return Craft::$app->getSecurity()->hashData($this->_payload($elementId, $siteId, $fieldHandle));
+        return $this->_security()->hashData($this->_payload($elementId, $siteId, $fieldHandle), $this->_securityKey());
     }
 
     /**
@@ -102,7 +138,7 @@ class IcsService extends Component
      */
     public function validateToken(string $token): ?array
     {
-        $data = Craft::$app->getSecurity()->validateData($token);
+        $data = $this->_security()->validateData($token, $this->_securityKey());
 
         if ($data === false) {
             return null;
@@ -138,6 +174,40 @@ class IcsService extends Component
     private function _payload(int $elementId, int $siteId, string $fieldHandle): string
     {
         return implode('|', [$elementId, $siteId, $fieldHandle]);
+    }
+
+    /**
+     * Returns the security component used to sign and validate tokens.
+     *
+     * Prefers the injected [[$security]] (see the property docblock) and
+     * defaults to `Craft::$app->getSecurity()` on first use, memoizing the
+     * result onto [[$security]] itself.
+     *
+     * @return Security
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private function _security(): Security
+    {
+        return $this->security ??= Craft::$app->getSecurity();
+    }
+
+    /**
+     * Returns the key used to sign and validate tokens.
+     *
+     * Prefers the injected [[$securityKey]] (see the property docblock) and
+     * defaults to `Craft::$app->getConfig()->getGeneral()->securityKey` on
+     * first use, memoizing the result onto [[$securityKey]] itself.
+     *
+     * @return string
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private function _securityKey(): string
+    {
+        return $this->securityKey ??= Craft::$app->getConfig()->getGeneral()->securityKey;
     }
 
     /**

@@ -12,6 +12,7 @@ namespace craftpulse\timeloop\controllers;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\errors\InvalidFieldException;
 use craft\helpers\FileHelper;
 use craft\web\Controller;
 use craftpulse\timeloop\models\TimeloopModel;
@@ -29,9 +30,25 @@ use yii\web\Response;
  * `elementId|siteId|fieldHandle` keyed with the app security key, see
  * {@see \craftpulse\timeloop\services\IcsService::signToken()}), so the URL
  * carries no enumerable, forgeable identifiers. The action is read-only and
- * `GET`-only; it changes no state. A missing, tampered or unresolvable token
- * yields a generic 404, and any internal failure is logged rather than
- * surfaced to the anonymous caller.
+ * `GET`-only; it changes no state.
+ *
+ * A missing, tampered or unresolvable token; an element that no longer exists,
+ * is disabled, or is disabled for the requested site; or a field that has
+ * since been removed from the element's layout all yield the same generic
+ * 404, deliberately indistinguishable from one another to an anonymous
+ * caller. Disabling an entry therefore stops its ICS URL from serving, and
+ * re-enabling it resumes serving the same URL immediately with no new token
+ * required; this is intentional, not a bug, since calendar subscriptions poll
+ * and recover on their own. Any other internal failure is logged rather than
+ * surfaced to the caller.
+ *
+ * The response carries `Cache-Control: private, no-store`: the URL's `sig`
+ * query parameter is a bearer credential, and a shared cache (a CDN, a
+ * corporate proxy) must never retain a copy keyed only on the URL.
+ *
+ * Rate limiting is deliberately not implemented here; it is delegated to the
+ * edge or web server in front of Craft, the same as every other anonymous
+ * Craft action.
  *
  * The download URL is generated in Twig via `craft.timeloop.icsUrl(entry, 'fieldHandle')`.
  *
@@ -40,18 +57,21 @@ use yii\web\Response;
  */
 class IcsController extends Controller
 {
-    // Properties
+    // Public Properties
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    public $defaultAction = 'ics';
+
+    // Protected Properties
     // =========================================================================
 
     /**
      * @inheritdoc
      */
     protected array|bool|int $allowAnonymous = ['ics'];
-
-    /**
-     * @inheritdoc
-     */
-    public $defaultAction = 'ics';
 
     // Public Methods
     // =========================================================================
@@ -61,7 +81,9 @@ class IcsController extends Controller
      *
      * @return Response The `text/calendar` download.
      * @throws BadRequestHttpException if the request is not a GET request.
-     * @throws NotFoundHttpException if the token is missing, invalid, or resolves to no exportable value.
+     * @throws NotFoundHttpException if the token is missing, invalid, or resolves to no exportable value
+     * (an unresolvable element, a disabled element, a field removed from the element's layout, or an
+     * empty field value).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -75,7 +97,15 @@ class IcsController extends Controller
         // The query param is `sig`, not `token`: Craft reserves `token` for its
         // own route/preview tokens (see GeneralConfig::$tokenParam) and would
         // reject the request with "Invalid token" before this action runs.
-        $token = (string)$this->request->getRequiredQueryParam('sig');
+        // Read via getQueryParam(), not getRequiredQueryParam(): a missing
+        // `sig` is just another unresolvable-token case and degrades to the
+        // same generic 404 as a tampered one, rather than a distinguishing 400.
+        $token = $this->request->getQueryParam('sig');
+
+        if (!is_string($token) || $token === '') {
+            throw new NotFoundHttpException('Calendar not found.');
+        }
+
         $ics = Timeloop::getInstance()->getIcs();
         $decoded = $ics->validateToken($token);
 
@@ -85,11 +115,18 @@ class IcsController extends Controller
 
         $element = Craft::$app->getElements()->getElementById($decoded['elementId'], null, $decoded['siteId']);
 
-        if ($element === null) {
+        if ($element === null || !$element->enabled || !$element->getEnabledForSite()) {
             throw new NotFoundHttpException('Calendar not found.');
         }
 
-        $value = $element->getFieldValue($decoded['fieldHandle']);
+        try {
+            // A field removed from the element's layout since the URL was
+            // generated (everyday content-ops) makes the handle unresolvable;
+            // that is not a server error, just another "not found" case.
+            $value = $element->getFieldValue($decoded['fieldHandle']);
+        } catch (InvalidFieldException) {
+            throw new NotFoundHttpException('Calendar not found.');
+        }
 
         if (!$value instanceof TimeloopModel || $value->isEmpty()) {
             throw new NotFoundHttpException('Calendar not found.');
@@ -116,6 +153,10 @@ class IcsController extends Controller
     /**
      * Returns the ICS body as a `text/calendar` attachment response.
      *
+     * `Cache-Control: private, no-store` is set because the URL's `sig` query
+     * parameter is a bearer credential (see the class docblock): a shared
+     * cache must never retain a copy of the response keyed on the URL alone.
+     *
      * @param string $body The serialized `VCALENDAR`.
      * @param string $filename The download filename.
      * @return Response
@@ -130,7 +171,8 @@ class IcsController extends Controller
         $response->content = $body;
         $response->getHeaders()
             ->set('Content-Type', 'text/calendar; charset=utf-8')
-            ->set('Content-Disposition', sprintf('attachment; filename="%s"', $filename));
+            ->set('Content-Disposition', sprintf('attachment; filename="%s"', $filename))
+            ->set('Cache-Control', 'private, no-store');
 
         return $response;
     }

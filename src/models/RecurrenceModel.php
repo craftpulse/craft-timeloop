@@ -234,9 +234,39 @@ class RecurrenceModel extends Model
      */
     public function exclusionDates(): array
     {
+        return [
+            ...$this->storedExclusionDates(),
+            ...array_map(
+                fn(string $date): DateTimeImmutable => $this->_toImmutable($this->_atOccurrenceTime($date)),
+                $this->_extraExclusions,
+            ),
+        ];
+    }
+
+    /**
+     * Returns the stored exclusion instants (exdates), without injected holidays.
+     *
+     * The same time-of-day anchoring as [[exclusionDates()]] (see
+     * [[_atOccurrenceTime()]]), but scoped to [[exdates]] only: holiday
+     * exclusions are resolved fresh at read time (see
+     * {@see \craftpulse\timeloop\services\TimeloopService::recurrenceFor()})
+     * and are never part of what the value has *stored*. This is the set the
+     * GraphQL `exceptions` field exposes ({@see \craftpulse\timeloop\fields\TimeloopField::getContentGqlType()}),
+     * since that field is documented as the value's configured exdates, not
+     * the resolved-holiday set an ICS export bakes in.
+     *
+     * @return DateTimeImmutable[]
+     * @throws \Exception if an exclusion date, [[dtstart]] or [[timezone]] cannot be parsed
+     * (see [[_atOccurrenceTime()]]).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function storedExclusionDates(): array
+    {
         return array_map(
             fn(string $date): DateTimeImmutable => $this->_toImmutable($this->_atOccurrenceTime($date)),
-            [...$this->exdates, ...$this->_extraExclusions],
+            $this->exdates,
         );
     }
 

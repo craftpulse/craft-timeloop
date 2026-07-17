@@ -40,6 +40,7 @@ use DateTimeZone;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
+use Throwable;
 use yii\base\NotSupportedException;
 
 /**
@@ -382,6 +383,54 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     /**
      * @inheritdoc
      *
+     * Flags the element when the value's `rrule` cannot actually be parsed by
+     * the recurrence engine. `normalizeValue()` accepts any non-empty `rrule`
+     * string as-is (a raw GraphQL mutation, see [[_gqlV2Input()]], can post one
+     * verbatim); without this check a syntactically invalid rule saves
+     * silently and only fails the first time something expands the recurrence
+     * (a Twig `entry.field.summary`, the `occurrences`/`summary` GraphQL
+     * resolvers, the element index preview, ...), as an uncaught exception
+     * rather than a validation error.
+     *
+     * [[RecurrenceModel::isInfinite()]] is the cheapest call that forces the
+     * engine to actually build the recurrence set (see
+     * {@see \craftpulse\timeloop\models\RecurrenceModel}), which is where the
+     * underlying RRule library parses the rule (and any `UNTIL`/`COUNT`); a
+     * value that constructs fine (see {@see TimeloopModel::init()}, which
+     * degrades a malformed `UNTIL` to a null `loopEndDate` instead of
+     * throwing) but carries an otherwise-invalid rule fails here instead.
+     *
+     * @return array
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function getElementValidationRules(): array
+    {
+        return [
+            [
+                function(ElementInterface $element) {
+                    $value = $element->getFieldValue($this->handle);
+
+                    if (!$value instanceof TimeloopModel || $value->rrule === null || $value->rrule === '') {
+                        return;
+                    }
+
+                    try {
+                        $value->getRecurrence()?->isInfinite();
+                    } catch (Throwable $e) {
+                        $element->addError("field:$this->handle", Craft::t('timeloop', 'The recurrence rule is invalid: {message}', [
+                            'message' => $e->getMessage(),
+                        ]));
+                    }
+                },
+            ],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     *
      * Keeps the occurrence index in sync with the saved value. The field's own
      * `afterElementSave` is used (rather than a global `Elements` save event)
      * because Craft calls it with the exact element that carries the field, its
@@ -414,6 +463,19 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         // {@see GqlEntityRegistry::createEntity()}). Two Timeloop fields on one
         // entry type reuse the same `timestring`/`loopPeriod` types instead of
         // colliding on a second creation.
+        //
+        // Known, deliberately-accepted collision: these two inner type names
+        // (`timestring`, `loopPeriod`) are global in the GraphQL schema, not
+        // namespaced per field. If a user names a *different* custom field
+        // (of any type, on any element) literally `timestring` or `loopPeriod`,
+        // that field's own top-level GQL type would collide with these names.
+        // A reviewer proposed prefixing them (e.g. `timeloop_timestring`) to
+        // close this off; that was rejected because it renames types visible
+        // in schema introspection, which is a breaking change for any existing
+        // consumer and violates the additive-only guarantee of this GraphQL
+        // surface. The collision is pathological (it requires a user to
+        // deliberately pick one of these two exact handles) and is accepted
+        // as a known limitation rather than fixed by a breaking rename.
         $timestringType = GqlEntityRegistry::getOrCreate('timestring', fn() => new ObjectType([
             'name' => 'timestring',
             'fields' => [
@@ -674,16 +736,31 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                     'name' => 'exceptions',
                     'type' => Type::listOf(DateTime::getType()),
                     'description' => 'The value\'s stored exclusion dates (exdates). Holiday exclusions are resolved at read time and are not included here.',
+                    // #86: this used to construct each stored exdate at
+                    // midnight in the value's timezone, disagreeing with the
+                    // ICS export and every recurrence-engine read, which
+                    // anchor exclusions to the series' `dtstart` time of day
+                    // (see {@see RecurrenceModel::_atOccurrenceTime()}). It now
+                    // reuses that same anchoring via
+                    // {@see RecurrenceModel::storedExclusionDates()}, which is
+                    // deliberately *not* {@see RecurrenceModel::exclusionDates()}:
+                    // this field is documented as the stored exdates only, and
+                    // must not leak the resolved-holiday exclusions
+                    // {@see RecurrenceModel::exclusionDates()} also carries.
                     'resolve' => static function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
                         if (!$source instanceof TimeloopModel) {
                             return null;
                         }
 
-                        $timezone = new DateTimeZone($source->timezone);
+                        $recurrence = $source->getRecurrence();
+
+                        if ($recurrence === null) {
+                            return [];
+                        }
 
                         return array_map(
-                            static fn(string $date) => Gql::applyDirectives($source, $resolveInfo, new DateTimeImmutable($date, $timezone)),
-                            $source->exdates,
+                            static fn(DateTimeImmutable $date) => Gql::applyDirectives($source, $resolveInfo, $date),
+                            $recurrence->storedExclusionDates(),
                         );
                     },
                 ],
