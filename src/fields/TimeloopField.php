@@ -20,6 +20,7 @@ use craft\gql\GqlEntityRegistry;
 use craft\gql\TypeLoader;
 use craft\gql\types\DateTime;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 
 use craft\helpers\Gql;
 use craft\helpers\Json;
@@ -28,6 +29,7 @@ use craft\helpers\UrlHelper;
 use craft\i18n\Locale;
 use craftpulse\timeloop\assetbundles\timeloop\TimeloopAsset;
 use craftpulse\timeloop\gql\types\input\TimeloopInputType;
+use craftpulse\timeloop\migrations\Install;
 use craftpulse\timeloop\models\TimeloopModel;
 use craftpulse\timeloop\models\ValueNormalizer;
 
@@ -38,6 +40,7 @@ use DateTimeZone;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
+use yii\base\NotSupportedException;
 
 /**
  * Timeloop field type.
@@ -130,6 +133,59 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     public function useFieldset(): bool
     {
         return true;
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * Overrides the default {@see Field::getSortOption()}, which would order
+     * by the field's raw stored JSON column (`elements_sites.content`,
+     * extracted with no notion of dates), an opaque and effectively
+     * meaningless sequence for a recurrence value. Instead this orders by the
+     * element's next upcoming occurrence, read from `{{%timeloop_occurrences}}`:
+     * a correlated `MIN(occurrenceStart)` subquery scoped to this field's
+     * handle and to `occurrenceStart >= now`, referencing the `elements` /
+     * `elements_sites` aliases the element-index query already joins at the
+     * point sort options are applied (see {@see \craft\elements\db\ElementQuery::prepare()},
+     * which joins both onto the outer query in addition to the subquery, and
+     * {@see \craft\base\Element::_indexOrderByColumns()}, which appends the
+     * requested direction as a literal suffix onto this string for a
+     * field-sourced sort option, rather than invoking it as a callable the way
+     * a native `defineSortOptions()` entry can be).
+     *
+     * Elements with no upcoming occurrence (unindexed, or every occurrence
+     * already past) sort last regardless of direction: the returned `orderBy`
+     * is `"($sub) IS NULL, ($sub)"`, and because the direction suffix only
+     * binds to the final comma-separated term, the `IS NULL` term is always
+     * evaluated ascending (0 = has an upcoming occurrence, 1 = none), pushing
+     * NULLs to the bottom in both ASC and DESC requests.
+     *
+     * @throws NotSupportedException if the field isn't attached to a layout element (see parent).
+     */
+    public function getSortOption(): array
+    {
+        if (!isset($this->layoutElement)) {
+            throw new NotSupportedException('getSortOption() not supported by ' . $this->name);
+        }
+
+        $db = Craft::$app->getDb();
+        $now = $db->quoteValue(Db::prepareDateForDb(DateTimeHelper::currentUTCDateTime()));
+        $handle = $db->quoteValue($this->handle);
+
+        $next = sprintf(
+            '(SELECT MIN([[tl_sort.occurrenceStart]]) FROM %s [[tl_sort]] WHERE [[tl_sort.elementId]] = [[elements.id]] AND [[tl_sort.siteId]] = [[elements_sites.siteId]] AND [[tl_sort.fieldHandle]] = %s AND [[tl_sort.occurrenceStart]] >= %s)',
+            Install::OCCURRENCES_TABLE,
+            $handle,
+            $now,
+        );
+
+        return [
+            'label' => Craft::t('site', $this->name),
+            'orderBy' => "$next IS NULL, $next",
+            'attribute' => isset($this->layoutElement->handle)
+                ? "fieldInstance:{$this->layoutElement->uid}"
+                : "field:$this->uid",
+        ];
     }
 
     /**

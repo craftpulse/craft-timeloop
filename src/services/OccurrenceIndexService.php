@@ -77,10 +77,27 @@ use yii\base\InvalidConfigException;
  *
  * A missing or stale index must never change rendered output. Writes are always
  * a `delete + insert` of the whole `(elementId, siteId, fieldHandle)` slice, and
- * reads only trust the index up to its own last stored occurrence
- * ({@see maxOccurrenceEnd()}); any range reaching past that falls back to live
- * expansion. So an un-indexed or behind-the-horizon value renders exactly as it
- * always did.
+ * reads only trust the index within the window it actually covers: at or before
+ * its last stored occurrence ({@see maxOccurrenceEnd()}) and at or after its
+ * first ({@see minOccurrenceStart()}); any range reaching past either edge
+ * falls back to live expansion. So an un-indexed, behind-the-horizon or
+ * beyond-the-floor value renders exactly as it always did.
+ *
+ * ## Cost model and the write-window floor
+ *
+ * Every element save that touches a Timeloop field rewrites its whole index
+ * slice (`delete` then `insert`, see [[_writeRows()]]), so the write cost scales
+ * with the number of occurrences in the write window, not with how much of the
+ * value actually changed. Two settings bound that window and so bound the
+ * per-save cost: `indexHorizon` caps how far ahead a value is expanded
+ * (indexing an infinite rule forever isn't possible), and `indexPastHorizon`
+ * caps how far back ({@see SettingsModel::$indexPastHorizon}), so a long-running
+ * series that started years ago doesn't re-expand its entire history on every
+ * save. The write window is `[max(dtstart, now + indexPastHorizon), now +
+ * indexHorizon]` ({@see _window()}). A series that started after the floor is
+ * still indexed from its own true start; only the earliest occurrences of an
+ * already-old series are left un-indexed, and reads that ask for a range
+ * reaching before the floor fall back to live expansion for that element.
  *
  * @author CraftPulse
  * @since 5.1.0
@@ -104,6 +121,19 @@ class OccurrenceIndexService extends Component
      */
     private const FALLBACK_HORIZON = '+2 years';
 
+    /**
+     * @var string The fallback write-window floor when the plugin settings are unavailable.
+     */
+    private const FALLBACK_PAST_HORIZON = '-1 year';
+
+    /**
+     * @var int Seconds to wait for the per-slice write lock before giving up.
+     *
+     * A short timeout: on contention the safest move is to skip this write and
+     * let the nightly refresh heal the slice, not to block the save request.
+     */
+    private const LOCK_TIMEOUT = 15;
+
     // Public Methods
     // =========================================================================
 
@@ -117,7 +147,10 @@ class OccurrenceIndexService extends Component
      * @param ElementInterface $element The element carrying the field (the nested entry for a Matrix value).
      * @param FieldInterface $field The Timeloop field instance.
      * @return void
-     * @throws \Exception if the recurrence cannot be expanded (see {@see _writeField()}).
+     * @throws \InvalidArgumentException if the rule cannot be parsed (see {@see TimeloopService::recurrenceFor()} /
+     * {@see RecurrenceModel::occurrenceRows()}).
+     * @throws \Exception if the value's `dtstart` or timezone cannot be parsed, or the recurrence cannot
+     * otherwise be expanded (see {@see TimeloopService::recurrenceFor()} / {@see RecurrenceModel::occurrenceRows()}).
      *
      * @author CraftPulse
      * @since 5.1.0
@@ -220,12 +253,16 @@ class OccurrenceIndexService extends Component
     /**
      * Returns the occurrence starts of a value between two dates, index-backed with a live fallback.
      *
-     * Backs `recurringDates()`. When the index covers the requested range (rows
-     * exist and their latest occurrence reaches at or past `$to`), the starts are
-     * read straight from the index, converted back to the value's timezone so the
-     * `\DateTime` output is byte-identical to live expansion. Otherwise, or when
-     * the value is not indexed at all, it falls back to live expansion so a
-     * missing or stale index never changes rendered output. Both boundaries are
+     * Backs `recurringDates()`. When the index covers the requested range in
+     * full, both edges: rows exist, their earliest occurrence starts at or
+     * before `$from` ({@see minOccurrenceStart()}) and their latest reaches at
+     * or past `$to` ({@see maxOccurrenceEnd()}), the starts are read straight
+     * from the index, converted back to the value's timezone so the `\DateTime`
+     * output is byte-identical to live expansion. Otherwise, including when the
+     * requested range reaches before the index's write-window floor
+     * ({@see SettingsModel::$indexPastHorizon}), or when the value is not
+     * indexed at all, it falls back to live expansion so a missing, stale or
+     * beyond-the-floor index never changes rendered output. Both boundaries are
      * inclusive.
      *
      * @param ElementInterface $element The element carrying the field.
@@ -244,8 +281,9 @@ class OccurrenceIndexService extends Component
         $elementId = (int)$element->id;
         $siteId = (int)$element->siteId;
         $maxEnd = $this->maxOccurrenceEnd($elementId, $siteId, $fieldHandle);
+        $minStart = $this->minOccurrenceStart($elementId, $siteId, $fieldHandle);
 
-        if ($maxEnd !== null && $to <= $maxEnd) {
+        if ($maxEnd !== null && $to <= $maxEnd && $minStart !== null && $from >= $minStart) {
             return $this->_readStarts($elementId, $siteId, $fieldHandle, $from, $to, new DateTimeZone($value->timezone));
         }
 
@@ -282,6 +320,41 @@ class OccurrenceIndexService extends Component
         }
 
         return new DateTimeImmutable((string)$max, new DateTimeZone('UTC'));
+    }
+
+    /**
+     * Returns the earliest stored occurrence start for a value slice, or null when not indexed.
+     *
+     * The lower-bound counterpart to {@see maxOccurrenceEnd()}: a value whose
+     * series started before the write-window floor ({@see SettingsModel::$indexPastHorizon})
+     * has its earliest occurrences left un-indexed, so a read reaching before
+     * this date must fall back to live expansion.
+     *
+     * @param int $elementId
+     * @param int $siteId
+     * @param string $fieldHandle
+     * @return ?DateTimeImmutable The earliest `occurrenceStart` (UTC), or null.
+     * @throws \Exception if the stored date cannot be parsed.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function minOccurrenceStart(int $elementId, int $siteId, string $fieldHandle): ?DateTimeImmutable
+    {
+        $min = (new Query())
+            ->from(Install::OCCURRENCES_TABLE)
+            ->where([
+                'elementId' => $elementId,
+                'siteId' => $siteId,
+                'fieldHandle' => $fieldHandle,
+            ])
+            ->min('[[occurrenceStart]]');
+
+        if ($min === null || $min === false) {
+            return null;
+        }
+
+        return new DateTimeImmutable((string)$min, new DateTimeZone('UTC'));
     }
 
     // Private Methods
@@ -346,6 +419,15 @@ class OccurrenceIndexService extends Component
     /**
      * Deletes an index slice and inserts the given occurrence rows in one transaction.
      *
+     * Single-writer-per-slice is guarded by {@see Craft::$app->getMutex()}, not
+     * a database constraint: two concurrent saves of the same element/site/field
+     * (e.g. a save and a queued {@see ReindexOccurrences} job racing each other)
+     * would otherwise interleave their delete+insert and could leave the slice
+     * with duplicated or missing rows. The lock is best-effort: if it can't be
+     * acquired within {@see LOCK_TIMEOUT} seconds, the write is skipped and a
+     * warning is logged rather than blocking the request, and the nightly
+     * `timeloop/occurrences/refresh` roll heals the slice on its next pass.
+     *
      * @param int $elementId
      * @param int $siteId
      * @param string $fieldHandle
@@ -358,41 +440,57 @@ class OccurrenceIndexService extends Component
      */
     private function _writeRows(int $elementId, int $siteId, string $fieldHandle, array $rows): void
     {
-        $db = Craft::$app->getDb();
-        $now = Db::prepareDateForDb(new DateTimeImmutable('now', new DateTimeZone('UTC')));
+        $mutex = Craft::$app->getMutex();
+        $lockName = "timeloop:index:$elementId:$siteId:$fieldHandle";
 
-        $insert = array_map(static fn(array $row): array => [
-            $elementId,
-            $siteId,
-            $fieldHandle,
-            Db::prepareDateForDb($row['start']),
-            Db::prepareDateForDb($row['end']),
-            $now,
-            StringHelper::UUID(),
-        ], $rows);
+        if (!$mutex->acquire($lockName, self::LOCK_TIMEOUT)) {
+            Craft::warning(
+                "Could not acquire the occurrence-index lock for \"$lockName\" within " . self::LOCK_TIMEOUT . 's; skipping this write. The nightly refresh will heal it.',
+                __METHOD__,
+            );
 
-        $transaction = $db->beginTransaction();
+            return;
+        }
 
         try {
-            $db->createCommand()->delete(Install::OCCURRENCES_TABLE, [
-                'elementId' => $elementId,
-                'siteId' => $siteId,
-                'fieldHandle' => $fieldHandle,
-            ])->execute();
+            $db = Craft::$app->getDb();
+            $now = Db::prepareDateForDb(new DateTimeImmutable('now', new DateTimeZone('UTC')));
 
-            if ($insert !== []) {
-                $db->createCommand()->batchInsert(
-                    Install::OCCURRENCES_TABLE,
-                    ['elementId', 'siteId', 'fieldHandle', 'occurrenceStart', 'occurrenceEnd', 'dateCreated', 'uid'],
-                    $insert,
-                )->execute();
+            $insert = array_map(static fn(array $row): array => [
+                $elementId,
+                $siteId,
+                $fieldHandle,
+                Db::prepareDateForDb($row['start']),
+                Db::prepareDateForDb($row['end']),
+                $now,
+                StringHelper::UUID(),
+            ], $rows);
+
+            $transaction = $db->beginTransaction();
+
+            try {
+                $db->createCommand()->delete(Install::OCCURRENCES_TABLE, [
+                    'elementId' => $elementId,
+                    'siteId' => $siteId,
+                    'fieldHandle' => $fieldHandle,
+                ])->execute();
+
+                if ($insert !== []) {
+                    $db->createCommand()->batchInsert(
+                        Install::OCCURRENCES_TABLE,
+                        ['elementId', 'siteId', 'fieldHandle', 'occurrenceStart', 'occurrenceEnd', 'dateCreated', 'uid'],
+                        $insert,
+                    )->execute();
+                }
+
+                $transaction->commit();
+            } catch (Throwable $e) {
+                $transaction->rollBack();
+
+                throw $e;
             }
-
-            $transaction->commit();
-        } catch (Throwable $e) {
-            $transaction->rollBack();
-
-            throw $e;
+        } finally {
+            $mutex->release($lockName);
         }
     }
 
@@ -456,9 +554,13 @@ class OccurrenceIndexService extends Component
     /**
      * Returns the `[from, to]` expansion window for a value, in its timezone.
      *
-     * `from` is the series start; `to` is the horizon measured from the later of
-     * now and the series start (so a far-future series is still indexed). The
-     * horizon is the plugin's `indexHorizon` setting, config-file overridable.
+     * `from` is `max(dtstart, now + indexPastHorizon)`: the series start,
+     * floored so a long-running series is never expanded further back than the
+     * configured past horizon (a value whose `dtstart` is more recent than the
+     * floor is still indexed from its own true start). `to` is the horizon
+     * measured from the later of now and the series start (so a far-future
+     * series is still indexed). Both horizons are the plugin's `indexHorizon` /
+     * `indexPastHorizon` settings, config-file overridable.
      *
      * @param TimeloopModel $value
      * @return DateTimeImmutable[] A two-element `[from, to]` list.
@@ -472,8 +574,12 @@ class OccurrenceIndexService extends Component
         $timezone = new DateTimeZone($value->timezone);
         $start = CarbonImmutable::instance(new DateTimeImmutable((string)$value->dtstart, $timezone));
         $now = CarbonImmutable::now($timezone);
+        $floor = $now->modify($this->_pastHorizon());
 
-        return [$start, ($start->greaterThan($now) ? $start : $now)->modify($this->_horizon())];
+        $from = $start->greaterThan($floor) ? $start : $floor;
+        $to = ($start->greaterThan($now) ? $start : $now)->modify($this->_horizon());
+
+        return [$from, $to];
     }
 
     /**
@@ -501,6 +607,33 @@ class OccurrenceIndexService extends Component
         }
 
         return self::FALLBACK_HORIZON;
+    }
+
+    /**
+     * Returns the configured write-window floor modifier, falling back when unavailable.
+     *
+     * @return string
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private function _pastHorizon(): string
+    {
+        try {
+            $plugin = Timeloop::getInstance();
+
+            if ($plugin !== null) {
+                $settings = $plugin->getSettings();
+
+                if ($settings instanceof SettingsModel && $settings->indexPastHorizon !== '') {
+                    return $settings->indexPastHorizon;
+                }
+            }
+        } catch (Throwable) {
+            // No booted plugin; fall through.
+        }
+
+        return self::FALLBACK_PAST_HORIZON;
     }
 
     /**

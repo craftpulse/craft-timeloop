@@ -13,6 +13,7 @@
 // booted; the model is exercised directly with fixed dates.
 
 use craftpulse\timeloop\models\RecurrenceModel;
+use craftpulse\timeloop\services\OccurrenceIndexService;
 
 // Helpers
 // -------------------------------------------------------------------------
@@ -688,4 +689,51 @@ it('caps infinite-rule rows at the horizon and omits excluded rows', function() 
         '2026-01-05',
         '2026-01-19',
     ]);
+});
+
+// occurrenceRows: inline/queue threshold boundary
+// -------------------------------------------------------------------------
+// Pins the pure expansion semantics that
+// OccurrenceIndexService::handleElementSave() relies on for its inline-vs-queue
+// decision: it calls occurrenceRows($from, $to, INLINE_THRESHOLD + 1) and
+// defers to the queue only when the result exceeds INLINE_THRESHOLD. That
+// decision is only correct if the `+1`-capped limit returns precisely
+// INLINE_THRESHOLD + 1 rows for a series with more occurrences than the
+// threshold in range, and precisely the series' own count when it has exactly
+// INLINE_THRESHOLD or fewer. No Craft app is booted; only the constant is
+// referenced from OccurrenceIndexService, and the recurrence engine is exercised
+// directly the same way as the rest of this file.
+
+it('caps at INLINE_THRESHOLD + 1 rows for a series with more occurrences than the threshold, crossing the queue boundary', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-01T00:00:00',
+        'timezone' => 'UTC',
+        'rrule' => 'FREQ=DAILY',
+    ]);
+
+    $rows = $model->occurrenceRows(
+        new DateTimeImmutable('2026-01-01T00:00:00', new DateTimeZone('UTC')),
+        new DateTimeImmutable('2030-01-01T00:00:00', new DateTimeZone('UTC')),
+        OccurrenceIndexService::INLINE_THRESHOLD + 1,
+    );
+
+    expect($rows)->toHaveCount(OccurrenceIndexService::INLINE_THRESHOLD + 1)
+        ->and(count($rows) > OccurrenceIndexService::INLINE_THRESHOLD)->toBeTrue();
+});
+
+it('returns exactly INLINE_THRESHOLD rows for a series with precisely that many occurrences, staying on the inline side of the boundary', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-01T00:00:00',
+        'timezone' => 'UTC',
+        'rrule' => 'FREQ=DAILY;COUNT=' . OccurrenceIndexService::INLINE_THRESHOLD,
+    ]);
+
+    $rows = $model->occurrenceRows(
+        new DateTimeImmutable('2026-01-01T00:00:00', new DateTimeZone('UTC')),
+        new DateTimeImmutable('2030-01-01T00:00:00', new DateTimeZone('UTC')),
+        OccurrenceIndexService::INLINE_THRESHOLD + 1,
+    );
+
+    expect($rows)->toHaveCount(OccurrenceIndexService::INLINE_THRESHOLD)
+        ->and(count($rows) > OccurrenceIndexService::INLINE_THRESHOLD)->toBeFalse();
 });
