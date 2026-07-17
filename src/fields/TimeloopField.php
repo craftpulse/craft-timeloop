@@ -17,7 +17,6 @@ use craft\base\PreviewableFieldInterface;
 
 use craft\base\SortableFieldInterface;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\TypeLoader;
 use craft\gql\types\DateTime;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
@@ -35,6 +34,7 @@ use craftpulse\timeloop\models\ValueNormalizer;
 
 use craftpulse\timeloop\Timeloop;
 
+use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use GraphQL\Type\Definition\ObjectType;
@@ -238,11 +238,21 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             $value = [];
         }
 
-        $timezone = new DateTimeZone(Craft::$app->getTimeZone());
-
-        $v2 = isset($value['mode'])
-            ? ValueNormalizer::inputToV2(self::coerceInputDates($value), $timezone)
-            : ValueNormalizer::normalize($this->_coerceLegacyDates($value), $timezone);
+        // A control-panel submission (hidden `mode` key) and a v2-native
+        // GraphQL mutation (a raw `rrule`) both build v2 through the shared
+        // {@see ValueNormalizer::inputToV2()}; a legacy shape (stored, draft,
+        // Matrix/Neo-nested, or a legacy GraphQL mutation) is upgraded by
+        // {@see ValueNormalizer::normalize()}.
+        if (isset($value['mode'])) {
+            $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+            $v2 = ValueNormalizer::inputToV2(self::coerceInputDates($value), $timezone);
+        } elseif ($this->_isV2NativeInput($value)) {
+            $timezone = $this->_resolveTimezone(self::_string($value['timezone'] ?? null));
+            $v2 = ValueNormalizer::inputToV2(self::coerceInputDates(self::_gqlV2Input($value)), $timezone);
+        } else {
+            $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+            $v2 = ValueNormalizer::normalize($this->_coerceLegacyDates($value), $timezone);
+        }
 
         $model = new TimeloopModel($v2);
 
@@ -399,7 +409,12 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     {
         $typeName = $this->handle;
 
-        $timestringType = GqlEntityRegistry::getEntity('timestring') ?: GqlEntityRegistry::createEntity('timestring', new ObjectType([
+        // #82: dedupe the shared inner types through GqlEntityRegistry::getOrCreate,
+        // which registers each name with the TypeLoader exactly once (see
+        // {@see GqlEntityRegistry::createEntity()}). Two Timeloop fields on one
+        // entry type reuse the same `timestring`/`loopPeriod` types instead of
+        // colliding on a second creation.
+        $timestringType = GqlEntityRegistry::getOrCreate('timestring', fn() => new ObjectType([
             'name' => 'timestring',
             'fields' => [
                 'ordinal' => [
@@ -416,7 +431,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             ],
         ]));
 
-        $periodType = GqlEntityRegistry::getEntity('loopPeriod') ?: GqlEntityRegistry::createEntity('loopPeriod', new ObjectType([
+        $periodType = GqlEntityRegistry::getOrCreate('loopPeriod', fn() => new ObjectType([
             'name' => 'loopPeriod',
             'fields' => [
                 'frequency' => [
@@ -442,7 +457,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             ],
         ]));
 
-        $timeloopType = GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new ObjectType([
+        $timeloopType = GqlEntityRegistry::getOrCreate($typeName, fn() => new ObjectType([
             'name' => $typeName,
             'fields' => [
                 'loopPeriod' => [
@@ -454,6 +469,17 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                     'name' => 'loopReminder',
                     'type' => Type::string(),
                     'description' => 'The loop reminder period',
+                    // #83: the pre-5.1 definition carried no resolver, so the
+                    // GraphQL default resolver looked up a `loopReminder`
+                    // property that never existed on the value model (the real
+                    // properties are `loopReminderPeriod`/`loopReminderValue`)
+                    // and every query returned null. The schema shape is kept
+                    // identical (still a nullable `String`); the resolver now
+                    // returns the reminder period unit (e.g. `days`), or null
+                    // when the value carries no reminder.
+                    'resolve' => static function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        return $source instanceof TimeloopModel ? $source->loopReminderPeriod : null;
+                    },
                 ],
                 'loopStartDate' => [
                     'name' => 'loopStartDate',
@@ -548,12 +574,121 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
                         return null;
                     },
                 ],
+                // 5.1.0 additive surface (v2 engine). Every resolver below
+                // routes through the normalized [[TimeloopModel]] and the
+                // holiday-aware screens API, never a raw RecurrenceModel.
+                'rrule' => [
+                    'name' => 'rrule',
+                    'type' => Type::string(),
+                    'description' => 'The raw RFC 5545 RRULE string (without DTSTART), or null when the value carries no rule.',
+                    'resolve' => static function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        return $source instanceof TimeloopModel ? $source->rrule : null;
+                    },
+                ],
+                'timezone' => [
+                    'name' => 'timezone',
+                    'type' => Type::string(),
+                    'description' => 'The IANA timezone the recurrence is stored and expanded in.',
+                    'resolve' => static function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        return $source instanceof TimeloopModel ? $source->timezone : null;
+                    },
+                ],
+                'summary' => [
+                    'name' => 'summary',
+                    'type' => Type::string(),
+                    'description' => 'A localized, human-readable description of the recurrence rule (holiday exclusions are not part of the wording).',
+                    'args' => [
+                        'locale' => [
+                            'name' => 'locale',
+                            'type' => Type::string(),
+                            'description' => 'The locale to render in (e.g. "nl", "fr"). Defaults to the current site language.',
+                        ],
+                    ],
+                    'resolve' => static function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        return $source instanceof TimeloopModel ? $source->getSummary($arguments['locale'] ?? null) : null;
+                    },
+                ],
+                'isActiveNow' => [
+                    'name' => 'isActiveNow',
+                    'type' => Type::boolean(),
+                    'description' => 'Whether an occurrence is in progress right now (holiday-aware).',
+                    'resolve' => static function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        return $source instanceof TimeloopModel ? $source->getIsActiveNow() : null;
+                    },
+                ],
+                'nextOccurrence' => [
+                    'name' => 'nextOccurrence',
+                    'type' => DateTime::getType(),
+                    'description' => 'The first occurrence after now (holiday-aware), or null.',
+                    'resolve' => static function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        if (!$source instanceof TimeloopModel) {
+                            return null;
+                        }
+
+                        $next = $source->getNextOccurrence();
+
+                        return $next !== null ? Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($next)) : null;
+                    },
+                ],
+                'occurrences' => [
+                    'name' => 'occurrences',
+                    'type' => Type::listOf(DateTime::getType()),
+                    'description' => 'The occurrences of the value, bounded and holiday-aware.',
+                    'args' => [
+                        'rangeStart' => [
+                            'name' => 'rangeStart',
+                            'type' => DateTime::getType(),
+                            'description' => 'The lower boundary (inclusive). Defaults to the series start.',
+                        ],
+                        'rangeEnd' => [
+                            'name' => 'rangeEnd',
+                            'type' => DateTime::getType(),
+                            'description' => 'The upper boundary (inclusive). Defaults to the default horizon.',
+                        ],
+                        'limit' => [
+                            'name' => 'limit',
+                            'type' => Type::int(),
+                            'description' => 'The maximum number of occurrences to return.',
+                        ],
+                    ],
+                    'resolve' => static function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        if (!$source instanceof TimeloopModel) {
+                            return null;
+                        }
+
+                        $from = isset($arguments['rangeStart']) ? DateTimeHelper::toDateTime($arguments['rangeStart']) : null;
+                        $to = isset($arguments['rangeEnd']) ? DateTimeHelper::toDateTime($arguments['rangeEnd']) : null;
+                        $occurrences = $source->occurrences(
+                            $from ?: null,
+                            $to ?: null,
+                            $arguments['limit'] ?? null,
+                        );
+
+                        return array_map(
+                            static fn($date) => Gql::applyDirectives($source, $resolveInfo, DateTimeHelper::toDateTime($date)),
+                            $occurrences,
+                        );
+                    },
+                ],
+                'exceptions' => [
+                    'name' => 'exceptions',
+                    'type' => Type::listOf(DateTime::getType()),
+                    'description' => 'The value\'s stored exclusion dates (exdates). Holiday exclusions are resolved at read time and are not included here.',
+                    'resolve' => static function($source, array $arguments, $context, ResolveInfo $resolveInfo) {
+                        if (!$source instanceof TimeloopModel) {
+                            return null;
+                        }
+
+                        $timezone = new DateTimeZone($source->timezone);
+
+                        return array_map(
+                            static fn(string $date) => Gql::applyDirectives($source, $resolveInfo, new DateTimeImmutable($date, $timezone)),
+                            $source->exdates,
+                        );
+                    },
+                ],
             ],
         ]));
-
-        TypeLoader::registerType($typeName, static function() use ($timeloopType) {
-            return $timeloopType;
-        });
 
         return $timeloopType;
     }
@@ -593,6 +728,129 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
         $date = DateTimeHelper::toDateTime($value);
 
         return $date instanceof DateTimeInterface ? $date->format($format) : null;
+    }
+
+    /**
+     * Normalizes a scalar input value into a non-empty trimmed string, or null.
+     *
+     * @param mixed $value
+     * @return ?string
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private static function _string(mixed $value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        return $value !== '' ? $value : null;
+    }
+
+    /**
+     * Returns whether a value is a v2-native GraphQL mutation input.
+     *
+     * A stored v2 value carries a `version` (and a `dtstart`) and must go
+     * through {@see ValueNormalizer::normalize()} so it round-trips unchanged;
+     * a legacy mutation uses the `loopPeriod` shape. Only a mutation that posts
+     * a raw `rrule` without those storage keys is a v2-native input the
+     * {@see _gqlV2Input()} mapper should handle. Without this guard a stored v2
+     * value (which also has an `rrule`) would be mangled into an empty value.
+     *
+     * @param array $value The raw decoded value.
+     * @return bool
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private function _isV2NativeInput(array $value): bool
+    {
+        if (array_key_exists('version', $value) || array_key_exists('dtstart', $value)) {
+            return false;
+        }
+
+        return self::_string($value['rrule'] ?? null) !== null;
+    }
+
+    /**
+     * Maps a v2-native GraphQL mutation input onto the {@see ValueNormalizer::inputToV2()} shape.
+     *
+     * Reached only when the mutation posts a raw `rrule`. The value is built in
+     * advanced mode so the provided rule round-trips verbatim, while the start
+     * date/time come from `loopStartDate`/`loopStartTime`, the window end from
+     * `loopEndTime`, and the v2 exclusion/extra/holiday keys are carried across.
+     * The date-picker coercion in [[coerceInputDates()]] still runs afterwards,
+     * so GraphQL `DateTime` scalars and plain strings both work.
+     *
+     * @param array $value The raw GraphQL mutation input.
+     * @return array The input subset {@see ValueNormalizer::inputToV2()} expects.
+     * @throws \Exception if an exclusion/extra date cannot be coerced (via [[_coerceDateList()]]).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private static function _gqlV2Input(array $value): array
+    {
+        $holidays = is_array($value['holidays'] ?? null) ? $value['holidays'] : [];
+
+        return [
+            'mode' => 'advanced',
+            'rrule' => self::_string($value['rrule'] ?? null),
+            'startDate' => $value['loopStartDate'] ?? null,
+            'startTime' => $value['loopStartTime'] ?? $value['loopStartDate'] ?? null,
+            'endTime' => $value['loopEndTime'] ?? null,
+            'exdates' => self::_coerceDateList($value['exdates'] ?? []),
+            'rdates' => self::_coerceDateList($value['rdates'] ?? []),
+            'holidaysEnabled' => (bool)($holidays['enabled'] ?? false),
+            'holidaysCountry' => $holidays['country'] ?? null,
+            'holidaysRegion' => $holidays['region'] ?? null,
+        ];
+    }
+
+    /**
+     * Coerces a list of GraphQL date inputs into plain `Y-m-d` strings.
+     *
+     * @param mixed $value A list of date strings or `DateTime` scalars, or a scalar.
+     * @return string[]
+     * @throws \Exception if a value cannot be coerced (via {@see DateTimeHelper::toDateTime()}).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private static function _coerceDateList(mixed $value): array
+    {
+        $dates = [];
+
+        foreach ((array)$value as $date) {
+            $coerced = self::_coerceDate($date, 'Y-m-d');
+
+            if ($coerced !== null) {
+                $dates[] = $coerced;
+            }
+        }
+
+        return $dates;
+    }
+
+    /**
+     * Resolves a user-supplied IANA timezone, falling back to the system timezone.
+     *
+     * @param ?string $timezone The requested IANA identifier, or null.
+     * @return DateTimeZone
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private function _resolveTimezone(?string $timezone): DateTimeZone
+    {
+        if ($timezone !== null && in_array($timezone, timezone_identifiers_list(), true)) {
+            return new DateTimeZone($timezone);
+        }
+
+        return new DateTimeZone(Craft::$app->getTimeZone());
     }
 
     /**

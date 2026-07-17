@@ -43,7 +43,7 @@ class TimeloopInputType extends InputObjectType
         $periodTypeName = 'periodInput';
         $timeStringTypeName = 'timestringInput';
 
-        $timeStringInputType = GqlEntityRegistry::getEntity($timeStringTypeName) ?: GqlEntityRegistry::createEntity($timeStringTypeName, new InputObjectType([
+        $timeStringInputType = GqlEntityRegistry::getOrCreate($timeStringTypeName, fn() => new InputObjectType([
             'name' => $timeStringTypeName,
             'fields' => [
                 'ordinal' => [
@@ -60,7 +60,7 @@ class TimeloopInputType extends InputObjectType
             ],
         ]));
 
-        $loopPeriodInputType = GqlEntityRegistry::getEntity($periodTypeName) ?: GqlEntityRegistry::createEntity($periodTypeName, new InputObjectType([
+        $loopPeriodInputType = GqlEntityRegistry::getOrCreate($periodTypeName, fn() => new InputObjectType([
             'name' => $periodTypeName,
             'fields' => [
                 'frequency' => [
@@ -85,7 +85,28 @@ class TimeloopInputType extends InputObjectType
             ],
         ]));
 
-        $inputType = GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new InputObjectType([
+        $holidaysInputType = GqlEntityRegistry::getOrCreate('holidaysInput', fn() => new InputObjectType([
+            'name' => 'holidaysInput',
+            'fields' => [
+                'enabled' => [
+                    'name' => 'enabled',
+                    'type' => Type::boolean(),
+                    'description' => 'Whether public holidays are excluded from the recurrence.',
+                ],
+                'country' => [
+                    'name' => 'country',
+                    'type' => Type::string(),
+                    'description' => 'The two-letter holiday country code, e.g. "be".',
+                ],
+                'region' => [
+                    'name' => 'region',
+                    'type' => Type::string(),
+                    'description' => 'The optional holiday region within the country.',
+                ],
+            ],
+        ]));
+
+        $inputType = GqlEntityRegistry::getOrCreate($typeName, fn() => new InputObjectType([
             'name' => $typeName,
             'fields' => [
                 'loopStartDate' => [
@@ -107,6 +128,36 @@ class TimeloopInputType extends InputObjectType
                 'loopPeriod' => [
                     'name' => 'loopPeriod',
                     'type' => $loopPeriodInputType,
+                ],
+                // 5.1.0 v2-native input (additive). Providing `rrule` switches
+                // the value to the v2 engine: `exdates`, `rdates`, `timezone`
+                // and `holidays` are honoured alongside it. The legacy
+                // `loopPeriod` shape keeps working unchanged (the normalizer
+                // upgrades it); those v2 keys only take effect with `rrule`.
+                'rrule' => [
+                    'name' => 'rrule',
+                    'type' => Type::string(),
+                    'description' => 'A raw RFC 5545 RRULE string (without DTSTART), e.g. "FREQ=WEEKLY;BYDAY=MO". The start date/time come from loopStartDate/loopStartTime.',
+                ],
+                'timezone' => [
+                    'name' => 'timezone',
+                    'type' => Type::string(),
+                    'description' => 'The IANA timezone the recurrence is stored and expanded in. Defaults to the system timezone.',
+                ],
+                'exdates' => [
+                    'name' => 'exdates',
+                    'type' => Type::listOf(Type::string()),
+                    'description' => 'Static exclusion dates (Y-m-d) removed from the set.',
+                ],
+                'rdates' => [
+                    'name' => 'rdates',
+                    'type' => Type::listOf(Type::string()),
+                    'description' => 'Extra one-off dates (Y-m-d) added to the set. RDATEs anchor to the series start time of day; they cannot carry a time of their own.',
+                ],
+                'holidays' => [
+                    'name' => 'holidays',
+                    'type' => $holidaysInputType,
+                    'description' => 'Public-holiday exclusion configuration.',
                 ],
             ],
         ]));

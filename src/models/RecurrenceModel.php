@@ -187,6 +187,60 @@ class RecurrenceModel extends Model
     }
 
     /**
+     * Returns the rule formatted as an RFC 5545 RRULE value (no `DTSTART`).
+     *
+     * Delegates to the library's own `rfcString()` (never hand-assembled) and
+     * returns only the `RRULE:` value portion, e.g.
+     * `FREQ=WEEKLY;BYDAY=MO;UNTIL=20270630T000000Z`. The `DTSTART` line the
+     * library prepends is stripped, because an ICS consumer takes the start from
+     * the event's own `DTSTART` and `UNTIL` is already emitted in UTC. Returns
+     * null when there is no rule.
+     *
+     * @return ?string
+     * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if [[dtstart]] or [[timezone]] cannot be parsed into a date-time (see [[_dtstart()]]).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function rfcString(): ?string
+    {
+        if ($this->rrule === null || $this->rrule === '') {
+            return null;
+        }
+
+        $full = (new RRule($this->rrule, $this->_dtstart()))->rfcString(true);
+        $marker = 'RRULE:';
+        $pos = strpos($full, $marker);
+
+        return $pos !== false ? substr($full, $pos + strlen($marker)) : $full;
+    }
+
+    /**
+     * Returns every exclusion instant (stored exdates plus injected holidays).
+     *
+     * Each exclusion date is anchored to the occurrence time of day in the
+     * stored timezone (see [[_atOccurrenceTime()]]), so an ICS `EXDATE` matches
+     * the generated occurrence instant exactly. Injected holiday exclusions are
+     * included, which is why an ICS export bakes holidays in: an offline
+     * calendar client cannot call the holiday service at read time.
+     *
+     * @return DateTimeImmutable[]
+     * @throws \Exception if an exclusion date, [[dtstart]] or [[timezone]] cannot be parsed
+     * (see [[_atOccurrenceTime()]]).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function exclusionDates(): array
+    {
+        return array_map(
+            fn(string $date): DateTimeImmutable => $this->_toImmutable($this->_atOccurrenceTime($date)),
+            [...$this->exdates, ...$this->_extraExclusions],
+        );
+    }
+
+    /**
      * Returns the extra exclusion dates injected from elsewhere (e.g. holidays).
      *
      * @return string[]

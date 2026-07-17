@@ -77,4 +77,21 @@ trait ServicesTrait
 
         return $service;
     }
+
+    /**
+     * Returns the ICS export service.
+     *
+     * @return IcsService
+     * @throws InvalidConfigException if the component is misconfigured.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function getIcs(): IcsService
+    {
+        $service = $this->get('ics');
+        assert($service instanceof IcsService);
+
+        return $service;
+    }
 }

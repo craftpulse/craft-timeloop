@@ -32,7 +32,8 @@
         "craftcms/cms": "^5.0.0",
         "rlanvin/php-rrule": "^2.6",
         "nesbot/carbon": "^2.72.2 || ^3.0",
-        "spatie/holidays": "^1.24 || ^2.0"
+        "spatie/holidays": "^1.24 || ^2.0",
+        "spatie/icalendar-generator": "^3.3"
     },
     "require-dev":{
         "craftcms/ecs": "dev-main",

@@ -21,6 +21,7 @@ use craftpulse\timeloop\behaviors\TimeloopQueryBehavior;
 use craftpulse\timeloop\fields\TimeloopField;
 use craftpulse\timeloop\models\SettingsModel as Settings;
 use craftpulse\timeloop\services\HolidaysService;
+use craftpulse\timeloop\services\IcsService;
 use craftpulse\timeloop\services\OccurrenceIndexService;
 use craftpulse\timeloop\services\ServicesTrait;
 use craftpulse\timeloop\services\TimeloopService;
@@ -34,6 +35,7 @@ use yii\base\Event;
  * @property TimeloopService $timeloop
  * @property HolidaysService $holidays
  * @property OccurrenceIndexService $occurrenceIndex
+ * @property IcsService $ics
  *
  * @author CraftPulse
  * @since 1.0.0
@@ -90,6 +92,7 @@ class Timeloop extends Plugin
                 'timeloop' => TimeloopService::class,
                 'holidays' => HolidaysService::class,
                 'occurrenceIndex' => OccurrenceIndexService::class,
+                'ics' => IcsService::class,
             ],
         ];
     }

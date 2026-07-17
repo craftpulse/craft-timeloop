@@ -10,7 +10,9 @@
 
 namespace craftpulse\timeloop\variables;
 
+use craft\base\ElementInterface;
 use craft\base\Model;
+use craft\helpers\UrlHelper;
 use craftpulse\timeloop\models\TimeloopModel;
 use craftpulse\timeloop\Timeloop;
 use DateTime;
@@ -87,5 +89,33 @@ class TimeloopVariable
     public function getDates(TimeloopModel $data, int $limit = 0, bool $futureDates = true): ?array
     {
         return Timeloop::$plugin->timeloop->getLoop($data, $limit, $futureDates);
+    }
+
+    /**
+     * Returns a signed, public ICS-download URL for an element's Timeloop field.
+     *
+     * Usage in Twig: `craft.timeloop.icsUrl(entry, 'fieldHandle')`. The URL
+     * carries an HMAC token over the element/site/field triple (see
+     * {@see \craftpulse\timeloop\services\IcsService::signToken()}); it needs no
+     * session and exposes no enumerable identifiers. The site ID defaults to the
+     * element's own site.
+     *
+     * @param ElementInterface $element The element carrying the field.
+     * @param string $fieldHandle The Timeloop field handle.
+     * @param ?int $siteId The site ID to read the value in, or null for the element's site.
+     * @return string The absolute ICS-download URL.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function icsUrl(ElementInterface $element, string $fieldHandle, ?int $siteId = null): string
+    {
+        $token = Timeloop::$plugin->getIcs()->signToken(
+            (int)$element->id,
+            $siteId ?? (int)$element->siteId,
+            $fieldHandle,
+        );
+
+        return UrlHelper::actionUrl('timeloop/ics', ['sig' => $token]);
     }
 }
