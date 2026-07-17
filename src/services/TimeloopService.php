@@ -187,16 +187,20 @@ class TimeloopService extends Component
     /**
      * Returns the recurrence engine for a value, with public holidays merged in.
      *
-     * This is the single read-time merge point: when the value has holidays
-     * enabled and a country resolves (value country, then field default, then
-     * site locale, see {@see HolidaysService::resolveCountry()}), the public
-     * holidays spanning the value's window are resolved per year and injected as
-     * extra exclusions via {@see RecurrenceModel::setExtraExclusions()} before any
-     * expansion. Holidays are never written into the value's stored `exdates`;
-     * they are resolved fresh on every read, so a series crossing a year boundary
-     * keeps excluding future years' holidays without being re-saved. When
-     * holidays are disabled, no country resolves, or the value carries no rule,
-     * the recurrence is returned untouched (or null).
+     * This is the single read-time merge point. Holidays are enabled when either
+     * the field's `enableHolidays` setting is on (stamped as
+     * {@see TimeloopModel::$holidayEnabledDefault}) or the value itself opts in
+     * through the GraphQL `holidays` input; the value-level flag is the override.
+     * When enabled and a country resolves (the value's explicit GraphQL country,
+     * then the field country, then the site locale, see
+     * {@see HolidaysService::resolveCountry()}), the public holidays spanning the
+     * value's window are resolved per year and injected as extra exclusions via
+     * {@see RecurrenceModel::setExtraExclusions()} before any expansion. Holidays
+     * are never written into the value's stored `exdates`; they are resolved fresh
+     * on every read, so a series crossing a year boundary keeps excluding future
+     * years' holidays without being re-saved. When holidays are disabled, no
+     * country resolves, or the value carries no rule, the recurrence is returned
+     * untouched (or null).
      *
      * @param TimeloopModel $data
      * @return ?RecurrenceModel
@@ -210,13 +214,17 @@ class TimeloopService extends Component
     public function recurrenceFor(TimeloopModel $data): ?RecurrenceModel
     {
         $recurrence = $data->getRecurrence();
+        $valueEnabled = (bool)($data->holidays['enabled'] ?? false);
 
-        if ($recurrence === null || !($data->holidays['enabled'] ?? false)) {
+        if ($recurrence === null || !($valueEnabled || $data->holidayEnabledDefault)) {
             return $recurrence;
         }
 
+        // A value only contributes its own country/region when it explicitly
+        // opts in (the GraphQL override); a field-level enablement resolves the
+        // country from the field setting, then the site locale.
         $country = $this->_holidays()->resolveCountry(
-            $data->holidays['country'] ?? null,
+            $valueEnabled ? ($data->holidays['country'] ?? null) : null,
             $data->holidayCountryDefault,
         );
 
@@ -224,9 +232,11 @@ class TimeloopService extends Component
             return $recurrence;
         }
 
+        $region = ($valueEnabled ? ($data->holidays['region'] ?? null) : null) ?: $data->holidayRegionDefault;
+
         [$yearFrom, $yearTo] = $this->_holidayYears($data);
         $recurrence->setExtraExclusions(
-            $this->_holidays()->exclusionDates($country, $data->holidays['region'] ?? null, $yearFrom, $yearTo),
+            $this->_holidays()->exclusionDates($country, $region, $yearFrom, $yearTo),
         );
 
         return $recurrence;

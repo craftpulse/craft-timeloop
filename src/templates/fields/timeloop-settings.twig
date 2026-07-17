@@ -21,12 +21,31 @@
     on: settings.showTime,
 }) }}
 
-{{ forms.textField({
-    label: 'Default holidays country'|t('timeloop'),
-    instructions: 'Two-letter country code used when a value enables holidays without picking one. Leave blank to derive it from the site locale.'|t('timeloop'),
-    name: 'defaultHolidaysCountry',
-    value: settings.defaultHolidaysCountry,
-    placeholder: 'be',
-    size: 6,
-    errors: field is defined ? field.getErrors('defaultHolidaysCountry') : null,
+{{ forms.lightswitchField({
+    label: 'Enable public holidays'|t('timeloop'),
+    instructions: 'Skip occurrences that fall on a public holiday.'|t('timeloop'),
+    id: 'enableHolidays',
+    name: 'enableHolidays',
+    on: settings.enableHolidays,
+    toggle: 'holidays-settings',
 }) }}
+
+<div id="holidays-settings" class="nested-fields{{ settings.enableHolidays ? '' : ' hidden' }}">
+    {{ forms.textField({
+        label: 'Country'|t('timeloop'),
+        instructions: 'Leave blank to derive the country from the site locale.'|t('timeloop'),
+        name: 'holidaysCountry',
+        value: settings.holidaysCountry,
+        placeholder: 'be',
+        size: 6,
+        errors: field is defined ? field.getErrors('holidaysCountry') : null,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Region'|t('timeloop'),
+        instructions: 'Optional region code, for example DE-BY.'|t('timeloop'),
+        name: 'holidaysRegion',
+        value: settings.holidaysRegion,
+        size: 10,
+    }) }}
+</div>

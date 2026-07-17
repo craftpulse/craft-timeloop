@@ -63,16 +63,36 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     public int $showTime = 0;
 
     /**
-     * @var ?string The default holiday country applied when a value enables holidays without picking one.
+     * @var bool Whether public-holiday exclusion is enabled for every value of this field.
      *
-     * Second link in the read-time country-resolution chain (value's explicit
-     * country, then this field default, then the site-locale-derived country,
-     * then disabled). It is stamped onto each value's
-     * {@see TimeloopModel::$holidayCountryDefault} in [[normalizeValue()]] and is
-     * never written into a value's stored JSON. The settings UI for it lands in
-     * Phase 4; only the property and its rule exist now.
+     * The field-level holiday support. When on, each value expands with the
+     * country's public holidays subtracted (resolved fresh at read time, never
+     * persisted); a value can still override this through the GraphQL `holidays`
+     * input. It is stamped onto each value's
+     * {@see TimeloopModel::$holidayEnabledDefault} in [[normalizeValue()]] and is
+     * never written into a value's stored JSON.
      */
-    public ?string $defaultHolidaysCountry = null;
+    public bool $enableHolidays = false;
+
+    /**
+     * @var ?string The holiday country applied to every value of this field.
+     *
+     * Middle link in the read-time country-resolution chain (a value's explicit
+     * GraphQL country, then this field country, then the site-locale-derived
+     * country, then disabled; see {@see \craftpulse\timeloop\services\HolidaysService::resolveCountry()}).
+     * Stamped onto each value's {@see TimeloopModel::$holidayCountryDefault} in
+     * [[normalizeValue()]] and never written into a value's stored JSON. Left
+     * blank, the country is derived from the site locale.
+     */
+    public ?string $holidaysCountry = null;
+
+    /**
+     * @var ?string The holiday region applied to every value of this field, e.g. `DE-BY`.
+     *
+     * Stamped onto each value's {@see TimeloopModel::$holidayRegionDefault} in
+     * [[normalizeValue()]] and never written into a value's stored JSON.
+     */
+    public ?string $holidaysRegion = null;
 
     // Static Methods
     // =========================================================================
@@ -196,9 +216,12 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     {
         $rules = parent::defineRules();
         $rules[] = [['showTime'], 'boolean'];
-        $rules[] = [['defaultHolidaysCountry'], 'filter', 'filter' => 'strtolower', 'skipOnEmpty' => true];
-        $rules[] = [['defaultHolidaysCountry'], 'match', 'pattern' => '/^[a-z]{2}$/', 'skipOnEmpty' => true, 'message' => Craft::t('timeloop', 'Enter a two-letter country code, for example "be".')];
-        $rules[] = [['defaultHolidaysCountry'], 'default', 'value' => null];
+        $rules[] = [['enableHolidays'], 'boolean'];
+        $rules[] = [['holidaysCountry'], 'filter', 'filter' => 'strtolower', 'skipOnEmpty' => true];
+        $rules[] = [['holidaysCountry'], 'match', 'pattern' => '/^[a-z]{2}$/', 'skipOnEmpty' => true, 'message' => Craft::t('timeloop', 'Enter a two-letter country code, for example "be".')];
+        $rules[] = [['holidaysCountry'], 'default', 'value' => null];
+        $rules[] = [['holidaysRegion'], 'filter', 'filter' => fn($value) => strtoupper(trim((string)$value)), 'skipOnEmpty' => true];
+        $rules[] = [['holidaysRegion'], 'default', 'value' => null];
 
         return $rules;
     }
@@ -257,9 +280,11 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
 
         $model = new TimeloopModel($v2);
 
-        // Stamp the field-level default country onto the value for the read-time
-        // holiday resolution chain. Runtime only: it is excluded from storage.
-        $model->holidayCountryDefault = $this->defaultHolidaysCountry;
+        // Stamp the field-level holiday settings onto the value for the read-time
+        // holiday resolution chain. Runtime only: they are excluded from storage.
+        $model->holidayEnabledDefault = $this->enableHolidays;
+        $model->holidayCountryDefault = $this->holidaysCountry;
+        $model->holidayRegionDefault = $this->holidaysRegion;
 
         return $model;
     }
@@ -286,7 +311,7 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
      * Renders the field settings template.
      *
      * The template receives the field itself (as `field`) so it can surface
-     * per-attribute validation errors, e.g. `field.getErrors('defaultHolidaysCountry')`.
+     * per-attribute validation errors, e.g. `field.getErrors('holidaysCountry')`.
      *
      * @return string|null
      * @throws \Throwable if the settings template cannot be rendered.
@@ -367,7 +392,6 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
             'showTime' => (bool)$this->showTime,
             'representable' => $representable,
             'rule' => ValueNormalizer::rruleToInput($value->rrule),
-            'holidayCountryPlaceholder' => Timeloop::$plugin->getHolidays()->resolveCountry(null, $this->defaultHolidaysCountry),
             'summaryAction' => UrlHelper::actionUrl('timeloop/summary'),
         ]);
     }

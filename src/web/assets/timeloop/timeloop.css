@@ -2,17 +2,30 @@
  * Timeloop plugin for Craft CMS 5.x
  *
  * Control-panel field styles. Uses Craft's own design tokens so the field sits
- * naturally inside the element editor in both light and dark modes.
+ * naturally inside the element editor in both light and dark modes, in a
+ * compact two-column layout.
  *
  * @author    CraftPulse
  * @copyright Copyright (c) 2025 CraftPulse
  * @since     5.1.0
  */
 
+/* Compact vertical rhythm between the field's top-level blocks. */
+.timeloop-field > .timeloop-row,
+.timeloop-field > .field,
+.timeloop-field > .timeloop-simple,
+.timeloop-field > .timeloop-advanced {
+  margin-top: var(--m, 14px);
+}
+
+.timeloop-field > .timeloop-row:first-child {
+  margin-top: 0;
+}
+
 .timeloop-field .timeloop-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: var(--m, 14px);
 }
 
@@ -21,8 +34,13 @@
   margin-top: 0;
 }
 
+/* Frequency select + interval sit inline, interval kept narrow. */
+.timeloop-field .timeloop-frequency > .field:last-child {
+  flex: 0 0 auto;
+}
+
 .timeloop-field fieldset {
-  margin-top: var(--l, 24px);
+  margin-top: var(--m, 14px);
   border: none;
   padding: 0;
 }
@@ -31,13 +49,15 @@
   margin-bottom: var(--xs, 7px);
 }
 
-.timeloop-field .timeloop-indent {
-  margin-top: var(--s, 10px);
-  margin-left: var(--l, 24px);
+/* Excluded | Extra dates, two equal columns. */
+.timeloop-field .timeloop-daterows-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--l, 24px);
 }
 
-.timeloop-field .timeloop-daterows {
-  margin-bottom: var(--s, 10px);
+.timeloop-field .timeloop-daterows-cols > .field {
+  margin-top: 0;
 }
 
 .timeloop-field .timeloop-daterow {
@@ -55,7 +75,7 @@
 }
 
 .timeloop-field .timeloop-rrule {
-  margin: var(--s, 10px) 0;
+  margin: 0 0 var(--s, 10px);
   padding: var(--s, 10px);
   border-radius: var(--small-border-radius, 3px);
   background-color: var(--gray-100, #e4edf6);
@@ -66,7 +86,7 @@
 }
 
 .timeloop-field .timeloop-summary {
-  margin-top: var(--l, 24px);
+  margin-top: var(--m, 14px);
   color: var(--medium-text-color, #606d7b);
   font-style: italic;
 }

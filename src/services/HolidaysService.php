@@ -148,12 +148,12 @@ class HolidaysService extends Component
      * Resolves the effective holiday country for a value.
      *
      * The resolution order is: the value's explicit country, then the field's
-     * `defaultHolidaysCountry` setting, then a country derived from the current
-     * site's locale (see [[defaultCountryFromLocale()]]). When none resolves,
-     * holidays are effectively disabled for the value (null is returned).
+     * `holidaysCountry` setting, then a country derived from the current site's
+     * locale (see [[defaultCountryFromLocale()]]). When none resolves, holidays
+     * are effectively disabled for the value (null is returned).
      *
      * @param ?string $valueCountry The country stored on the field value, or null.
-     * @param ?string $fieldDefault The field's default country setting, or null.
+     * @param ?string $fieldDefault The field's country setting, or null.
      * @param ?string $locale An explicit locale to derive from (injected in tests); null reads the site.
      * @return ?string The lowercased country code, or null when none resolves.
      *

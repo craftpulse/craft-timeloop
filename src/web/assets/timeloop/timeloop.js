@@ -7,7 +7,6 @@
  *
  *   - toggles the frequency-dependent controls (weekly by-day vs monthly
  *     by-position) and the end-condition controls (never / on date / after N);
- *   - toggles the holiday detail controls with the holiday lightswitch;
  *   - adds and removes exclusion (EXDATE) and extra (RDATE) date rows;
  *   - switches an advanced (non-representable) rule into the simple editor;
  *   - refreshes the live localized summary from the timeloop/summary action,
@@ -36,7 +35,6 @@
       $mode: null,
       $rrule: null,
       $frequency: null,
-      $holidaysEnabled: null,
       $summary: null,
       summaryTimeout: null,
 
@@ -50,12 +48,11 @@
         this.setSettings(settings, Craft.TimeloopField.defaults);
 
         // The hidden mode/rrule inputs are rendered directly, so the data hook
-        // is reliable. The frequency select and holiday lightswitch go through
-        // richer macros, so target their value-bearing input by name instead.
+        // is reliable. The frequency select goes through a richer macro, so
+        // target its value-bearing input by name instead.
         this.$mode = this.$container.find('[data-timeloop="mode"]');
         this.$rrule = this.$container.find('[data-timeloop="rrule"]');
         this.$frequency = this.$container.find('select[name$="[frequency]"]');
-        this.$holidaysEnabled = this.$container.find('input[name$="[holidaysEnabled]"]');
         this.$summary = this.$container.find('[data-timeloop-summary]');
 
         this.addListener(this.$container, 'change', 'onChange');
@@ -95,16 +92,6 @@
           .val();
         this.toggleRegion('until', endCondition === 'until');
         this.toggleRegion('count', endCondition === 'count');
-
-        this.toggleRegion('holidays-detail', this.holidaysEnabled());
-      },
-
-      holidaysEnabled: function () {
-        if (this.$holidaysEnabled.is(':checkbox')) {
-          return this.$holidaysEnabled.is(':checked');
-        }
-
-        return this.$holidaysEnabled.val() === '1';
       },
 
       toggleRegion: function (name, show) {

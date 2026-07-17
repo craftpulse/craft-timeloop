@@ -459,7 +459,12 @@ it('collects exclusion and extra dates, dropping blanks and duplicates', functio
         ->and($v2['rdates'])->toBe(['2027-07-01']);
 });
 
-it('normalizes the holidays block, lowercasing the country', function() {
+it('normalizes a holidays block, lowercasing the country', function() {
+    // As of 5.1.0 the control-panel UI no longer posts holidays (that moved to
+    // the field settings); the only caller that still feeds these keys into
+    // inputToV2() is the v2-native GraphQL mutation input (see
+    // TimeloopField::_gqlV2Input). inputToV2() keeps normalizing them so that
+    // override path round-trips.
     $v2 = input([
         'startDate' => '2026-09-07',
         'frequency' => 'DAILY',

@@ -99,16 +99,38 @@ class TimeloopModel extends Model
     public array $reminder = ['value' => 0, 'period' => null];
 
     /**
-     * @var ?string The field's default holiday country, stamped at read time. Never persisted.
+     * @var bool Whether the owning field enables holidays, stamped at read time. Never persisted.
      *
-     * Carries the owning field's `defaultHolidaysCountry` setting into the
-     * read-time holiday resolution (see
+     * Carries the owning field's `enableHolidays` setting into the read-time
+     * holiday resolution (see {@see \craftpulse\timeloop\services\TimeloopService::recurrenceFor()}).
+     * Populated by {@see \craftpulse\timeloop\fields\TimeloopField::normalizeValue()}
+     * and deliberately excluded from [[toV2Array()]], so a field-level setting
+     * never leaks into a value's stored JSON.
+     */
+    public bool $holidayEnabledDefault = false;
+
+    /**
+     * @var ?string The field's holiday country, stamped at read time. Never persisted.
+     *
+     * Carries the owning field's `holidaysCountry` setting into the read-time
+     * holiday resolution (see
      * {@see \craftpulse\timeloop\services\HolidaysService::resolveCountry()}).
      * It is populated by {@see \craftpulse\timeloop\fields\TimeloopField::normalizeValue()}
-     * and deliberately excluded from [[toV2Array()]], so a field-level default
+     * and deliberately excluded from [[toV2Array()]], so a field-level setting
      * never leaks into a value's stored JSON.
      */
     public ?string $holidayCountryDefault = null;
+
+    /**
+     * @var ?string The field's holiday region, stamped at read time. Never persisted.
+     *
+     * Carries the owning field's `holidaysRegion` setting into the read-time
+     * holiday resolution (see {@see \craftpulse\timeloop\services\TimeloopService::recurrenceFor()}).
+     * Populated by {@see \craftpulse\timeloop\fields\TimeloopField::normalizeValue()}
+     * and deliberately excluded from [[toV2Array()]], so a field-level setting
+     * never leaks into a value's stored JSON.
+     */
+    public ?string $holidayRegionDefault = null;
 
     /**
      * @var ?DateTime The date the loop starts (derived; backwards-compatibility).
@@ -615,7 +637,7 @@ class TimeloopModel extends Model
 
         $rules[] = [['dtstart', 'timezone', 'rrule', 'endTime'], 'safe'];
         $rules[] = [['exdates', 'rdates', 'holidays', 'reminder', 'loopPeriod'], 'safe'];
-        $rules[] = [['holidayCountryDefault'], 'safe'];
+        $rules[] = [['holidayEnabledDefault', 'holidayCountryDefault', 'holidayRegionDefault'], 'safe'];
         $rules[] = [['loopStartDate', 'loopEndDate', 'loopStartTime', 'loopEndTime'], 'safe'];
         $rules[] = [['version', 'loopReminderValue'], 'integer'];
 

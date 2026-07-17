@@ -183,6 +183,40 @@ it('keeps a holiday occurrence when the toggle is off', function() {
     expect($dates)->toContain('2028-05-01');
 });
 
+it('excludes a public holiday from the field-level settings alone', function() {
+    // The value carries no holidays of its own; the field's stamped
+    // enable/country settings drive the exclusion (the 5.1.0 chain: value-level
+    // GraphQL override, then field settings, then disabled).
+    $model = danceClass(['enabled' => false, 'country' => null, 'region' => null]);
+    $model->holidayEnabledDefault = true;
+    $model->holidayCountryDefault = 'be';
+
+    $dates = loopYmd((new TimeloopService())->getLoop($model, limit: 0, futureDates: false));
+
+    expect($dates)->toContain('2028-04-24')
+        ->and($dates)->toContain('2028-05-08')
+        ->and($dates)->not->toContain('2028-05-01');
+});
+
+it('reaches a field-level region-only holiday through the stamped region', function() {
+    // Fronleichnam (2027-05-27) is a Bavarian regional holiday; the field-level
+    // country + region alone must reach it.
+    $model = new TimeloopModel(ValueNormalizer::normalize([
+        'version' => 2,
+        'dtstart' => '2027-05-01T09:00:00',
+        'timezone' => 'Europe/Berlin',
+        'rrule' => 'FREQ=DAILY;UNTIL=20270601T000000Z',
+        'holidays' => ['enabled' => false, 'country' => null, 'region' => null],
+    ], new DateTimeZone('Europe/Berlin')));
+    $model->holidayEnabledDefault = true;
+    $model->holidayCountryDefault = 'de';
+    $model->holidayRegionDefault = 'DE-BY';
+
+    $dates = loopYmd((new TimeloopService())->getLoop($model, limit: 0, futureDates: false));
+
+    expect($dates)->not->toContain('2027-05-27');
+});
+
 it('reports no next occurrence on a holiday and skips to the following week', function() {
     $service = new TimeloopService();
     $recurrence = $service->recurrenceFor(
