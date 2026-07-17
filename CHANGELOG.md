@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 5.1.0 - Unreleased
+
+### Important upgrade notes
+
+- **The storage upgrade is one-way.** Stored field values are migrated to a new RRULE-based format on `craft up`. Downgrading to 5.0.0 afterwards reads every migrated value as empty, so pin your plugin version before deploying. The migration is lossless, idempotent, and skips (rather than breaks on) any value it cannot parse; skipped values are upgraded at read time instead.
+- **Entries saved with 4.x or a 5.0.0 beta get the #62 end-time repair applied during migration** — no manual resave needed for that fix on this upgrade path.
+- Four narrow output changes versus 5.0.0, each toward correctness: an occurrence landing exactly on the end date is now included; monthly loops starting on day 29/30 (not the month's last day) skip short months instead of clamping; an occurrence landing exactly on "now" counts as upcoming; `recurringDates()` backed by a fresh occurrence index returns all in-window dates instead of capping at 100 for never-ending rules.
+- The GraphQL `loopReminder` field previously resolved to `null` for every value due to a bug; it now returns the reminder period (for example `days`). Schema shape is unchanged.
+- Set up the nightly horizon roll on new installs: `php craft timeloop/occurrences/refresh` (cron), so the occurrence index keeps covering future dates and next years' public holidays.
+
+### Added
+- RRULE-based recurrence engine (`rlanvin/php-rrule`): timezone-correct expansion, `COUNT`/`UNTIL` end conditions, exclusion dates (`EXDATE`), extra dates (`RDATE`), and round-tripping of hand-written RRULEs the editor does not cover ([#9](https://github.com/craftpulse/craft-timeloop/issues/9), [#12](https://github.com/craftpulse/craft-timeloop/issues/12))
+- Public-holiday exclusions per value (spatie/holidays): locale-aware country resolution with region support, resolved fresh at read time so future years stay correct without re-saving entries
+- Screens API on the field value: `isActiveNow`, `isActiveAt()`, `currentOccurrence`, `nextOccurrence`, `occurrences(from, to, limit)`
+- Occurrence index table with element-query params `activeTimeloop()`, `timeloopBetween()` and next-occurrence ordering, a save-time indexer with queue offloading, and `timeloop/occurrences/refresh` + `timeloop/occurrences/rebuild` console commands
+- Element-index sorting by next upcoming occurrence
+- Localized rule summaries: `summary` on the field value (18 locales via the rrule engine) and a live summary preview in the editor
+- Dutch, French and German control panel translations ([#14](https://github.com/craftpulse/craft-timeloop/issues/14), [#32](https://github.com/craftpulse/craft-timeloop/issues/32))
+- Additive GraphQL fields: `rrule`, `timezone`, `summary(locale)`, `isActiveNow`, `nextOccurrence`, `occurrences(rangeStart, rangeEnd, limit)`, `exceptions`; mutation input now also accepts `rrule`, `timezone`, `exdates`, `rdates` and `holidays`
+- ICS calendar export per field value behind a signed, tokenized URL (`craft.timeloop.icsUrl(entry, 'fieldHandle')`), with holiday exclusions baked in
+
+### Changed
+- The field editor was rebuilt on Craft form macros and Garnish; it now renders correctly on first load inside Matrix and Neo ([#41](https://github.com/craftpulse/craft-timeloop/issues/41), [#54](https://github.com/craftpulse/craft-timeloop/issues/54))
+- Vue and the Vite buildchain were removed, along with the `nystudio107/craft-plugin-vite` dependency
+- Field values are stored in a new RRULE-based format; legacy values (4.x, 5.0.0 betas, 5.0.0) are migrated by `craft up` and normalized at read time wherever the migration has not run yet
+- Raw RRULE input from GraphQL mutations is validated at save time instead of failing on first render
+- Code-quality sweep: section headers, PHPDoc completeness and `@throws` chains across the codebase ([#69](https://github.com/craftpulse/craft-timeloop/issues/69), [#75](https://github.com/craftpulse/craft-timeloop/issues/75), [#84](https://github.com/craftpulse/craft-timeloop/issues/84))
+
+### Fixed
+- Two Timeloop fields on one entry type no longer collide in the GraphQL schema ([#82](https://github.com/craftpulse/craft-timeloop/issues/82))
+- The GraphQL `loopReminder` field resolves to the reminder period instead of always `null` ([#83](https://github.com/craftpulse/craft-timeloop/issues/83))
+
 ## 5.0.0 - 2026-07-16
 
 ### Important upgrade notes
