@@ -57,7 +57,7 @@ class TimeloopService extends Component
     /**
      * @var string The default expansion horizon for infinite rules and future-date queries.
      */
-    private const DEFAULT_HORIZON = '+20 years';
+    public const DEFAULT_HORIZON = '+20 years';
 
     // Private Properties
     // =========================================================================
@@ -343,6 +343,24 @@ class TimeloopService extends Component
     public function activeAt(RecurrenceModel $model, DateTimeInterface $dateTime): bool
     {
         return $model->activeAt($dateTime);
+    }
+
+    /**
+     * Returns the start of the occurrence in progress at the given date-time, or null.
+     *
+     * @param RecurrenceModel $model
+     * @param DateTimeInterface $dateTime
+     * @return ?DateTimeImmutable
+     * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if the model's `dtstart` or `timezone` cannot be parsed into a date-time, or
+     * an exclusion/extra date cannot be parsed (see {@see RecurrenceModel::currentOccurrence()}).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function currentOccurrence(RecurrenceModel $model, DateTimeInterface $dateTime): ?DateTimeImmutable
+    {
+        return $model->currentOccurrence($dateTime);
     }
 
     // Private Methods

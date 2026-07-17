@@ -314,6 +314,29 @@ class TimeloopField extends Field implements PreviewableFieldInterface, Sortable
     }
 
     /**
+     * @inheritdoc
+     *
+     * Keeps the occurrence index in sync with the saved value. The field's own
+     * `afterElementSave` is used (rather than a global `Elements` save event)
+     * because Craft calls it with the exact element that carries the field, its
+     * site and this field instance, so the index rows land under the right
+     * `elementId`/`siteId`/`fieldHandle` without walking field layouts, it is
+     * automatically scoped to elements that actually have the field, and for a
+     * Matrix/Neo-nested value the element passed is the nested entry (the owner
+     * of the field), which is exactly the `elementId` the index keys on. Drafts,
+     * revisions and over-threshold series are handled inside
+     * {@see \craftpulse\timeloop\services\OccurrenceIndexService::handleElementSave()}.
+     *
+     * @throws \Throwable if the reindex fails (see {@see \craftpulse\timeloop\services\OccurrenceIndexService::handleElementSave()}).
+     */
+    public function afterElementSave(ElementInterface $element, bool $isNew): void
+    {
+        parent::afterElementSave($element, $isNew);
+
+        Timeloop::getInstance()?->getOccurrenceIndex()->handleElementSave($element, $this);
+    }
+
+    /**
      * @return Type|array
      */
     public function getContentGqlType(): Type|array

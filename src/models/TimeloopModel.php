@@ -12,8 +12,11 @@ namespace craftpulse\timeloop\models;
 
 use Craft;
 use craft\base\Model;
+use craftpulse\timeloop\services\TimeloopService;
 use craftpulse\timeloop\Timeloop;
 use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
 use DateTimeZone;
 use Throwable;
 
@@ -246,6 +249,131 @@ class TimeloopModel extends Model
     public function getSummary(?string $locale = null): ?string
     {
         return $this->getRecurrence()?->summary($locale ?? $this->_currentLanguage());
+    }
+
+    // Screens API
+    // =========================================================================
+
+    /**
+     * Returns whether an occurrence is in progress right now.
+     *
+     * Convenience getter (Twig `entry.field.isActiveNow`) around
+     * [[isActiveAt()]] evaluated at the current instant in the value's timezone.
+     *
+     * @return bool
+     * @throws \Exception if the recurrence cannot be expanded, or `now` cannot be
+     * constructed in the stored timezone (see [[isActiveAt()]]).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function getIsActiveNow(): bool
+    {
+        return $this->isActiveAt($this->_now());
+    }
+
+    /**
+     * Returns whether an occurrence is in progress at the given date-time.
+     *
+     * Holiday-aware: the recurrence is resolved through
+     * {@see TimeloopService::recurrenceFor()}, so a holiday landing on an
+     * occurrence is never active. Cost is O(occurrences since the series start)
+     * per call (documented on {@see RecurrenceModel::activeAt()}); fine at the
+     * value level, not for looping over many entries (use the occurrence index
+     * and the query behavior for that).
+     *
+     * @param DateTimeInterface $dateTime
+     * @return bool
+     * @throws \Exception if the recurrence cannot be expanded (see {@see TimeloopService::activeAt()}).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function isActiveAt(DateTimeInterface $dateTime): bool
+    {
+        $service = $this->_timeloop();
+        $recurrence = $service->recurrenceFor($this);
+
+        return $recurrence !== null && $service->activeAt($recurrence, $dateTime);
+    }
+
+    /**
+     * Returns the start of the occurrence in progress right now, or null.
+     *
+     * Holiday-aware (see [[isActiveAt()]]). Twig: `entry.field.currentOccurrence`.
+     *
+     * @return ?DateTimeImmutable
+     * @throws \Exception if the recurrence cannot be expanded, or `now` cannot be
+     * constructed in the stored timezone (see {@see TimeloopService::currentOccurrence()}).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function getCurrentOccurrence(): ?DateTimeImmutable
+    {
+        $service = $this->_timeloop();
+        $recurrence = $service->recurrenceFor($this);
+
+        return $recurrence !== null ? $service->currentOccurrence($recurrence, $this->_now()) : null;
+    }
+
+    /**
+     * Returns the first occurrence after now, or null.
+     *
+     * The engine-backed, holiday-aware surface of the legacy `upcoming` getter:
+     * a holiday landing on the next scheduled date is skipped to the one after.
+     * Twig: `entry.field.nextOccurrence`.
+     *
+     * @return ?DateTimeImmutable
+     * @throws \Exception if the recurrence cannot be expanded (see {@see TimeloopService::nextOccurrence()}).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function getNextOccurrence(): ?DateTimeImmutable
+    {
+        $service = $this->_timeloop();
+        $recurrence = $service->recurrenceFor($this);
+
+        return $recurrence !== null ? $service->nextOccurrence($recurrence, $this->_now()) : null;
+    }
+
+    /**
+     * Returns the occurrences of the value, bounded and holiday-aware.
+     *
+     * `from` defaults to the series start, `to` defaults to the
+     * {@see TimeloopService::DEFAULT_HORIZON} horizon (so an infinite rule stays
+     * bounded); pass `limit` to cap the result. Both boundaries are inclusive.
+     * When neither `from` nor `to` is given the engine's own bounds apply (a
+     * finite rule expands fully, an infinite rule is capped at `limit`).
+     *
+     * @param ?DateTimeInterface $from The lower boundary (inclusive), or null for the series start.
+     * @param ?DateTimeInterface $to The upper boundary (inclusive), or null for the default horizon.
+     * @param ?int $limit Maximum number of occurrences, or null for no cap.
+     * @return DateTimeImmutable[]
+     * @throws \Exception if the recurrence cannot be expanded (see {@see TimeloopService::occurrencesBetween()}).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function occurrences(?DateTimeInterface $from = null, ?DateTimeInterface $to = null, ?int $limit = null): array
+    {
+        $service = $this->_timeloop();
+        $recurrence = $service->recurrenceFor($this);
+
+        if ($recurrence === null) {
+            return [];
+        }
+
+        if ($from === null && $to === null) {
+            return $service->occurrences($recurrence, $limit);
+        }
+
+        $timezone = new DateTimeZone($this->timezone);
+        $from ??= new DateTimeImmutable((string)$this->dtstart, $timezone);
+        $to ??= (new DateTimeImmutable('now', $timezone))->modify(TimeloopService::DEFAULT_HORIZON);
+
+        return $service->occurrencesBetween($recurrence, $from, $to, $limit);
     }
 
     /**
@@ -494,5 +622,47 @@ class TimeloopModel extends Model
     private function _getUpcomingDates(): array
     {
         return $this->_upcomingDates ??= Timeloop::$plugin->timeloop->getLoop($this, 2) ?? [];
+    }
+
+    /**
+     * Returns the current instant in the value's stored timezone.
+     *
+     * @return DateTimeImmutable
+     * @throws \Exception if the stored timezone cannot be parsed.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private function _now(): DateTimeImmutable
+    {
+        return new DateTimeImmutable('now', new DateTimeZone($this->timezone));
+    }
+
+    /**
+     * Returns the Timeloop service.
+     *
+     * Prefers the plugin's registered singleton and falls back to a fresh
+     * instance when no plugin is booted, so the value-level screens API stays
+     * usable from the standalone Pest suite (the same guarded pattern as
+     * {@see TimeloopService::recurrenceFor()}'s holiday lookup).
+     *
+     * @return TimeloopService
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private function _timeloop(): TimeloopService
+    {
+        try {
+            $plugin = Timeloop::getInstance();
+
+            if ($plugin !== null && $plugin->has('timeloop')) {
+                return $plugin->getTimeloop();
+            }
+        } catch (Throwable) {
+            // No booted plugin (e.g. the standalone unit context); fall through.
+        }
+
+        return new TimeloopService();
     }
 }

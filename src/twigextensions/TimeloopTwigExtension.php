@@ -59,13 +59,20 @@ class TimeloopTwigExtension extends AbstractExtension
      * Returns the recurring dates per element for the given query,
      * limited to the dates between `$start` and `$end` (inclusive).
      *
+     * As of 5.1.0 the per-element date resolution is backed by the occurrence
+     * index ({@see \craftpulse\timeloop\services\OccurrenceIndexService::occurrenceStarts()}),
+     * which reads the requested range straight from the index when it fully
+     * covers that range and otherwise falls back to live expansion. The output
+     * shape and inclusive-boundary semantics are unchanged: a missing or stale
+     * index never alters the returned dates.
+     *
      * @param ElementQuery $query
      * @param string $field The Timeloop field handle.
      * @param string $start
      * @param string $end
      * @return array
-     * @throws NotFoundHttpException
-     * @throws \Exception
+     * @throws NotFoundHttpException if the field does not exist on the query's elements.
+     * @throws \Exception if a date cannot be parsed or a recurrence cannot be expanded.
      *
      * @author CraftPulse
      * @since 1.0.0
@@ -83,20 +90,14 @@ class TimeloopTwigExtension extends AbstractExtension
                 throw new NotFoundHttpException("The field {$field} doesn't exist on the element query");
             }
 
-            if (!$timeloopModel instanceof TimeloopModel) {
-                continue;
-            }
-
-            $loops = Timeloop::$plugin->timeloop->getLoop($timeloopModel, 0, false);
-
-            if ($loops === null) {
+            if (!$timeloopModel instanceof TimeloopModel || $timeloopModel->getRecurrence() === null) {
                 continue;
             }
 
             $dates[] = [
                 'entryId' => $element->id,
                 'entryTitle' => $element->title ?? null,
-                'dates' => Timeloop::$plugin->timeloop->getLoopBetweenDates($loops, $startDate, $endDate),
+                'dates' => Timeloop::$plugin->getOccurrenceIndex()->occurrenceStarts($element, $timeloopModel, $field, $startDate, $endDate),
             ];
         }
 

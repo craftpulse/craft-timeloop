@@ -12,12 +12,16 @@ namespace craftpulse\timeloop;
 
 use Craft;
 use craft\base\Plugin;
+use craft\elements\db\ElementQuery;
+use craft\events\DefineBehaviorsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\services\Fields;
 use craft\web\twig\variables\CraftVariable;
+use craftpulse\timeloop\behaviors\TimeloopQueryBehavior;
 use craftpulse\timeloop\fields\TimeloopField;
 use craftpulse\timeloop\models\SettingsModel as Settings;
 use craftpulse\timeloop\services\HolidaysService;
+use craftpulse\timeloop\services\OccurrenceIndexService;
 use craftpulse\timeloop\services\ServicesTrait;
 use craftpulse\timeloop\services\TimeloopService;
 use craftpulse\timeloop\twigextensions\TimeloopTwigExtension;
@@ -29,6 +33,7 @@ use yii\base\Event;
  *
  * @property TimeloopService $timeloop
  * @property HolidaysService $holidays
+ * @property OccurrenceIndexService $occurrenceIndex
  *
  * @author CraftPulse
  * @since 1.0.0
@@ -56,7 +61,7 @@ class Timeloop extends Plugin
      *
      * @var string
      */
-    public string $schemaVersion = '2.0.0';
+    public string $schemaVersion = '2.1.0';
 
     /**
      * Set to `true` if the plugin should have a settings view in the control panel.
@@ -84,6 +89,7 @@ class Timeloop extends Plugin
             'components' => [
                 'timeloop' => TimeloopService::class,
                 'holidays' => HolidaysService::class,
+                'occurrenceIndex' => OccurrenceIndexService::class,
             ],
         ];
     }
@@ -116,6 +122,15 @@ class Timeloop extends Plugin
                 /** @var CraftVariable $variable */
                 $variable = $event->sender;
                 $variable->set('timeloop', TimeloopVariable::class);
+            }
+        );
+
+        // Attach the occurrence-index query params to every element query
+        Event::on(
+            ElementQuery::class,
+            ElementQuery::EVENT_DEFINE_BEHAVIORS,
+            function(DefineBehaviorsEvent $event): void {
+                $event->behaviors['timeloop'] = TimeloopQueryBehavior::class;
             }
         );
 

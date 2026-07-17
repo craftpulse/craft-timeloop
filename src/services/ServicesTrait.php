@@ -60,4 +60,21 @@ trait ServicesTrait
 
         return $service;
     }
+
+    /**
+     * Returns the Occurrence Index service.
+     *
+     * @return OccurrenceIndexService
+     * @throws InvalidConfigException if the component is misconfigured.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function getOccurrenceIndex(): OccurrenceIndexService
+    {
+        $service = $this->get('occurrenceIndex');
+        assert($service instanceof OccurrenceIndexService);
+
+        return $service;
+    }
 }

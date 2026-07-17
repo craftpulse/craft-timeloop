@@ -22,6 +22,15 @@ use craft\base\Model;
  *
  * https://craftcms.com/docs/plugins/models
  *
+ * The plugin has no control-panel settings screen (`hasCpSettings = false`), so
+ * [[indexHorizon]] is overridden from a `config/timeloop.php` file:
+ *
+ * ```php
+ * return [
+ *     'indexHorizon' => '+3 years',
+ * ];
+ * ```
+ *
  * @author    craftpulse
  * @package   Timeloop
  * @since     1.0.0
@@ -30,6 +39,19 @@ class SettingsModel extends Model
 {
     // Public Properties
     // =========================================================================
+
+    /**
+     * @var string How far ahead the occurrence index is expanded, as a relative
+     * date-modifier string (see PHP's `DateTime::modify()`), e.g. `+2 years`.
+     *
+     * Infinite rules cannot be fully indexed, so the index only stores
+     * occurrences up to `now + indexHorizon`; the nightly `timeloop/occurrences/refresh`
+     * console command rolls the window forward as time passes. A finite rule is
+     * always indexed to its own natural end, never past this horizon.
+     *
+     * @since 5.1.0
+     */
+    public string $indexHorizon = '+2 years';
 
     /**
      * @var bool

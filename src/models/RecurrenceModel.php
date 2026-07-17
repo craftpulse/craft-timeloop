@@ -359,14 +359,78 @@ class RecurrenceModel extends Model
      */
     public function activeAt(DateTimeInterface $dateTime): bool
     {
+        return $this->currentOccurrence($dateTime) !== null;
+    }
+
+    /**
+     * Returns the start of the occurrence in progress at the given date-time, or null.
+     *
+     * Resolves the last occurrence starting at or before the given instant and
+     * returns its start only when the instant still falls inside that
+     * occurrence's active window (see [[activeAt()]] for the window semantics).
+     * Returns null when no occurrence is in progress.
+     *
+     * Cost is O(occurrences since [[dtstart]]) per call, for the same reason as
+     * [[activeAt()]]: the library re-expands the series from its start on every
+     * `getOccurrencesBefore()`. Fine for a single-value check; the Phase 6
+     * occurrence index is the at-scale path.
+     *
+     * @param DateTimeInterface $dateTime
+     * @return ?DateTimeImmutable
+     * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if [[dtstart]] or [[timezone]] cannot be parsed into a date-time, or an
+     * exclusion/extra date cannot be parsed (see [[_rset()]]).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function currentOccurrence(DateTimeInterface $dateTime): ?DateTimeImmutable
+    {
         $occurrences = $this->_rset()->getOccurrencesBefore($dateTime, true, 1);
         $start = $occurrences === [] ? null : $this->_toImmutable(end($occurrences));
 
         if ($start === null) {
-            return false;
+            return null;
         }
 
-        return $dateTime >= $start && $dateTime < $this->_windowEnd($start);
+        return $dateTime >= $start && $dateTime < $this->_windowEnd($start) ? $start : null;
+    }
+
+    /**
+     * Returns the occurrences between two dates as `[start, end)` window tuples.
+     *
+     * The single expansion-to-rows computation the occurrence index is built on:
+     * each occurrence in `[from, to]` (inclusive of both boundaries) becomes a
+     * `{start, end}` pair, where `end` is the occurrence's active-window end (see
+     * [[_windowEnd()]]) — the `endTime` boundary for a timed occurrence, or the
+     * following midnight for an all-day one. Any injected exclusions (holidays)
+     * already applied to the set via [[setExtraExclusions()]] are honoured, so a
+     * holiday landing on an occurrence produces no row.
+     *
+     * This method is pure (no `Craft::$app`, no database): the index service maps
+     * its output to storage rows, and the Pest suite exercises the row shape
+     * directly.
+     *
+     * @param DateTimeInterface $from The lower boundary (inclusive).
+     * @param DateTimeInterface $to The upper boundary (inclusive).
+     * @param ?int $limit Maximum number of rows (null or `0` means everything within the range).
+     * @return array<int, array{start: DateTimeImmutable, end: DateTimeImmutable}>
+     * @throws \InvalidArgumentException if the rule cannot be parsed.
+     * @throws \Exception if [[dtstart]] or [[timezone]] cannot be parsed into a date-time, or an
+     * exclusion/extra date cannot be parsed (see [[occurrencesBetween()]]).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function occurrenceRows(DateTimeInterface $from, DateTimeInterface $to, ?int $limit = null): array
+    {
+        return array_map(
+            fn(DateTimeImmutable $start): array => [
+                'start' => $start,
+                'end' => $this->_windowEnd($start),
+            ],
+            $this->occurrencesBetween($from, $to, $limit),
+        );
     }
 
     // Private Methods

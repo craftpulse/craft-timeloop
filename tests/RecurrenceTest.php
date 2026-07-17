@@ -602,3 +602,90 @@ it('matches occursAt regardless of the input timezone or DateTime mutability', f
         ->and($model->occursAt(brussels('2026-01-12T09:00:00')))->toBeTrue()
         ->and($model->occursAt(new DateTimeImmutable('2026-01-12T09:00:00', new DateTimeZone('UTC'))))->toBeFalse();
 });
+
+// currentOccurrence
+// -------------------------------------------------------------------------
+
+it('returns the in-progress occurrence start within a timed window', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T19:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=4',
+        'endTime' => '21:00',
+    ]);
+
+    expect($model->currentOccurrence(brussels('2026-01-05T20:00:00'))?->format('Y-m-d H:i'))->toBe('2026-01-05 19:00')
+        ->and($model->currentOccurrence(brussels('2026-01-05T19:00:00'))?->format('Y-m-d H:i'))->toBe('2026-01-05 19:00')
+        ->and($model->currentOccurrence(brussels('2026-01-05T21:00:00')))->toBeNull()
+        ->and($model->currentOccurrence(brussels('2026-01-05T18:00:00')))->toBeNull();
+});
+
+it('returns the current all-day occurrence start', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T00:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=4',
+    ]);
+
+    expect($model->currentOccurrence(brussels('2026-01-05T14:00:00'))?->format('Y-m-d'))->toBe('2026-01-05')
+        ->and($model->currentOccurrence(brussels('2026-01-06T00:00:00')))->toBeNull();
+});
+
+// occurrenceRows
+// -------------------------------------------------------------------------
+
+it('derives timed [start, end) window rows', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T19:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO;COUNT=3',
+        'endTime' => '21:00',
+    ]);
+
+    $rows = $model->occurrenceRows(brussels('2026-01-01T00:00:00'), brussels('2026-02-01T00:00:00'));
+
+    expect(array_map(fn(array $r) => [
+        $r['start']->format('Y-m-d H:i'),
+        $r['end']->format('Y-m-d H:i'),
+    ], $rows))->toBe([
+        ['2026-01-05 19:00', '2026-01-05 21:00'],
+        ['2026-01-12 19:00', '2026-01-12 21:00'],
+        ['2026-01-19 19:00', '2026-01-19 21:00'],
+    ]);
+});
+
+it('derives all-day rows spanning to the following midnight', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T00:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=DAILY;COUNT=2',
+    ]);
+
+    $rows = $model->occurrenceRows(brussels('2026-01-01T00:00:00'), brussels('2026-01-31T00:00:00'));
+
+    expect(array_map(fn(array $r) => [
+        $r['start']->format('Y-m-d H:i'),
+        $r['end']->format('Y-m-d H:i'),
+    ], $rows))->toBe([
+        ['2026-01-05 00:00', '2026-01-06 00:00'],
+        ['2026-01-06 00:00', '2026-01-07 00:00'],
+    ]);
+});
+
+it('caps infinite-rule rows at the horizon and omits excluded rows', function() {
+    $model = recurrence([
+        'dtstart' => '2026-01-05T19:00:00',
+        'timezone' => 'Europe/Brussels',
+        'rrule' => 'FREQ=WEEKLY;BYDAY=MO',
+        'endTime' => '21:00',
+    ]);
+    // Exclude the second Monday; the horizon caps expansion at three weeks.
+    $model->setExtraExclusions(['2026-01-12']);
+
+    $rows = $model->occurrenceRows(brussels('2026-01-01T00:00:00'), brussels('2026-01-26T00:00:00'));
+
+    expect(array_map(fn(array $r) => $r['start']->format('Y-m-d'), $rows))->toBe([
+        '2026-01-05',
+        '2026-01-19',
+    ]);
+});
