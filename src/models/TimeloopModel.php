@@ -10,10 +10,12 @@
 
 namespace craftpulse\timeloop\models;
 
+use Craft;
 use craft\base\Model;
 use craftpulse\timeloop\Timeloop;
 use DateTime;
 use DateTimeZone;
+use Throwable;
 
 /**
  * Timeloop field value model.
@@ -213,6 +215,37 @@ class TimeloopModel extends Model
             'rdates' => $this->rdates,
             'endTime' => $this->endTime,
         ]);
+    }
+
+    /**
+     * Returns a localized, human-readable summary of the recurrence rule.
+     *
+     * Delegates to {@see RecurrenceModel::summary()}, which wraps the library's
+     * `humanReadable()` (18 locales, including en, nl, fr and de) and falls back
+     * to English for a locale its catalogue lacks. The summary describes the
+     * RRULE only (frequency, interval, by-day, end condition); the holiday
+     * exclusions are resolved per-year at read time and are deliberately not
+     * part of the wording. Returns null when the value carries no rule.
+     *
+     * When no locale is given it resolves to the current site's language, so
+     * `entry.field.summary` renders in the language of the page it appears on.
+     * The resolution degrades to null (and therefore to the library's English
+     * fallback) outside a booted Craft application, e.g. in the standalone test
+     * suite.
+     *
+     * @param ?string $locale The locale to render in (e.g. `nl`, `fr-FR`); null uses the current site language.
+     * @return ?string
+     * @throws \InvalidArgumentException if the rule cannot be parsed, or the locale is malformed
+     * and the `intl` extension is unavailable (see {@see RecurrenceModel::summary()}).
+     * @throws \Exception if the stored `dtstart` or `timezone` cannot be parsed into a date-time
+     * (see {@see RecurrenceModel::summary()}).
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    public function getSummary(?string $locale = null): ?string
+    {
+        return $this->getRecurrence()?->summary($locale ?? $this->_currentLanguage());
     }
 
     /**
@@ -426,6 +459,28 @@ class TimeloopModel extends Model
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Returns the current site's language, or null when no Craft app is booted.
+     *
+     * Wrapped so a non-booted unit context (the standalone Pest suite) degrades
+     * to null instead of erroring, at which point the summary falls back to the
+     * library's English catalogue. Mirrors the guarded pattern in
+     * {@see \craftpulse\timeloop\services\HolidaysService}.
+     *
+     * @return ?string The site language, or null.
+     *
+     * @author CraftPulse
+     * @since 5.1.0
+     */
+    private function _currentLanguage(): ?string
+    {
+        try {
+            return Craft::$app->getSites()->getCurrentSite()->language;
+        } catch (Throwable) {
+            return null;
+        }
+    }
 
     /**
      * Memoizes and returns the next two upcoming occurrences.
