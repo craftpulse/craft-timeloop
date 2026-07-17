@@ -20,7 +20,7 @@
  * @since 5.1.0
  */
 return [
-    'A lead time computed before each occurrence.' => 'Een aankondigingstijd die voor elke datum wordt berekend.',
+    'A lead time computed before each occurrence.' => 'Een voorlooptijd die voor elke datum wordt berekend.',
     'Add a start time and end time to each occurrence.' => 'Voeg aan elke datum een begin- en eindtijd toe.',
     'Add an excluded date' => 'Uitgesloten datum toevoegen',
     'Add an extra date' => 'Extra datum toevoegen',
@@ -63,7 +63,7 @@ return [
     'Public holidays' => 'Feestdagen',
     'Region' => 'Regio',
     'Reminder' => 'Herinnering',
-    'Reminder lead time' => 'Aankondigingstijd herinnering',
+    'Reminder lead time' => 'Voorlooptijd van de herinnering',
     'Reminder period' => 'Herinneringsperiode',
     'Remove' => 'Verwijderen',
     'Repeat every' => 'Herhaal elke',
