@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Important upgrade notes
 
 - **The storage upgrade is one-way.** Stored field values are migrated to a new RRULE-based format on `craft up`. Downgrading to 5.0.0 afterwards reads every migrated value as empty, so pin your plugin version before deploying. The migration is lossless, idempotent, and skips (rather than breaks on) any value it cannot parse; skipped values are upgraded at read time instead.
-- **Entries saved with 4.x or a 5.0.0 beta get the #62 end-time repair applied during migration** — no manual resave needed for that fix on this upgrade path.
+- **Entries saved with 4.x or a 5.0.0 beta get the #62 end-time repair applied during migration.** No manual resave is needed for that fix on this upgrade path.
 - Four narrow output changes versus 5.0.0, each toward correctness: an occurrence landing exactly on the end date is now included; monthly loops starting on day 29/30 (not the month's last day) skip short months instead of clamping; an occurrence landing exactly on "now" counts as upcoming; `recurringDates()` backed by a fresh occurrence index returns all in-window dates instead of capping at 100 for never-ending rules.
 - The GraphQL `loopReminder` field previously resolved to `null` for every value due to a bug; it now returns the reminder period (for example `days`). Schema shape is unchanged.
 - Set up the nightly horizon roll on new installs: `php craft timeloop/occurrences/refresh` (cron), so the occurrence index keeps covering future dates and next years' public holidays.

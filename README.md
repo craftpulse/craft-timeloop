@@ -1,18 +1,18 @@
 # Timeloop for Craft CMS
 
-Timeloop generates arrays of dates between a start and end date based on a frequency — recurring events, repeating classes, courses, payment schedules — without complex recurrence inputs. Authors pick a start date, a frequency, and an interval; your templates get clean `DateTime` arrays back.
+Timeloop generates arrays of dates between a start and end date based on a frequency: recurring events, repeating classes, courses, payment schedules, all without complex recurrence inputs. Authors pick a start date, a frequency, and an interval; your templates get clean `DateTime` arrays back.
 
 ![Screenshot](./resources/img/timeloop-banner.jpg)
 
 ## Features
 
-- **Timeloop field type** — a single field that captures start/end dates, optional start/end times, frequency, interval, and refinements per frequency.
-- **Four frequencies** — daily, weekly, monthly, and yearly, each with a configurable interval (every 2 weeks, every 3 months, ...).
-- **Weekly day selection** — repeat on specific weekdays, e.g. every week on Monday and Friday.
-- **Monthly ordinals** — repeat on the first, second, third, fourth, or last weekday of the month, e.g. "last Saturday of every month".
-- **Computed dates in Twig** — `dates`, `upcoming`, and `nextUpcoming` on the field value, plus a `recurringDates()` function to collect dates across a whole element query.
-- **Reminder offset** — store a reminder period (e.g. 2 days before) and read the computed reminder date for the next occurrence.
-- **GraphQL support** — query the field's raw settings and computed dates, and set the field through mutations.
+- **Timeloop field type**: a single field that captures start/end dates, optional start/end times, frequency, interval, and refinements per frequency.
+- **Four frequencies**: daily, weekly, monthly, and yearly, each with a configurable interval (every 2 weeks, every 3 months, ...).
+- **Weekly day selection**: repeat on specific weekdays, e.g. every week on Monday and Friday.
+- **Monthly ordinals**: repeat on the first, second, third, fourth, or last weekday of the month, e.g. "last Saturday of every month".
+- **Computed dates in Twig**: `dates`, `upcoming`, and `nextUpcoming` on the field value, plus a `recurringDates()` function to collect dates across a whole element query.
+- **Reminder offset**: store a reminder period (e.g. 2 days before) and read the computed reminder date for the next occurrence.
+- **GraphQL support**: query the field's raw settings and computed dates, and set the field through mutations.
 
 ## Requirements
 
@@ -54,14 +54,14 @@ Or install through the Plugin Store: **Settings → Plugins → Search "Timeloop
 
 Create a new field and pick **Timeloop** as the field type. The field has one setting:
 
-- **Show Times** — when enabled, authors can set a start time and end time alongside the start and end dates. The times are merged into the stored dates (occurrences start at the start time; the loop end date ends at the end time, or 23:59 when no end time is set).
+- **Show Times**: when enabled, authors can set a start time and end time alongside the start and end dates. The times are merged into the stored dates (occurrences start at the start time; the loop end date ends at the end time, or 23:59 when no end time is set).
 
 Authors then configure each entry's loop:
 
-- **Start date** (required) — the first occurrence.
-- **End date** (optional) — when the loop stops. Without an end date, dates are generated up to 20 years ahead.
-- **Loop period** — the frequency (daily, weekly, monthly, or yearly) and the interval between occurrences. Weekly loops can target specific days of the week; monthly loops can target an ordinal weekday (e.g. "last Friday").
-- **Reminder** (optional) — a value and unit (days, weeks, months, or years) subtracted from the next occurrence to produce a reminder date. Timeloop computes the date; sending the actual notification is up to your project.
+- **Start date** (required): the first occurrence.
+- **End date** (optional): when the loop stops. Without an end date, dates are generated up to 20 years ahead.
+- **Loop period**: the frequency (daily, weekly, monthly, or yearly) and the interval between occurrences. Weekly loops can target specific days of the week; monthly loops can target an ordinal weekday (e.g. "last Friday").
+- **Reminder** (optional): a value and unit (days, weeks, months, or years) subtracted from the next occurrence to produce a reminder date. Timeloop computes the date; sending the actual notification is up to your project.
 
 ## Templating
 
@@ -159,7 +159,7 @@ For monthly loops, `timestring` returns the ordinal weekday configuration:
 
 ### Collecting dates across entries
 
-The `recurringDates()` Twig function expands a whole element query into recurring dates within a window — handy for calendars and agenda views. Pass the query, the Timeloop field handle, and a start and end date (boundaries are inclusive):
+The `recurringDates()` Twig function expands a whole element query into recurring dates within a window, handy for calendars and agenda views. Pass the query, the Timeloop field handle, and a start and end date (boundaries are inclusive):
 
 ```twig
 {% set agenda = recurringDates(craft.entries.section('events'), 'schedule', '2026-01-01', '2026-12-31') %}
@@ -208,13 +208,13 @@ The field exposes the stored settings and the computed dates. Dates support Craf
 }
 ```
 
-- `loopPeriod.frequency` — the selected frequency (`P1D`, `P1W`, `P1M` or `P1Y`)
-- `loopPeriod.cycle` — the interval between occurrences
-- `loopPeriod.days` — the selected weekdays for weekly loops
-- `loopPeriod.timestring` — the `ordinal` (e.g. `last`) and `day` (e.g. `saturday`) for monthly loops
-- `getDates` — the computed dates; accepts `limit` (default `100`) and `futureDates` (default `true`)
-- `getUpcoming` — the first upcoming occurrence
-- `getReminder` — the reminder date for the first upcoming occurrence
+- `loopPeriod.frequency`: the selected frequency (`P1D`, `P1W`, `P1M` or `P1Y`)
+- `loopPeriod.cycle`: the interval between occurrences
+- `loopPeriod.days`: the selected weekdays for weekly loops
+- `loopPeriod.timestring`: the `ordinal` (e.g. `last`) and `day` (e.g. `saturday`) for monthly loops
+- `getDates`: the computed dates; accepts `limit` (default `100`) and `futureDates` (default `true`)
+- `getUpcoming`: the first upcoming occurrence
+- `getReminder`: the reminder date for the first upcoming occurrence
 
 ### Mutating
 

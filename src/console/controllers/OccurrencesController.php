@@ -21,7 +21,7 @@ use yii\console\ExitCode;
 /**
  * Maintains the Timeloop occurrence index from the command line.
  *
- * Thin controller: every action delegates to {@see OccurrenceIndexService}.
+ * Thin controller: every action delegates to Timeloop's occurrence-index service.
  *
  * - `timeloop/occurrences/refresh` rolls the expansion horizon forward by
  *   re-expanding every already-indexed value in place (no truncation window),
